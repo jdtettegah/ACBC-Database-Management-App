@@ -1,0 +1,39 @@
+.security-overview {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    margin-top: 20px;
+  }
+  
+  .security-overview h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+  }
+  
+  .security-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+  
+  .status-safe strong {
+    color: green;
+  }
+  
+  .security-btn {
+    margin-top: 15px;
+    width: 100%;
+    background: #4d4dea;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .security-btn:hover {
+    background: #3c3cd9;
+  }
+  

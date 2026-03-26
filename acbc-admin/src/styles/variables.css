@@ -1,0 +1,41 @@
+/* =========================
+   LIGHT MODE (DEFAULT)
+   ========================= */
+   :root {
+    /* Brand colors */
+    --primary: #1f3a5f;
+    --primary-light: #2e5a8a;
+    --accent: #d4af37;
+  
+    /* Backgrounds */
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+  
+    /* Text */
+    --text: #1e293b;
+    --muted: #64748b;
+  
+    /* Borders & effects */
+    --border: #e2e8f0;
+    --radius: 8px;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* =========================
+     DARK MODE
+     ========================= */
+  [data-theme="dark"] {
+    --primary: #3b82f6;
+    --primary-light: #60a5fa;
+    --accent: #facc15;
+  
+    --bg: #0f172a;
+    --surface: #1e293b;
+  
+    --text: #e5e7eb;
+    --muted: #94a3b8;
+  
+    --border: #334155;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+  

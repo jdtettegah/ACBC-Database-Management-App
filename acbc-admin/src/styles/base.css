@@ -1,0 +1,88 @@
+/* =========================
+   RESET & GLOBAL DEFAULTS
+   ========================= */
+   *,
+   *::before,
+   *::after {
+     box-sizing: border-box;
+     margin: 0;
+     padding: 0;
+   }
+   
+   /* =========================
+      BASE BODY STYLES
+      ========================= */
+   body {
+     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+       Roboto, Ubuntu, sans-serif;
+   
+     background-color: var(--bg);
+     color: var(--text);
+   
+     line-height: 1.5;
+     min-height: 100vh;
+   
+     transition: background-color 0.25s ease, color 0.25s ease;
+   }
+   
+   /* =========================
+      TEXT & LINKS
+      ========================= */
+   a {
+     text-decoration: none;
+     color: inherit;
+   }
+   
+   p {
+     color: var(--text);
+   }
+   
+   small {
+     color: var(--muted);
+   }
+   
+   /* =========================
+      BUTTONS & FORM ELEMENTS
+      ========================= */
+   button {
+     cursor: pointer;
+     border: none;
+     font-family: inherit;
+     background: none;
+     color: inherit;
+   }
+   
+   input,
+   select,
+   textarea {
+     font-family: inherit;
+     color: inherit;
+     background-color: var(--surface);
+     border: 1px solid var(--border);
+     border-radius: var(--radius);
+     padding: 0.6rem 0.75rem;
+   }
+   
+   input:focus,
+   select:focus,
+   textarea:focus {
+     outline: none;
+     border-color: var(--primary);
+   }
+   
+   /* =========================
+      SCROLLBAR (OPTIONAL BUT NICE)
+      ========================= */
+   ::-webkit-scrollbar {
+     width: 8px;
+   }
+   
+   ::-webkit-scrollbar-track {
+     background: transparent;
+   }
+   
+   ::-webkit-scrollbar-thumb {
+     background-color: var(--muted);
+     border-radius: 4px;
+   }
+   

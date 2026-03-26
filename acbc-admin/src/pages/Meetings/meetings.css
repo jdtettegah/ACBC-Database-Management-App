@@ -1,0 +1,120 @@
+.meetings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .meetings-header button {
+    background: #4d4dea;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .meetings-filters {
+    display: flex;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  
+  .meetings-filters select,
+  .meetings-filters input {
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  
+  .meetings-table {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+  
+  .meetings-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .meetings-table th,
+  .meetings-table td {
+    padding: 12px;
+  }
+  
+  .meetings-table th {
+    background: #f3f4ff;
+    color: #2f2fd6;
+  }
+  
+  .edit-btn {
+    background: transparent;
+    border: 1px solid #4d4dea;
+    color: #4d4dea;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  /* MODAL */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 420px;
+  }
+  
+  .modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 20px;
+  }
+  
+  .modal input,
+  .modal select,
+  .modal textarea {
+    padding: 0.6rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+  
+  @media (max-width: 1024px) {
+   
+  
+  }
+
+  @media (max-width: 600px) {
+    /* HEADER */
+   
+  
+    /* TABLE */
+    .members-table-wrapper {
+      overflow-x: auto;
+      margin: auto;
+    }
+  
+    .meetings-table {
+      min-width: 650px;
+      margin: auto;
+    }
+  
+   
+  }
+  

@@ -1,0 +1,317 @@
+.members-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* HEADER */
+  .members-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 500px;
+  }
+  
+  .add-member-button {
+    background: #4d4dea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 7px;
+  }
+  
+  .add-member-button:hover {
+    background: #3c3cd9;
+    
+    
+  }
+  
+  /* STATS */
+  .members-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+  }
+  
+  .stats-card {
+    background: #4d4dea;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  
+  .stats-card h3 {
+    font-size: 16px;
+    color: black;
+    font-weight: 10;
+  }
+  
+  .stats-card p {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 5px;
+    color: white;
+  }
+  
+  /* CONTROLS */
+  .members-controls {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .members-controls input,
+  .members-controls select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+  
+  /* TABLE */
+  .members-table-wrapper {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  
+  .members-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .members-table th,
+  .members-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .members-table th {
+    background: #f5f7fb;
+    font-weight: bold;
+  }
+  
+  /* STATUS */
+  .status.active {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .status.inactive {
+    color: red;
+    font-weight: bold;
+  }
+  
+  /* ACTIONS */
+  .view-btn,
+  .edit-btn,
+  .delete-btn {
+    padding: 6px 10px;
+    margin-right: 5px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  
+  .view-btn {
+    background: #e0e7ff;
+  }
+  
+  .edit-btn {
+    background: #fde68a;
+  }
+  
+  .delete-btn {
+    background: #fecaca;
+  }
+  
+
+  @media (max-width: 1024px) {
+    .members-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  
+    .members-controls {
+      flex-wrap: wrap;
+    }
+  
+    .members-controls input,
+    .members-controls select {
+      flex: 1;
+      min-width: 180px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    /* HEADER */
+    .members-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  
+    .add-member-btn {
+      width: 100%;
+    }
+  
+    /* STATS */
+    .members-stats {
+      grid-template-columns: 1fr;
+    }
+  
+    /* CONTROLS */
+    .members-controls {
+      flex-direction: column;
+    }
+  
+    .members-controls input,
+    .members-controls select {
+      width: 100%;
+    }
+  
+    /* TABLE */
+    .members-table-wrapper {
+      overflow-x: auto;
+      margin: auto;
+    }
+  
+    .members-table {
+      min-width: 650px;
+      margin: auto;
+    }
+  
+    /* ACTION BUTTONS */
+    .view-btn,
+    .edit-btn,
+    .delete-btn {
+      margin-bottom: 5px;
+    }
+  }
+  
+  .confirm-box {
+    background: white;
+    padding: 25px;
+    width: 350px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  
+  .confirm-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .filter-bar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    margin: 10px;
+  }
+  
+  .filter-bar input,
+  .filter-bar select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+  
+
+  .view-box {
+    background: #ffffff;
+    max-width: 450px;
+    width: 90%;
+    margin: 50px auto;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    font-family: "Segoe UI", sans-serif;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  /* Title */
+  .view-box h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 22px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+  }
+  
+  /* Profile rows */
+  .view-box p {
+    margin: 10px 0;
+    font-size: 15px;
+    color: #444;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  /* Label */
+  .view-box p b {
+    color: #222;
+    min-width: 120px;
+  }
+  
+  /* Close button */
+  .view-box .cancel-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 10px;
+    background: #ab8484;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s ease;
+  }
+  
+  .view-box .cancel-btn:hover {
+    background: #ab8484;
+  }
+  
+  /* Fade animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .assign-box {
+    background: white;
+    padding: 25px;
+    width: 450px;
+    border-radius: 12px;
+  }
+  
+  .dept-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .dept-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+  }
+  
+  .assign-row {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .assign-row select {
+    flex: 1;
+    padding: 6px;
+  }
+  

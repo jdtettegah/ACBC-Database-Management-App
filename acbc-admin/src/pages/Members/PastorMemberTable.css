@@ -1,0 +1,77 @@
+.pastor-members-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .member-search {
+    max-width: 300px;
+    padding: 0.7rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  
+  /* Table */
+  .table-wrapper {
+    background: white;
+    border-radius: 15px;
+    padding: 1rem;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  }
+  
+  .members-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .members-table th,
+  .members-table td {
+    padding: 0.8rem;
+    text-align: left;
+  }
+  
+  .members-table th {
+    background: #f5f7fb;
+  }
+  
+  /* View Button */
+  .view-button {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    background: #4d4dea;
+    color: white;
+    cursor: pointer;
+  }
+  
+  /* Modal */
+  .member-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 350px;
+  }
+  
+  .modal-content button {
+    margin-top: 1rem;
+    background: #2f2fd6;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 1024px) {
+    .table-wrapper{
+      overflow: auto;
+    }
+  } 

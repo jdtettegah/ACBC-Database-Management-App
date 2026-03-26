@@ -1,0 +1,233 @@
+.departments-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* HEADER */
+  
+  .departments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .add-dept-btn {
+    background: #4d4dea;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  /* STATS */
+  
+  .departments-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+  
+  /* TABLE */
+  
+  .departments-table-wrapper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  
+  .departments-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .departments-table th,
+  .departments-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .departments-table th {
+    background: #f5f7fb;
+  }
+  
+  /* FORM */
+  
+  .form-box {
+    background: white;
+    padding: 25px;
+    width: 400px;
+    border-radius: 12px;
+  }
+  
+  .form-box input,
+  .form-box textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-top: 20px;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .departments-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 20px;
+  }
+  
+  /* LEFT */
+  
+  .departments-list {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+  }
+
+  .departments-list h3{
+    margin-bottom: 10px;
+  }
+  
+  .dept-item {
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+  
+  .dept-item:hover {
+    background: #f0f3ff;
+  }
+  
+  .dept-item.active {
+    background: #4d4dea;
+    color: white;
+  }
+  
+  
+  /* RIGHT */
+  
+  .department-panel {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+  }
+  
+  
+  .assign-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .assign-box select {
+    padding: 7px;
+    border-radius: 6px;
+    width: 1200px;
+    height: 50px;
+  }
+  
+  
+  .assign-box button {
+    background: #4d4dea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 12px;
+    cursor: pointer;
+  }
+  
+  
+  /* TABLE */
+  
+  .dept-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+  
+  .dept-table th,
+  .dept-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+
+  /* HEADER */
+
+.departments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  
+  /* ADD BTN */
+  
+  .add-btn {
+    background: #4d4dea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .add-btn:hover {
+    background: #3c3cd9;
+  }
+  
+  
+  /* FORM */
+  
+  .dept-form {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 450px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  
+  .dept-form input,
+  .dept-form textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+  
+  .dept-form textarea {
+    resize: vertical;
+    min-height: 70px;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  
+  .save-btn {
+    background: #4d4dea;
+    color: white;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+  }
+  
+  .cancel-btn {
+    background: #e5e7eb;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+  }
+  

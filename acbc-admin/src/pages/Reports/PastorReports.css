@@ -1,0 +1,71 @@
+.report-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .stats-card {
+    background: white;
+    padding: 1.4rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    color: black;
+    margin-top: 10px;
+  }
+  
+  .stat-card h4 {
+    color: #555;
+  }
+  
+  .stats-card p {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #4d4dea;
+  }
+  
+  .report-filter {
+    display: flex;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  
+  .report-filter select {
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  
+  .report-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+  }
+  
+  .ministry-summary {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+  
+  .ministry-summary table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  
+  .ministry-summary th,
+  .ministry-summary td {
+    padding: 12px;
+    text-align: center;
+  }
+  
+  .ministry-summary th {
+    background: #f3f4ff;
+    color: #2f2fd6;
+  }
+
+  .pastor-reports h2{
+    color:#2f2fd6
+  }
+  

@@ -1,0 +1,121 @@
+/* ===== Base Layout ===== */
+.dashboard-layout {
+  min-height: 100vh;
+  background-image: url("../assets/background-7.png");
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.dashboard-container {
+  display: flex;
+  width: 100%;
+  max-width: 1300px;
+  height: 85vh;
+  border: 2px solid rgb(31, 65, 186);
+  border-radius: 20px;
+  background-color: #f5f7fb;
+  transition: all 0.3s ease;
+}
+
+.dashboard-sidebar {
+  width: 250px;
+  transition: all 0.3s ease;
+  overflow-y: auto;
+  scrollbar-width: none;
+  z-index: 20;  
+}
+
+.dashboard-sidebar::-webkit-scrollbar {
+  width: 0px;
+  background: transparent; /* optional: just hide scrollbar */
+}
+
+.dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+/* ===== Topbar ===== */
+.topbar {
+  display: flex;
+  padding: 1rem;
+  color: #fff;
+}
+
+.hamburger {
+  display: none; /* visible only on mobile */
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  color: #4d4dea;
+  cursor: pointer;
+  margin-right: 1rem;
+  z-index: 5;
+}
+
+/* ===== Overlay for mobile ===== */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;;
+  z-index: 900;
+}
+
+/* ===== Mobile / Tablet ===== */
+@media (max-width: 900px) {
+  .dashboard-container {
+    flex-direction: column;
+    height: 100vh;
+    max-width: 100%;
+    border-radius: 0;
+    border: none;
+    margin: auto;
+  }
+
+  .dashboard-sidebar {
+    position: fixed;
+    top: 0;
+    left: -250px; /* hidden by default */
+    height: 100%;
+    z-index: 1000;
+    ;
+  }
+
+  .dashboard-container.sidebar-open .dashboard-sidebar {
+    left: 0; /* slide in */
+  }
+
+  .dashboard-main {
+    flex: 1;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .hamburger {
+    display: block; /* show on mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    margin: auto;
+    border: none;
+  }
+
+  .dashboard-sidebar{
+    z-index: 1000;
+  }
+}
+

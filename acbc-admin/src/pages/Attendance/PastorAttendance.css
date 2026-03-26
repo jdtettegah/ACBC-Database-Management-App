@@ -1,0 +1,133 @@
+.pastor-attendance {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .pastor-attendance h2 {
+    color: #2f2fd6;
+    font-size: 26px;
+  }
+  
+  /* Summary */
+  .attendance-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .attendance-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+  
+  .attendance-card h4 {
+    color: #666;
+  }
+  
+  .attendance-card p {
+    font-size: 26px;
+    font-weight: bold;
+    color: #4d4dea;
+  }
+  
+  /* Charts */
+  .attendance-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+  }
+  
+  .chart-box {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 18px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  }
+  
+  .chart-box h3 {
+    margin-bottom: 1rem;
+    color: #2f2fd6;
+  }
+  
+  .date-filter {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .date-filter label {
+    font-weight: 600;
+  }
+  
+  .date-filter input {
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  
+  /* Table */
+  .attendance-table {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+  
+  .attendance-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  
+  .attendance-table th,
+  .attendance-table td {
+    padding: 12px;
+    text-align: left;
+  }
+  
+  .attendance-table th {
+    background: #f3f4ff;
+    color: #2f2fd6;
+  }
+  
+  .attendance-table tr:not(:last-child) {
+    border-bottom: 1px solid #eee;
+  }
+  
+  @media (max-width: 1024px) {
+    .attendance-table{
+      overflow: auto;
+    }
+
+    .pastor-attendance{
+      margin: auto;
+    }
+  }
+
+  @media (max-width: 300px) {
+    .attendance-table{
+      overflow: auto;
+      margin: auto;
+    }
+
+    .pastor-attendance{
+      margin: auto;
+    }
+  }
+
+  
+  @media (max-width: 500px) {
+    .attendance-table{
+      overflow : auto;
+      margin: auto;
+     
+    }
+
+    .pastor-attendance{
+      margin: auto;
+    }
+  }

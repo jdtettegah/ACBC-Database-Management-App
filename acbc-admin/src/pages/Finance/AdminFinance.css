@@ -1,0 +1,195 @@
+.finance-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* HEADER */
+  .finance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .add-transaction-btn {
+    background: #4d4dea;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .add-transaction-btn:hover {
+    background: #3c3cd9;
+  }
+  
+  /* STATS */
+  .finance-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+  
+  .stat-card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  
+  .stat-card h3 {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .stat-card p {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 5px;
+  }
+  
+  /* FILTERS */
+  .finance-controls {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .finance-controls input,
+  .finance-controls select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+  
+  /* TABLE */
+  .finance-table-wrapper {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  
+  .finance-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .finance-table th,
+  .finance-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .finance-table th {
+    background: #f5f7fb;
+    font-weight: bold;
+  }
+  
+  /* TYPE & STATUS */
+  .type.income {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .type.expense {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .status.completed {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .status.pending {
+    color: orange;
+    font-weight: bold;
+  }
+  
+  /* ACTIONS */
+  .view-btn,
+  .edit-btn,
+  .delete-btn {
+    padding: 6px 10px;
+    margin-right: 5px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  
+  .view-btn {
+    background: #e0e7ff;
+  }
+  
+  .edit-btn {
+    background: #fde68a;
+  }
+  
+  .delete-btn {
+    background: #fecaca;
+  }
+  
+  @media (max-width: 1024px) {
+    .members-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  
+    .members-controls {
+      flex-wrap: wrap;
+    }
+  
+    .members-controls input,
+    .members-controls select {
+      flex: 1;
+      min-width: 180px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    /* HEADER */
+    .members-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  
+    .add-member-btn {
+      width: 100%;
+    }
+  
+    /* STATS */
+    .members-stats {
+      grid-template-columns: 1fr;
+    }
+  
+    /* CONTROLS */
+    .members-controls {
+      flex-direction: column;
+    }
+  
+    .members-controls input,
+    .members-controls select {
+      width: 100%;
+    }
+  
+    /* TABLE */
+    .finance-table-wrapper {
+      margin: auto;
+    }
+  
+    .finance-table {
+      min-width: 650px;
+      margin: auto;
+    }
+  
+    /* ACTION BUTTONS */
+    .view-btn,
+    .edit-btn,
+    .delete-btn {
+      margin-bottom: 5px;
+    }
+  }
+  

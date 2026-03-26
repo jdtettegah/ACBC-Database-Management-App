@@ -1,0 +1,155 @@
+.events-container {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-top: 20px;
+}
+
+/* HEADER */
+.events-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.events-header h3 {
+  font-size: 18px;
+  color: #333;
+}
+
+/* ADD BUTTON */
+.events-header button {
+  background: #4d4dea;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.3s ease;
+}
+
+.events-header button:hover {
+  background: #3c3cd9;
+}
+
+/* FORM */
+.event-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 15px;
+  background: #f8f9ff;
+  border-radius: 10px;
+}
+
+.event-form input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  font-size: 13px;
+}
+
+.event-form input:focus {
+  border-color: #4d4dea;
+}
+
+/* SAVE BUTTON */
+.event-form button {
+  grid-column: span 2;
+  background: #4d4dea;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.event-form button:hover {
+  background: #3c3cd9;
+}
+
+/* EVENTS LIST */
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* EVENT CARD */
+.event-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  transition: 0.3s;
+}
+
+.event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* INFO */
+.event-info h4 {
+  margin: 0;
+  font-size: 15px;
+  color: #333;
+}
+
+.event-info p {
+  margin: 3px 0;
+  font-size: 13px;
+  color: #666;
+}
+
+/* ACTIONS */
+.event-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* BUTTONS */
+.addToCalender-btn {
+  background: #4d4dea;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.addToCalender-btn:hover {
+  background: #3c3cd9;
+}
+
+.delete-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #c0392b;
+}
+
+/* EMPTY STATE */
+.no-events {
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  padding: 10px;
+}

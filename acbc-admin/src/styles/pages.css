@@ -1,0 +1,248 @@
+/* =========================
+   AUTH / LOGIN PAGE
+========================= */
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    background: #f5f7fa;
+    position: relative;
+  }
+
+  .auth-brand-form{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    margin: auto;
+  }
+  
+  /* ---------- LEFT BRAND ---------- */
+  .auth-brand {
+    flex: 1;
+    padding: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 100px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  }
+  
+  #acbc-logo {
+    width: 500px;
+    margin-top: -120px;
+    margin-left: 50px;
+  }
+  
+  .auth-brand h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #000;
+    margin-top: -140px;
+    margin-left: 70px;
+  }
+  
+  .auth-brand p {
+    font-size: 1rem;
+    color: #374151;
+    max-width: 420px;
+    line-height: 1.6;
+    margin-left: 90px;
+    margin-top: 40px
+  }
+  
+  /* ---------- RIGHT FORM ---------- */
+  .auth-form {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 180px;
+  }
+  
+  /* CARD */
+  .auth-form form {
+    width: 470px;
+    background: #ffffff;
+    padding: 2.8rem;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* TITLE */
+  .auth-form h2 {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #4d4dea; /* green accent like reference */
+    margin-bottom: 1.8rem;
+  }
+  
+  /* LABELS */
+  .auth-form label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 0.3rem;
+  }
+  
+  /* INPUTS */
+  .auth-form input {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.95rem;
+    background: #eef4fd;
+    margin-bottom: 1.2rem;
+  }
+  
+  .auth-form input:focus {
+    outline: none;
+    border-color: #2563eb;
+    background: #ffffff;
+  }
+  
+  /* PASSWORD FIELD */
+  .password-wrapper {
+    position: relative;
+  }
+  
+  .toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 38%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 1rem;
+    color: #6b7280;
+  }
+  
+  /* BUTTON */
+  .auth-form button {
+    width: 100%;
+    padding: 0.75rem;
+    background: #4d4dea; /* green button */
+    color: #ffffff;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-top: 0.8rem;
+  }
+  
+  .auth-form button:hover {
+    background: #059669;
+  }
+  
+  .auth-form button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+  
+  /* ERROR */
+  .error-box {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 900px) {
+    .auth-container {
+      flex-direction: column;
+    }
+  
+    .auth-brand {
+      align-items: center;
+      text-align: center;
+      margin: auto;
+    }
+
+    .auth-brand-form{
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 50px;
+      
+    }
+
+    .auth-form{
+      align-items: center;
+      text-align: center;
+      justify-content: center;
+      margin: auto;
+    }
+  
+    .auth-brand p {
+      max-width: 100%;
+    }
+  }
+  
+  .auth-footer {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+  
+  .auth-footer p {
+    margin: 0;
+  }
+  
+  .logout-btn {
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .logout-btn:hover {
+    background: #b91c1c;
+  }
+  
+  @media (max-width: 480px) {
+    .auth-brand {
+      padding: 2rem 1.5rem;
+      align-items: center;
+      text-align: center;
+      justify-content: center;
+      margin: auto;
+    }
+  
+    #acbc-logo {
+      width: 280px;
+    }
+  
+    .auth-brand h1 {
+      font-size: 1.6rem;
+      align-items: center;
+      text-align: center;
+      justify-content: center;
+      margin: auto;
+    }
+  
+    .auth-form {
+      padding: 1rem;
+    }
+  
+    .auth-form form {
+      padding: 2rem 1.5rem;
+    }
+
+    .auth-brand-form{
+      align-items: center;
+      text-align: center;
+      justify-content: center;
+      margin: auto;
+    }
+  }
+  

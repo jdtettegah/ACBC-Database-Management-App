@@ -1,0 +1,89 @@
+.today-summary {
+    margin-top: 20px;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  .today-summary h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  /* GRID */
+  .todaySummary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+  }
+  
+  /* BASE CARD */
+  .todaySummary-card {
+    padding: 18px;
+    border-radius: 12px;
+    color: #fff;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* hover effect */
+  .todaySummary-card:hover {
+    transform: translateY(-4px);
+    cursor: pointer;
+  }
+  
+  /* ICON STYLE (optional future enhancement) */
+  .todaySummary-card::after {
+    content: "";
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+  }
+  
+  /* THEMES (SOFT DASHBOARD STYLE) */
+  
+  /* Income */
+  .todaySummary-card.income {
+    background: linear-gradient(135deg, #4d4dea, #6a6aff);
+  }
+  
+  /* Expenses */
+  .todaySummary-card.expense {
+    background: linear-gradient(135deg, #4a6fd3, #ff4d4d);
+  }
+  
+  /* Tithe */
+  .todaySummary-card.tithe {
+    background: linear-gradient(135deg, #4a6fd3, #8e44ad);
+  }
+  
+  /* Attendance */
+  .todaySummary-card.attendance {
+    background: linear-gradient(135deg, #4a6fd3, #5dade2);
+  }
+  
+  /* Visitors */
+  .todaySummary-card.visitors {
+    background: linear-gradient(135deg, #4a6fd3, #f5b041);
+  }
+  
+  /* TEXT */
+  .todaySummary-card p {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-bottom: 5px;
+    color: white;
+  }
+  
+  .todaySummary-card h2 {
+    font-size: 24px;
+    font-weight: bold;
+  }

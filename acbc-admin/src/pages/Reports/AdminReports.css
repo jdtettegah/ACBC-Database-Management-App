@@ -1,0 +1,181 @@
+.report-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* HEADER */
+  .report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .generate-report-btn {
+    background: #4d4dea;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .generate-report-btn:hover {
+    background: #3c3cd9;
+  }
+  
+  /* STATS */
+  .report-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+  
+  .stat-card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  
+  .stat-card h3 {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .stat-card p {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 5px;
+  }
+  
+  /* CONTROLS */
+  .report-controls {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .report-controls input,
+  .report-controls select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+  
+  /* TABLE */
+  .report-table-wrapper {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  
+  .report-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .report-table th,
+  .report-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .report-table th {
+    background: #f5f7fb;
+    font-weight: bold;
+  }
+  
+  /* STATUS */
+  .status.generated {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .status.pending {
+    color: orange;
+    font-weight: bold;
+  }
+  
+  /* ACTIONS */
+  .view-btn,
+  .download-btn {
+    padding: 6px 10px;
+    margin-right: 5px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  
+  .view-btn {
+    background: #e0e7ff;
+  }
+  
+  .download-btn {
+    background: #bbf7d0;
+  }
+  
+  @media (max-width: 1024px) {
+    .reports-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  
+    .members-controls {
+      flex-wrap: wrap;
+    }
+  
+    .members-controls input,
+    .members-controls select {
+      flex: 1;
+      min-width: 180px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    /* HEADER */
+    .members-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  
+    .add-member-btn {
+      width: 100%;
+    }
+  
+    /* STATS */
+    .members-stats {
+      grid-template-columns: 1fr;
+    }
+  
+    /* CONTROLS */
+    .members-controls {
+      flex-direction: column;
+    }
+  
+    .members-controls input,
+    .members-controls select {
+      width: 100%;
+    }
+  
+    /* TABLE */
+    .reports-table-wrapper {
+      overflow-x: auto;
+      margin: auto;
+    }
+  
+    .reports-table {
+      min-width: 650px;
+      margin: auto;
+    }
+  
+    /* ACTION BUTTONS */
+    .view-btn,
+    .edit-btn,
+    .delete-btn {
+      margin-bottom: 5px;
+    }
+  }
+  

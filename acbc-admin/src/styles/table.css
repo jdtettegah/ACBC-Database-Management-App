@@ -1,0 +1,17 @@
+.data-table {
+    width: 100%;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 0.9rem;
+    text-align: left;
+  }
+  
+  .data-table tbody tr:hover {
+    background: #f1f5f9;
+  }
+  

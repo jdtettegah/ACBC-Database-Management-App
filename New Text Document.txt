@@ -1,0 +1,602 @@
+$2b$10$oP4fWFKrLnuwFKfphAw9B.fBXk7P0lOKG4UtdP1v3Zs4xv5blIFfO
+
+
+
+import { NavLink } from "react-router-dom";
+
+function Sidebar({ role }) {
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-brand">
+        <h3>ACBC</h3>
+        <span>Admin Panel</span>
+      </div>
+
+      <nav>
+        <NavLink to="/dashboard">Dashboard</NavLink>
+
+        {(role === "admin") && <NavLink to="/members">Members</NavLink>}
+
+        {(role === "admin" || role === "general secretary") && (
+          <NavLink to="/attendance">Attendance</NavLink>
+        )}
+
+        {(role !== "pastor") && (
+          <NavLink to="/finance">Finance</NavLink>
+        )}
+
+        <NavLink to="/reports">Reports</NavLink>
+      </nav>
+    </aside>
+  );
+}
+
+export default Sidebar;
+
+
+background: linear-gradient(270deg, #4d4dea, #6f6ff2, #2f2fd6);
+background-size: 400% 400%;
+animation: gradientMove 6s ease infinite;
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+localStorage.setItem("role", "Pastor");
+  
+
+import { NavLink } from "react-router-dom";
+import churchLogo from "../assets/church-logo.png";
+import "./sidebar.css";
+
+function Sidebar() {
+  const links = [
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "Members", path: "/dashboard/members" },
+    { name: "Attendance", path: "/dashboard/attendance" },
+    { name: "Finance", path: "/dashboard/finance" },
+    { name: "Reports", path: "/dashboard/reports" },
+  ];
+
+  return (
+    <div className="sidebar">
+      <div className="sidebar-header">
+        <h2 className="logo">acbcAdmin</h2>
+        <img
+          src={churchLogo}
+          alt="ACBC Logo"
+          id="acbc-sidebar-logo"
+        />
+      </div>
+
+      <nav>
+        {links.map((link) => (
+          <NavLink
+            key={link.name}
+            to={link.path}
+            end={link.path === "/dashboard"} 
+            className={({ isActive }) =>
+              isActive ? "active" : ""
+            }
+          >
+            {link.name}
+          </NavLink>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+export default Sidebar;
+
+
+/* =========================
+   AUTH / LOGIN PAGE
+========================= */
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    background: #f5f7fa;
+    position: relative;
+  }
+  
+  /* ---------- LEFT BRAND ---------- */
+  .auth-brand {
+    flex: 1;
+    padding: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 100px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  }
+  
+  #acbc-logo {
+    width: 500px;
+    margin-top: -120px;
+  }
+  
+  .auth-brand h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #000;
+    margin-top: -140px;
+    margin-left: 70px;
+  }
+  
+  .auth-brand p {
+    font-size: 1rem;
+    color: #374151;
+    max-width: 420px;
+    line-height: 1.6;
+    margin-left: 70px;
+    margin-top: 40px
+  }
+  
+  /* ---------- RIGHT FORM ---------- */
+  .auth-form {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 180px;
+  }
+  
+  /* CARD */
+  .auth-form form {
+    width: 470px;
+    background: #ffffff;
+    padding: 2.8rem;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* TITLE */
+  .auth-form h2 {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #4d4dea; /* green accent like reference */
+    margin-bottom: 1.8rem;
+  }
+  
+  /* LABELS */
+  .auth-form label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 0.3rem;
+  }
+  
+  /* INPUTS */
+  .auth-form input {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.95rem;
+    background: #eef4fd;
+    margin-bottom: 1.2rem;
+  }
+  
+  .auth-form input:focus {
+    outline: none;
+    border-color: #2563eb;
+    background: #ffffff;
+  }
+  
+  /* PASSWORD FIELD */
+  .password-wrapper {
+    position: relative;
+  }
+  
+  .toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 38%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 1rem;
+    color: #6b7280;
+  }
+  
+  /* BUTTON */
+  .auth-form button {
+    width: 100%;
+    padding: 0.75rem;
+    background: #4d4dea; /* green button */
+    color: #ffffff;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-top: 0.8rem;
+  }
+  
+  .auth-form button:hover {
+    background: #4d4dea;
+  }
+  
+  .auth-form button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+  
+  /* ERROR */
+  .error-box {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 900px) {
+    .auth-container {
+      flex-direction: column;
+    }
+  
+    .auth-brand {
+      align-items: center;
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+  
+    .auth-brand p {
+      max-width: 100%;
+    }
+  }
+  
+  .auth-footer {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+  
+  .auth-footer p {
+    margin: 0;
+  }
+  
+  .logout-btn {
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .logout-btn:hover {
+    background: #b91c1c;
+  }
+  import "./AdminMember.css";
+import AddMember from "../../components/AddMember";
+
+
+function AdminMembers() {
+  return (
+    <div className="members-page">
+
+      {/* HEADER */}
+      <div className="members-header">
+        <h2>Members</h2>
+        <div className="action-btn" >
+          <AddMember />
+        </div>
+      </div>
+
+      {/* STATS */}
+      <div className="members-stats">
+        <div className="stats-card">
+          <h3>Total Members</h3>
+          <p>245</p>
+        </div>
+
+        <div className="stats-card">
+          <h3>Active</h3>
+          <p>220</p>
+        </div>
+
+        <div className="stats-card">
+          <h3>Inactive</h3>
+          <p>25</p>
+        </div>
+
+        <div className="stats-card">
+          <h3>New This Month</h3>
+          <p>12</p>
+        </div>
+      </div>
+
+      {/* SEARCH + FILTER */}
+      <div className="members-controls">
+        <input type="text" placeholder="Search member..." />
+
+        <select>
+          <option>All Groups</option>
+          <option>Youth</option>
+          <option>Men</option>
+          <option>Women</option>
+        </select>
+
+        <select>
+          <option>Status</option>
+          <option>Active</option>
+          <option>Inactive</option>
+        </select>
+      </div>
+
+      {/* TABLE */}
+      <div className="members-table-wrapper">
+        <table className="members-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Group</th>
+              <th>Status</th>
+              <th>Phone</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>ACBC001</td>
+              <td>John Doe</td>
+              <td>Youth</td>
+              <td className="status active">Active</td>
+              <td>024xxxxxxx</td>
+              <td>
+                <button className="view-btn">View</button>
+                <button className="edit-btn">Edit</button>
+                <button className="delete-btn">Delete</button>
+              </td>
+            </tr>
+
+            <tr>
+              <td>ACBC002</td>
+              <td>Mary Smith</td>
+              <td>Women</td>
+              <td className="status inactive">Inactive</td>
+              <td>020xxxxxxx</td>
+              <td>
+                <button className="view-btn">View</button>
+                <button className="edit-btn">Edit</button>
+                <button className="delete-btn">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  );
+}
+
+export default AdminMembers;
+
+
+INSERT INTO Users (email, password_hash, is_active)
+VALUES ('admin@acbc.org', '$2a$10$PASTE_HASH_HERE', 1);
+
+INSERT INTO UserRoles (user_id, role_id)
+VALUES (
+    (SELECT id FROM Users WHERE email = 'admin@acbc.org'),
+    (SELECT id FROM Roles WHERE name = 'Admin')
+);
+
+const bcrypt = require('bcryptjs');
+
+const password = 'Admin@123'; // choose your password
+const hash = bcrypt.hashSync(password, 10);
+
+console.log(hash);
+
+CREATE TABLE Income (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    income_type NVARCHAR(50) NOT NULL,  -- e.g. Offering, Donation, Fundraiser
+    amount DECIMAL(18,2) NOT NULL,
+
+    source_description NVARCHAR(255) NULL,
+    member_id INT NULL,                 -- optional FK to Members
+    recorded_by INT NOT NULL,           -- FK to Users.id
+
+    date_received DATE NOT NULL,
+
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT FK_Income_Members
+        FOREIGN KEY (member_id) REFERENCES Members(id),
+
+    CONSTRAINT FK_Income_Users
+        FOREIGN KEY (recorded_by) REFERENCES Users(id)
+);
+
+CREATE TABLE Income (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    income_type NVARCHAR(50) NOT NULL,  -- e.g. Offering, Donation, Fundraiser
+    amount DECIMAL(18,2) NOT NULL,
+
+    source_description NVARCHAR(255) NULL,
+    member_id INT NULL,                 -- optional FK to Members
+    recorded_by INT NOT NULL,           -- FK to Users.id
+
+    date_received DATE NOT NULL,
+
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT FK_Income_Members
+        FOREIGN KEY (member_id) REFERENCES Members(id),
+
+    CONSTRAINT FK_Income_Users
+        FOREIGN KEY (recorded_by) REFERENCES Users(id)
+);
+
+CREATE TABLE Tithes (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    tithe_code NVARCHAR(20) NOT NULL UNIQUE,  -- e.g. 20260108-JS0000
+
+    member_id INT NOT NULL,
+    amount DECIMAL(18,2) NOT NULL,
+
+    payment_method NVARCHAR(50) NOT NULL,    -- e.g. Cash, Momo, Card
+    payment_reference NVARCHAR(100) NULL,    -- optional reference for online payments
+
+    date_paid DATE NOT NULL,
+    recorded_by INT NOT NULL,                 -- FK to Users.id
+
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT FK_Tithes_Members
+        FOREIGN KEY (member_id) REFERENCES Members(id),
+
+    CONSTRAINT FK_Tithes_Users
+        FOREIGN KEY (recorded_by) REFERENCES Users(id)
+);
+
+CREATE TABLE UserRoles (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    user_id INT NOT NULL,
+    role_id INT NOT NULL,
+
+    assigned_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT FK_UserRoles_Users
+        FOREIGN KEY (user_id)
+        REFERENCES Users(id),
+
+    CONSTRAINT FK_UserRoles_Roles
+        FOREIGN KEY (role_id)
+        REFERENCES Roles(id),
+
+    CONSTRAINT UQ_UserRoles
+        UNIQUE (user_id, role_id)
+);
+
+CREATE TABLE Users (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    member_id INT NULL,              -- optional link to a member
+
+    email NVARCHAR(100) NOT NULL UNIQUE,
+    password_hash NVARCHAR(255) NOT NULL,
+
+    is_active BIT NOT NULL DEFAULT 1,
+
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT FK_Users_Members
+        FOREIGN KEY (member_id)
+        REFERENCES Members(id)
+);
+
+CREATE TABLE Users (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    member_id INT NULL,              -- optional link to a member
+
+    email NVARCHAR(100) NOT NULL UNIQUE,
+    password_hash NVARCHAR(255) NOT NULL,
+
+    is_active BIT NOT NULL DEFAULT 1,
+
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT FK_Users_Members
+        FOREIGN KEY (member_id)
+        REFERENCES Members(id)
+);
+
+CREATE TABLE MemberDepartments (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    member_id INT NOT NULL,
+    department_id INT NOT NULL,
+
+    date_joined DATE NOT NULL DEFAULT GETDATE(),
+    is_active BIT NOT NULL DEFAULT 1,
+
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT FK_MemberDepartments_Members
+        FOREIGN KEY (member_id)
+        REFERENCES Members(id),
+
+    CONSTRAINT FK_MemberDepartments_Departments
+        FOREIGN KEY (department_id)
+        REFERENCES Departments(id),
+
+    CONSTRAINT UQ_MemberDepartments
+        UNIQUE (member_id, department_id)
+);
+
+CREATE TABLE Departments (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    name NVARCHAR(100) NOT NULL UNIQUE,
+    description NVARCHAR(255) NULL,
+
+    is_active BIT NOT NULL DEFAULT 1,
+
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+);
+
+CREATE TABLE Departments (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    name NVARCHAR(100) NOT NULL UNIQUE,
+    description NVARCHAR(255) NULL,
+
+    is_active BIT NOT NULL DEFAULT 1,
+
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+);
+
+CREATE TABLE Members (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    member_code NVARCHAR(10) NOT NULL UNIQUE,  -- e.g. JS0000
+
+    first_name NVARCHAR(50) NOT NULL,
+    last_name NVARCHAR(50) NOT NULL,
+    other_names NVARCHAR(50) NULL,
+
+    gender NVARCHAR(10) NOT NULL
+        CHECK (gender IN ('Male', 'Female')),
+
+    date_of_birth DATE NULL,
+
+    phone NVARCHAR(20) NOT NULL,
+    email NVARCHAR(100) NULL,
+
+    address NVARCHAR(255) NULL,
+
+    membership_status NVARCHAR(20) NOT NULL
+        CHECK (membership_status IN ('Active', 'Inactive', 'Transferred')),
+
+    date_joined DATE NOT NULL,
+
+    baptized BIT NOT NULL DEFAULT 0,
+
+    is_deleted BIT NOT NULL DEFAULT 0,
+
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+);
