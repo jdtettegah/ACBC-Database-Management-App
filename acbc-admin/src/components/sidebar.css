@@ -1,15 +1,36 @@
 .sidebar {
-  width: 260px;
-  height: 100vh;
-  background: #f8f9fc;
+  width: 240px;
+  height: 90vh;
+  background: linear-gradient(90deg, #4a6fd3, #5cabe4);
   border-right: 1px solid #e6e8f0;
   padding: 20px 16px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   flex-direction: column;
-  border-radius: 30px;
+  border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
+  position: relative;
+  overflow: hidden;
 }
+
+.sidebar::after {
+  content: "";
+  position: absolute;
+  bottom: -40px;   /* 👈 changed from top */
+  right: -40px;
+  width: 180px;
+  height: 180px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.sidebar * {
+  position: relative;
+  z-index: 1;
+}
+
+
 
 /* HEADER */
 .sidebar-header {
@@ -23,7 +44,7 @@
 .logo {
   font-size: 18px;
   font-weight: 700;
-  color: #2f2fd6;
+  color: white;
   letter-spacing: 0.5px;
 }
 
@@ -40,7 +61,8 @@
   flex-direction: column;
   gap: 10px;
   padding-top: 10px;
-  margin-top: 50px;
+  margin-top: 10px;
+  border-bottom-left-radius: 20px;
 }
 
 /* LINKS */
@@ -50,23 +72,24 @@
   padding: 12px 14px;
   border-radius: 12px;
   text-decoration: none;
-  color: #2b2b2b;
+  color: white;
   font-size: 18px;
   font-weight: bold;
   transition: all 0.25s ease;
   position: relative;
+  
 }
 
 /* HOVER */
 .sidebar nav a:hover {
-  background: rgba(77, 77, 234, 0.08);
-  color: #4d4dea;
+  background: rgba(234, 234, 239, 0.08);
+  color: white;
   transform: translateX(4px);
 }
 
 /* ACTIVE LINK (REAL-WORLD STYLE) */
 .sidebar nav a.active {
-  background: linear-gradient(135deg, #4d4dea, #6f6ff2);
+  background: linear-gradient(135deg, #ff4d4d, #4a6fd3 );
   color: white;
   font-weight: 600;
   box-shadow: 0 6px 18px rgba(77, 77, 234, 0.25);

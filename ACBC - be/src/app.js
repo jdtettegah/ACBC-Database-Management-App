@@ -16,6 +16,7 @@ const userRoleRoutes = require('./routes/userRole.routes');
 const eventRoutes = require("./routes/events.routes");
 const activityRoutes = require("./routes/activity.routes");
 const dashboardRoutes = require("./routes/dashboard.routes")
+const welfareRoutes = require('./routes/welfare.routes');
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/api/user-roles', authMiddleware, userRoleRoutes);
 app.use("/api/events", authMiddleware, eventRoutes);
 app.use("/api/activity", authMiddleware, activityRoutes);
 app.use("/api/dashboard", authMiddleware, dashboardRoutes);
+app.use('/api/welfare', authMiddleware, welfareRoutes);
 
 app.get('/', (req, res) => {
     res.send('ACBC API is running');

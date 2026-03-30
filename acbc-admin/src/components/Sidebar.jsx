@@ -13,17 +13,23 @@ function Sidebar() {
       { name: "Members", path: "/dashboard/members" },
       { name: "Attendance", path: "/dashboard/attendance" },
       { name: "Finance", path: "/dashboard/finance" },
+      { name: "Tithe", path: "/dashboard/tithe"},
+      { name: "Welfare", path: "/dashboard/welfare"},
       { name: "Reports", path: "/dashboard/reports" },
       { name: "Department", path: "/dashboard/department"},
+     
     ],
 
     Pastor: [
       { name: "Dashboard", path: "/dashboard" },
       { name: "Members", path: "/dashboard/members" },
       { name: "Attendance", path: "/dashboard/attendance" },
-      { name: "Finance", path: "/dashboard/finance" }, // view only
+      { name: "Finance", path: "/dashboard/finance" },
+      { name: "Tithe", path: "/dashboard/tithe"},
+      { name: "Welfare", path: "/dashboard/welfare"}, // view only
       { name: "Reports", path: "/dashboard/reports" },
       { name: "Department", path: "/dashboard/department"},
+  
     ],
 
     "General Secretary": [
@@ -33,12 +39,16 @@ function Sidebar() {
       { name: "Meetings", path: "/dashboard/meetings" },
       { name: "Reports", path: "/dashboard/reports" },
       { name: "Department", path: "/dashboard/department"},
+      
     ],
 
     "Financial Secretary": [
       { name: "Dashboard", path: "/dashboard" },
       { name: "Finance", path: "/dashboard/finance" },
+      { name: "Tithe", path: "/dashboard/tithe"},
+      { name: "Welfare", path: "/dashboard/welfare"},
       { name: "Reports", path: "/dashboard/reports" },
+      
     ],
   };
 

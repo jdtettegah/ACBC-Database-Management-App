@@ -1,0 +1,132 @@
+.finance-page {
+    padding: 20px;
+  }
+  
+  /* HEADER */
+  .finance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  /* CONTROLS */
+  .finance-controls {
+    margin: 20px 0;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .finance-controls input,
+  .finance-controls select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+  
+  /* STATS */
+  .finance-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .stats-card {
+    flex: 1;
+    background: #f9fafb;
+    padding: 15px;
+    border-radius: 10px;
+  }
+  
+  .stats-card.green {
+    background: #ecfdf5;
+  }
+  
+  .stats-card.red {
+    background: #fef2f2;
+  }
+  
+  /* PROGRESS */
+  .progress-container {
+    margin-bottom: 20px;
+  }
+  
+  .progress-label {
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+  
+  .progress-bar {
+    height: 10px;
+    background: #e5e7eb;
+    border-radius: 10px;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: #22c55e;
+    border-radius: 10px;
+  }
+  
+  /* TABLE */
+  .finance-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .finance-table th,
+  .finance-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  /* COLORS */
+  .green-text {
+    color: #16a34a;
+  }
+  
+  .red-text {
+    color: #dc2626;
+  }
+  
+  /* STATUS */
+  .status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .status.paid {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+  
+  .status.partial {
+    background: #fef3c7;
+    color: #d97706;
+  }
+  
+  .status.pending {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+  
+  /* BUTTON */
+  .pay-btn {
+    background: #2563eb;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .pay-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }

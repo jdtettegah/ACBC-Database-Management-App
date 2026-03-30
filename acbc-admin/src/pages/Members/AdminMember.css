@@ -314,4 +314,21 @@
     flex: 1;
     padding: 6px;
   }
+  .header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
   
+  .export-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .export-btn:hover {
+    background: #059669;
+  }

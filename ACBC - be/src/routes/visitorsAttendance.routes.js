@@ -3,14 +3,13 @@ const router = express.Router();
 
 const {
   markVisitorAttendance,
-  getAllVisitors,
-  getVisitorsByDate,
   getVisitorsReport
 } = require("../controllers/visitorsAttendance.controller");
 
+// CREATE VISITOR
 router.post("/", markVisitorAttendance);
-router.get("/", getAllVisitors);
-router.get("/date/:visit_date", getVisitorsByDate);
+
+// REPORT ONLY
 router.get("/report", getVisitorsReport);
 
 module.exports = router;

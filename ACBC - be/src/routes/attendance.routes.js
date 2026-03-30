@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+
 const {
   markAttendance,
   getAllAttendance,
@@ -8,9 +9,15 @@ const {
   markAttendanceBulk
 } = require('../controllers/attendance.controller');
 
+// CREATE
 router.post('/', markAttendance);
-router.get('/', getAllAttendance);
-router.put("/:attendanceCode", updateAttendance);
-router.get('/member/:memberId', getAttendanceByMember);
 router.post("/bulk", markAttendanceBulk);
+
+// READ
+router.get('/', getAllAttendance);
+router.get('/member/:memberId', getAttendanceByMember);
+
+// UPDATE
+router.put("/:attendanceCode", updateAttendance);
+
 module.exports = router;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import AddAttendance from "../../components/AddAttendance";
 import "./AdminAttendance.css";
 import { apiRequest } from "../../services/api";
@@ -6,80 +6,128 @@ import { apiRequest } from "../../services/api";
 function AdminAttendance() {
 
   const [attendance, setAttendance] = useState([]);
-  const [visitors, setVisitors] = useState([]);
+  const [pagination, setPagination] = useState({});
+  const [page, setPage] = useState(1);
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
   const [filterDate, setFilterDate] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [serviceFilter, setServiceFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All"); // ✅ NEW
 
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
 
-  // SUCCESS MESSAGE
-  const [successMessage, setSuccessMessage] = useState("");
+  const observer = useRef();
 
-  // EDIT
-  const [editOpen, setEditOpen] = useState(false);
-  const [editLoading, setEditLoading] = useState(false);
-  const [editError, setEditError] = useState("");
+  // ======================
+  // DEBOUNCE SEARCH
+  // ======================
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
 
-  const [editData, setEditData] = useState({
-    attendance_code: "",
-    service_date: "",
-    service_type: "",
-    status: "",
-  });
+    return () => clearTimeout(delay);
+  }, [search]);
 
   // ======================
   // FETCH DATA
   // ======================
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
+  const fetchData = async (pageNumber = 1, append = false) => {
+
+    if (pageNumber === 1) setLoading(true);
+    else setLoadingMore(true);
 
     try {
-      const att = await apiRequest("/attendance");
-      const vis = await apiRequest("/visitors");
+      const query = new URLSearchParams({
+        page: pageNumber,
+        limit: 50,
+        search: debouncedSearch,
+        type: typeFilter,
+        service: serviceFilter,
+        date: filterDate,
+        status: statusFilter, // ✅ NEW
+      });
 
-      setAttendance(att || []);
-      setVisitors(vis || []);
+      const res = await apiRequest(`/attendance?${query}`);
+
+      if (append) {
+        setAttendance(prev => [...prev, ...res.data]);
+      } else {
+        setAttendance(res.data);
+      }
+
+      setPagination(res.pagination);
 
     } catch (err) {
       console.error(err);
-      setError("Failed to load records. Please try again.");
+      setError("Failed to load records");
     }
 
     setLoading(false);
+    setLoadingMore(false);
   };
 
+  // ======================
+  // REFETCH ON FILTER CHANGE
+  // ======================
   useEffect(() => {
-    fetchData();
-  }, []);
+    setPage(1);
+    fetchData(1);
+  }, [debouncedSearch, filterDate, typeFilter, serviceFilter, statusFilter]);
 
   // ======================
-  // DATE HELPERS
+  // INFINITE SCROLL (FIXED)
+  // ======================
+  const lastRowRef = useCallback(node => {
+
+    if (loadingMore) return;
+
+    if (observer.current) observer.current.disconnect();
+
+    observer.current = new IntersectionObserver(entries => {
+      if (
+        entries[0].isIntersecting &&
+        page < pagination.totalPages
+      ) {
+        const nextPage = page + 1;
+
+        setPage(prev => prev + 1); // ✅ FIXED
+        fetchData(nextPage, true);
+      }
+    });
+
+    if (node) observer.current.observe(node);
+
+  }, [loadingMore, page, pagination]);
+
+  // ======================
+  // STATS
   // ======================
   const today = new Date().toISOString().split("T")[0];
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
-  // ======================
-  // STATS
-  // ======================
   const presentToday = attendance.filter(
     (a) =>
       a.service_date?.split("T")[0] === today &&
       a.status === "Present"
   ).length;
 
-  const visitorsToday = visitors.filter(
-    (v) => v.visit_date?.split("T")[0] === today
+  const visitorsToday = attendance.filter(
+    (a) =>
+      a.type === "Visitor" &&
+      a.service_date?.split("T")[0] === today
   ).length;
 
-  const visitorsThisMonth = visitors.filter((v) => {
-    const date = new Date(v.visit_date);
+  const visitorsThisMonth = attendance.filter((a) => {
+    const date = new Date(a.service_date);
     return (
+      a.type === "Visitor" &&
       date.getMonth() === currentMonth &&
       date.getFullYear() === currentYear
     );
@@ -111,116 +159,62 @@ function AdminAttendance() {
       : 0;
 
   // ======================
-  // COMBINE + SORT
+  // EXPORT FILTERED DATA (FROM BACKEND)
   // ======================
-  const combined = [
-
-    ...attendance.map((a) => ({
-      ...a,
-      type: "Member",
-    })),
-
-    ...visitors.map((v) => ({
-      id: `visitor-${v.id}`,
-      attendance_code: "VISITOR",
-      first_name: v.first_name,
-      last_name: v.last_name,
-      member_code: "Visitor",
-      service_date: v.visit_date,
-      service_type: v.service_type,
-      status: "Visitor",
-      type: "Visitor",
-    })),
-
-  ].sort(
-    (a, b) =>
-      new Date(b.service_date || 0) - new Date(a.service_date || 0)
-  );
-
-  // ======================
-  // FILTERS
-  // ======================
-  const filtered = combined.filter((row) => {
-
-    const name = `${row.first_name || ""} ${row.last_name || ""}`.toLowerCase();
-
-    const matchSearch = name.includes(search.toLowerCase());
-
-    const matchDate = filterDate
-      ? row.service_date?.split("T")[0] === filterDate
-      : true;
-
-    const matchType =
-      typeFilter === "All" || row.type === typeFilter;
-
-    const matchService =
-      serviceFilter === "All" ||
-      row.service_type === serviceFilter;
-
-    return matchSearch && matchDate && matchType && matchService;
-
-  });
-
-  // ======================
-  // EDIT HANDLERS
-  // ======================
-  const openEdit = (row) => {
-    if (row.type !== "Member") return;
-
-    setEditData({
-      attendance_code: row.attendance_code,
-      service_date: row.service_date?.split("T")[0],
-      service_type: row.service_type,
-      status: row.status,
-    });
-
-    setEditError("");
-    setEditOpen(true);
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    setEditLoading(true);
-    setEditError("");
-
+  const exportToCSV = async () => {
     try {
-      await apiRequest(`/attendance/${editData.attendance_code}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          service_date: editData.service_date,
-          service_type: editData.service_type,
-          status: editData.status,
-        }),
+      const query = new URLSearchParams({
+        search: debouncedSearch,
+        type: typeFilter,
+        service: serviceFilter,
+        date: filterDate,
+        status: statusFilter,
+        export: "true", // 👈 tell backend to return ALL filtered data
       });
 
-      setEditOpen(false);
-      setSuccessMessage("Attendance updated successfully!");
+      const res = await apiRequest(`/attendance?${query}`);
 
-      fetchData();
+      const data = res.data;
 
-      // Auto-clear success message
-      setTimeout(() => setSuccessMessage(""), 3000);
+      const headers = [
+        "Code", "Name", "Member Code",
+        "Date", "Service", "Status", "Type"
+      ];
+
+      const rows = data.map(row => [
+        row.attendance_code,
+        `${row.first_name} ${row.last_name}`,
+        row.member_code,
+        row.service_date?.split("T")[0],
+        row.service_type,
+        row.status,
+        row.type
+      ]);
+
+      let csvContent =
+        "data:text/csv;charset=utf-8," +
+        [headers, ...rows].map(e => e.join(",")).join("\n");
+
+      const link = document.createElement("a");
+      link.href = encodeURI(csvContent);
+      link.download = "attendance_filtered.csv";
+      link.click();
 
     } catch (err) {
-      console.error(err);
-      setEditError("Update failed. Please try again.");
+      console.error("Export failed", err);
     }
-
-    setEditLoading(false);
   };
 
   // ======================
   // UI STATES
   // ======================
-  if (loading) {
-    return <p className="loading">Loading attendance...</p>;
-  }
+  if (loading) return <p className="loading">Loading attendance...</p>;
 
   if (error) {
     return (
       <div className="error-box">
         <p>{error}</p>
-        <button onClick={fetchData}>Retry</button>
+        <button onClick={() => fetchData(1)}>Retry</button>
       </div>
     );
   }
@@ -228,19 +222,13 @@ function AdminAttendance() {
   return (
     <div className="attendance-page">
 
-      {/* SUCCESS MESSAGE */}
-      {successMessage && (
-        <div className="success-box">
-          {successMessage}
-        </div>
-      )}
-
       {/* HEADER */}
       <div className="attendance-header">
         <h2>Attendance</h2>
 
         <div className="action-btn">
-          <AddAttendance refresh={fetchData} />
+          <AddAttendance refresh={() => fetchData(1)} />
+          
         </div>
       </div>
 
@@ -263,7 +251,7 @@ function AdminAttendance() {
         </div>
 
         <div className="stats-card">
-          <h3>Avg Attendance (Month)</h3>
+          <h3>Avg Attendance</h3>
           <p>{averageAttendance}</p>
         </div>
 
@@ -303,149 +291,72 @@ function AdminAttendance() {
           <option>Midweek Service</option>
         </select>
 
+        {/* ✅ NEW STATUS FILTER */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option>All</option>
+          <option>Present</option>
+          <option>Absent</option>
+        </select>
+
       </div>
 
       {/* TABLE */}
       <div className="attendance-table-wrapper">
 
         <table className="attendance-table">
-
           <thead>
             <tr>
-              <th>Code</th>
               <th>Name</th>
               <th>Member Code</th>
               <th>Date</th>
               <th>Service</th>
               <th>Status</th>
               <th>Type</th>
-              <th>Actions</th>
             </tr>
           </thead>
 
           <tbody>
+            {attendance.map((row, index) => {
 
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan="8" style={{ textAlign: "center" }}>
-                  No records
-                </td>
-              </tr>
-            ) : (
+              if (attendance.length === index + 1) {
+                return (
+                  <tr ref={lastRowRef} key={row.id}>
+                    <td>{row.first_name} {row.last_name}</td>
+                    <td>{row.member_code}</td>
+                    <td>{row.service_date?.split("T")[0]}</td>
+                    <td>{row.service_type}</td>
+                    <td>{row.status}</td>
+                    <td>{row.type}</td>
+                  </tr>
+                );
+              }
 
-              filtered.map((row) => (
-
+              return (
                 <tr key={row.id}>
-
-                  <td>{row.attendance_code}</td>
-
                   <td>{row.first_name} {row.last_name}</td>
-
                   <td>{row.member_code}</td>
-
                   <td>{row.service_date?.split("T")[0]}</td>
-
                   <td>{row.service_type}</td>
-
                   <td>{row.status}</td>
-
                   <td>{row.type}</td>
-
-                  <td>
-                    {row.type === "Member" && (
-                      <button
-                        className="edit-btn"
-                        onClick={() => openEdit(row)}
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </td>
-
                 </tr>
-
-              ))
-
-            )}
-
+              );
+            })}
           </tbody>
-
         </table>
+
+        {loadingMore && (
+          <p className="loading-more">Loading more...</p>
+        )}
 
       </div>
 
-      {/* EDIT MODAL */}
-      {editOpen && (
-        <div className="modal-overlay">
-
-          <div className="edit-box">
-
-            <h3>Edit Attendance</h3>
-
-            {editError && (
-              <p className="error-text">{editError}</p>
-            )}
-
-            <form onSubmit={handleEditSubmit}>
-
-              <label>Date</label>
-              <input
-                type="date"
-                value={editData.service_date}
-                onChange={(e) =>
-                  setEditData({ ...editData, service_date: e.target.value })
-                }
-                required
-              />
-
-              <label>Service</label>
-              <select
-                value={editData.service_type}
-                onChange={(e) =>
-                  setEditData({ ...editData, service_type: e.target.value })
-                }
-                required
-              >
-                <option value="">Select Service</option>
-                <option value="Sunday Service">Sunday Service</option>
-                <option value="Midweek Service">Midweek Service</option>
-              </select>
-
-              <label>Status</label>
-              <select
-                value={editData.status}
-                onChange={(e) =>
-                  setEditData({ ...editData, status: e.target.value })
-                }
-                required
-              >
-                <option value="">Select</option>
-                <option value="Present">Present</option>
-                <option value="Absent">Absent</option>
-                <option value="Late">Late</option>
-              </select>
-
-              <div className="form-actions">
-
-                <button type="submit" disabled={editLoading}>
-                  {editLoading ? "Saving..." : "Save"}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setEditOpen(false)}
-                >
-                  Cancel
-                </button>
-
-              </div>
-
-            </form>
-
-          </div>
-
-        </div>
-      )}
+      <button className="export-btn" onClick={exportToCSV}>
+            Export To Excel
+          </button>
 
     </div>
   );

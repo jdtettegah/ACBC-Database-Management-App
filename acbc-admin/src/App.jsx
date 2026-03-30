@@ -9,6 +9,8 @@ import Reports from "./pages/Reports";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import Meetings from "./pages/Meetings";
 import Department from "./pages/Department";
+import Welfare from "./pages/Welfare";
+import Tithe from "./pages/Tithe";
 
 
 function App() {
@@ -84,6 +86,28 @@ function App() {
             <ProtectedRoute>
               <RoleProtectedRoute allowedRoles={[ "General Secretary"]}>
                 <Meetings />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+            }
+        />
+
+        <Route
+          path="/dashboard/tithe"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ ["Admin", "Pastor", "General Secretary", "Financial Secretary"]}>
+                <Tithe />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+            }
+        />
+
+        <Route
+          path="/dashboard/welfare"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ ["Admin", "Pastor", "General Secretary", "Financial Secretary"]}>
+                <Welfare />
               </RoleProtectedRoute>
             </ProtectedRoute>
             }

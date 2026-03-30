@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 
 import AddTransaction from "../../components/AddTransaction";
-import TithePage from "./TithePage";
-import ViewTithe from "./ViewTithe";
+
 
 import { getIncome, getExpenses } from "../../services/api";
 
-import "./AdminFinance.css";
 
-function AdminFinance() {
+
+function SecretaryWelfare() {
   const [income, setIncome] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -209,4 +208,4 @@ function AdminFinance() {
   );
 }
 
-export default AdminFinance;
+export default SecretaryWelfare;

@@ -600,3 +600,73 @@ CREATE TABLE Members (
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME()
 );
+
+CREATE TABLE WelfareEvents (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    event_code NVARCHAR(20) NOT NULL UNIQUE, -- e.g. WF-202601
+
+    event_name NVARCHAR(100) NOT NULL,       -- e.g. "Welfare Dues - Jan 2026"
+    event_type NVARCHAR(20) NOT NULL,        -- 'DUES' or 'SPECIAL'
+
+    default_amount DECIMAL(18,2) NOT NULL,   -- expected per member
+
+    target_amount DECIMAL(18,2) NULL,        -- optional total goal
+
+    event_date DATE NULL,
+    due_date DATE NULL,
+
+    is_active BIT NOT NULL DEFAULT 1,
+
+    created_by INT NOT NULL,
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT FK_WelfareEvents_Users
+        FOREIGN KEY (created_by) REFERENCES Users(id)
+);
+
+CREATE TABLE WelfareEventMembers (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    event_id INT NOT NULL,
+    member_id INT NOT NULL,
+
+    expected_amount DECIMAL(18,2) NOT NULL,
+    total_paid DECIMAL(18,2) NOT NULL DEFAULT 0,
+
+    status NVARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    -- PENDING, PARTIAL, PAID
+
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT FK_WEM_Event
+        FOREIGN KEY (event_id) REFERENCES WelfareEvents(id),
+
+    CONSTRAINT FK_WEM_Member
+        FOREIGN KEY (member_id) REFERENCES Members(id),
+
+    CONSTRAINT UQ_WEM UNIQUE (event_id, member_id)
+);
+CREATE TABLE WelfareFunds (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+
+    welfare_code NVARCHAR(20) NOT NULL UNIQUE, -- receipt-like code
+
+    event_member_id INT NOT NULL,
+
+    amount DECIMAL(18,2) NOT NULL,
+
+    payment_method NVARCHAR(50) NOT NULL,
+    payment_reference NVARCHAR(100) NULL,
+
+    date_paid DATE NOT NULL,
+
+    recorded_by INT NOT NULL,
+    created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT FK_WelfareFunds_EventMember
+        FOREIGN KEY (event_member_id) REFERENCES WelfareEventMembers(id),
+
+    CONSTRAINT FK_WelfareFunds_Users
+        FOREIGN KEY (recorded_by) REFERENCES Users(id)
+);

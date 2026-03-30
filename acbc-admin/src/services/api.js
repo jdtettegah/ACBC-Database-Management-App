@@ -217,3 +217,52 @@ export function markAttendanceBulk(data) {
 export function getTodaySummary() {
   return apiRequest("/dashboard/today-summary");
 }
+
+/* ================= WELFARE ================= */
+
+// Create welfare event
+export function createWelfareEvent(data) {
+  return apiRequest("/welfare/events", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// Get all welfare events
+export function getWelfareEvents() {
+  return apiRequest("/welfare/events");
+}
+
+// Assign all members to event
+export function assignMembersToWelfareEvent(eventId) {
+  return apiRequest(`/welfare/events/${eventId}/assign`, {
+    method: "POST",
+  });
+}
+
+// Get members + status (VERY IMPORTANT for UI)
+export function getWelfareEventMembers(eventId) {
+  return apiRequest(`/welfare/events/${eventId}/members`);
+}
+
+// Record welfare payment (partial/full)
+export function recordWelfarePayment(data) {
+  return apiRequest("/welfare/pay", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function saveBulkWelfare(data) {
+  return apiRequest("/welfare/bulk", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+/* ================= WELFARE ================= */
+
+// Get full members for an event (with event_member_id)
+export function getWelfareEventMembersFull(eventId) {
+  return apiRequest(`/welfare/events/${eventId}/members/full`);
+}
