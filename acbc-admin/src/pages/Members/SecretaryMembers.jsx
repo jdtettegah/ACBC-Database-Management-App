@@ -190,7 +190,7 @@ function AdminMembers() {
 
       <div className="members-header">
 
-        <h2>Members</h2>
+        <div className="attendance-table-header">Members</div>
         <div className="action-btn">
         <AddMember onSuccess={loadMembers} />
         </div>

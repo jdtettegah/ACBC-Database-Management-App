@@ -18,6 +18,14 @@
     text-align: center;
   }
 
+  .dashboard-header{
+    font-size: 20px;
+    color: #2f2fd6;
+    font-weight: bold;
+    margin-bottom: 10px;
+
+  }
+
 
   .quick-actions h3 {
     margin-bottom: 15px;

@@ -1,27 +1,33 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   getWelfareEvents,
-  getWelfareEventMembersFull
+  getWelfareEventMembersFull,
+  getWelfarePaymentHistory // ✅ ADD
 } from "../../services/api";
 
 import AddWelfareBulk from "../../components/AddWelfareDues";
+import CreateWelfareEvent from "../../components/createWelfareEvent";
 import AddWelfarePayment from "../../components/AddWelfarePayment";
-import CreateWelfareEvent from "../../components/createWelfareEvent"
-
 
 import "./AdminWelfare.css";
 
 function AdminWelfare() {
+
+  const navigate = useNavigate();
+
+
   const [events, setEvents] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedEventId, setSelectedEventId] = useState("");
   const [members, setMembers] = useState([]);
 
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   const [selectedMember, setSelectedMember] = useState(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
+
+  
 
   /* ================= LOAD EVENTS ================= */
   useEffect(() => {
@@ -29,50 +35,46 @@ function AdminWelfare() {
   }, []);
 
   const loadEvents = async () => {
-    try {
-      const data = await getWelfareEvents();
+    const data = await getWelfareEvents();
 
-      setEvents(data);
+    const sorted = data.sort((a, b) =>
+      a.event_code.localeCompare(b.event_code)
+    );
 
-      // ✅ Always pick latest event
-      if (data.length > 0) {
-        setSelectedEvent(data[0]);
-        loadMembers(data[0].id);
-      }
+    setEvents(sorted);
 
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load events");
+    const currentMonth = new Date().getMonth() + 1;
+    const currentCode = `${new Date().getFullYear()}-${String(currentMonth).padStart(2, "0")}`;
+
+    const currentEvent = sorted.find(e =>
+      e.event_code.includes(currentCode)
+    );
+
+    const selected = currentEvent || sorted[0];
+
+    if (selected) {
+      setSelectedEventId(selected.id);
+      loadMembers(selected.id);
     }
-
-    setLoading(false);
   };
 
-  /* ================= LOAD MEMBERS ================= */
   const loadMembers = async (eventId) => {
-    try {
-      const data = await getWelfareEventMembersFull(eventId);
-      setMembers(data);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load members");
-    }
+    const data = await getWelfareEventMembersFull(eventId);
+    setMembers(data);
   };
 
-  /* ================= CHANGE EVENT ================= */
-  const handleEventChange = (e) => {
+  const handleChange = (e) => {
     const id = e.target.value;
-    const event = events.find(ev => ev.id == id);
-
-    setSelectedEvent(event);
+    setSelectedEventId(id);
     loadMembers(id);
   };
 
   /* ================= FILTER ================= */
-  const filteredMembers = members.filter(m => {
-    const fullName = `${m.first_name} ${m.last_name}`.toLowerCase();
-    return fullName.includes(search.toLowerCase());
-  });
+  const filteredMembers = members.filter(m =>
+    `${m.first_name} ${m.last_name}`
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
 
   /* ================= STATS ================= */
   const totalExpected = members.reduce(
@@ -87,12 +89,61 @@ function AdminWelfare() {
 
   const balance = totalExpected - totalCollected;
 
-  const progress =
-    totalExpected === 0
-      ? 0
-      : (totalCollected / totalExpected) * 100;
+  /* ================= EXPORT CSV ================= */
+  const exportCSV = () => {
+    const selectedEvent = events.find(e => e.id == selectedEventId);
+  
+    const title = selectedEvent
+      ? `WELFARE DUES REPORT - ${selectedEvent.event_name.toUpperCase()}`
+      : "WELFARE REPORT";
+  
+    const date = new Date().toLocaleDateString();
+  
+    const headers = ["Name", "Expected", "Paid", "Balance", "Status"];
+  
+    const rows = members.map(m => {
+      const bal =
+        Number(m.expected_amount) - Number(m.total_paid);
+  
+      return [
+        `${m.first_name} ${m.last_name}`,
+        m.expected_amount,
+        m.total_paid,
+        bal,
+        m.status
+      ];
+    });
+  
+    const csvContent = [
+      [title],
+      [`Generated on: ${date}`],
+      [], // empty line
+      headers,
+      ...rows
+    ]
+      .map(row => row.join(","))
+      .join("\n");
+  
+    const blob = new Blob([csvContent], { type: "text/csv" });
+  
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${title}.csv`;
+    link.click();
+  };
 
-  if (loading) return <p className="loading">Loading welfare...</p>;
+  /* ================= LOAD HISTORY ================= */
+  const openHistory = async (member) => {
+    try {
+      const data = await getWelfarePaymentHistory(member.event_member_id);
+      setHistoryData(data);
+      setHistoryMember(member);
+      setHistoryOpen(true);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load history");
+    }
+  };
 
   return (
     <div className="finance-page">
@@ -102,12 +153,16 @@ function AdminWelfare() {
         <h2>Welfare Management</h2>
 
         <div className="actions">
-          <CreateWelfareEvent onCreated={loadEvents} />
-          <AddWelfareBulk
-            onSaved={() =>
-              selectedEvent && loadMembers(selectedEvent.id)
-            }
-          />
+          <div className="action-btn">
+            <CreateWelfareEvent onCreated={loadEvents} />
+          </div>
+
+          <div className="action-btn">
+            <AddWelfareBulk onSaved={() => loadMembers(selectedEventId)} />
+          </div>
+
+          {/* ✅ EXPORT BUTTON */}
+          
         </div>
       </div>
 
@@ -115,8 +170,9 @@ function AdminWelfare() {
       <div className="finance-controls">
 
         <select
-          value={selectedEvent?.id || ""}
-          onChange={handleEventChange}
+          className="wide-select"
+          value={selectedEventId}
+          onChange={handleChange}
         >
           {events.map(ev => (
             <option key={ev.id} value={ev.id}>
@@ -126,16 +182,20 @@ function AdminWelfare() {
         </select>
 
         <input
+          className="wide-search"
           type="text"
           placeholder="Search member..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+
+        <button className="export-btn" onClick={exportCSV}>
+            📤 Export to Excel
+        </button>
       </div>
 
       {/* STATS */}
       <div className="finance-stats">
-
         <div className="stats-card">
           <h4>Total Expected</h4>
           <p>GH₵ {totalExpected.toFixed(2)}</p>
@@ -149,20 +209,6 @@ function AdminWelfare() {
         <div className="stats-card red">
           <h4>Balance</h4>
           <p>GH₵ {balance.toFixed(2)}</p>
-        </div>
-
-      </div>
-
-      {/* PROGRESS BAR */}
-      <div className="progress-container">
-        <div className="progress-label">
-          {progress.toFixed(1)}% collected
-        </div>
-        <div className="progress-bar">
-          <div
-            className="progress-fill"
-            style={{ width: `${progress}%` }}
-          />
         </div>
       </div>
 
@@ -182,12 +228,14 @@ function AdminWelfare() {
 
           <tbody>
             {filteredMembers.map(m => {
-              const memberBalance =
-                Number(m.expected_amount) -
-                Number(m.total_paid);
+              const bal =
+                Number(m.expected_amount) - Number(m.total_paid);
 
               return (
-                <tr key={m.event_member_id}>
+                <tr
+                  key={m.event_member_id}
+                  className={`row-${m.status.toLowerCase()}`}
+                >
                   <td>{m.first_name} {m.last_name}</td>
 
                   <td>GH₵ {Number(m.expected_amount).toFixed(2)}</td>
@@ -197,7 +245,7 @@ function AdminWelfare() {
                   </td>
 
                   <td className="red-text">
-                    GH₵ {memberBalance.toFixed(2)}
+                    GH₵ {bal.toFixed(2)}
                   </td>
 
                   <td>
@@ -217,6 +265,9 @@ function AdminWelfare() {
                     >
                       Pay
                     </button>
+
+                    {/* ✅ HISTORY BUTTON */}
+                    
                   </td>
                 </tr>
               );
@@ -226,15 +277,19 @@ function AdminWelfare() {
       </div>
 
       {/* PAYMENT MODAL */}
-      {paymentOpen && (
+      {paymentOpen && selectedMember && (
         <AddWelfarePayment
           member={selectedMember}
           onClose={() => setPaymentOpen(false)}
-          onSaved={() =>
-            selectedEvent && loadMembers(selectedEvent.id)
-          }
+          onSaved={() => {
+            loadMembers(selectedEventId);
+            setPaymentOpen(false);
+          }}
         />
       )}
+
+     
+      
 
     </div>
   );

@@ -253,6 +253,15 @@ export function recordWelfarePayment(data) {
   });
 }
 
+/* ================= WELFARE ================= */
+
+// Get full members for an event (with event_member_id)
+export function getWelfareEventMembersFull(eventId) {
+  return apiRequest(`/welfare/events/${eventId}/members/full`);
+}
+
+// Just ensure this API exists:
+
 export function saveBulkWelfare(data) {
   return apiRequest("/welfare/bulk", {
     method: "POST",
@@ -260,9 +269,58 @@ export function saveBulkWelfare(data) {
   });
 }
 
-/* ================= WELFARE ================= */
+export function getWelfarePaymentHistory(event_member_id) {
+  return apiRequest(`/welfare/history/${event_member_id}`);
+}
 
-// Get full members for an event (with event_member_id)
-export function getWelfareEventMembersFull(eventId) {
-  return apiRequest(`/welfare/events/${eventId}/members/full`);
+/* ================= DEPARTMENTS ================= */
+
+// Get all departments (with member_count)
+export function getDepartments() {
+  return apiRequest("/departments");
+}
+
+// Create department
+export function createDepartment(data) {
+  return apiRequest("/departments", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// Update department
+export function updateDepartment(id, data) {
+  return apiRequest(`/departments/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+// Delete (soft delete)
+export function deleteDepartment(id) {
+  return apiRequest(`/departments/${id}`, {
+    method: "DELETE",
+  });
+}
+
+/* ================= MEMBER-DEPARTMENTS ================= */
+
+// Assign member
+export function assignMemberToDepartment(data) {
+  return apiRequest("/member-departments", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// Get members in department
+export function getDepartmentMembers(deptId) {
+  return apiRequest(`/member-departments/department/${deptId}`);
+}
+
+// Remove member from department
+export function removeMemberFromDepartment(id) {
+  return apiRequest(`/member-departments/${id}`, {
+    method: "DELETE",
+  });
 }

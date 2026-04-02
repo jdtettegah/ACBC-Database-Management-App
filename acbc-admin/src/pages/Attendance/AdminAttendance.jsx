@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import AddAttendance from "../../components/AddAttendance";
 import "./AdminAttendance.css";
 import { apiRequest } from "../../services/api";
+import SecretaryDashboardCharts from "../../components/SecretaryDashboardCharts";
 
 function AdminAttendance() {
 
@@ -220,11 +221,11 @@ function AdminAttendance() {
   }
 
   return (
-    <div className="attendance-page">
+    <div className="m-attendance-page">
 
       {/* HEADER */}
       <div className="attendance-header">
-        <h2>Attendance</h2>
+        <div className="attendance-table-header">Attendance</div>
 
         <div className="action-btn">
           <AddAttendance refresh={() => fetchData(1)} />
@@ -257,9 +258,13 @@ function AdminAttendance() {
 
       </div>
 
+      <div>
+        < SecretaryDashboardCharts />
+      </div>
+      <div className="attendance-table-header">Attendance Table</div>
       {/* FILTERS */}
       <div className="attendance-controls">
-
+        
         <input
           type="text"
           placeholder="Search name..."
@@ -302,6 +307,10 @@ function AdminAttendance() {
         </select>
 
       </div>
+
+      <button className="export-btn" onClick={exportToCSV}>
+            Export To Excel
+      </button>
 
       {/* TABLE */}
       <div className="attendance-table-wrapper">
@@ -354,9 +363,7 @@ function AdminAttendance() {
 
       </div>
 
-      <button className="export-btn" onClick={exportToCSV}>
-            Export To Excel
-          </button>
+      
 
     </div>
   );

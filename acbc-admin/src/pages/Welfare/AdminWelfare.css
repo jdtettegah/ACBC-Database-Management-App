@@ -130,3 +130,13 @@
     background: #9ca3af;
     cursor: not-allowed;
   }
+
+  .wide-select {
+    width: 320px;
+    padding: 10px;
+  }
+  
+  .wide-search {
+    width: 320px;
+    padding: 10px;
+  }

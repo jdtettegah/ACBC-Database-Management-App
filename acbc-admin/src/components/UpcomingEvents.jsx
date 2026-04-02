@@ -114,7 +114,7 @@ const UpcomingEvents = () => {
 
       {/* Header */}
       <div className="events-header">
-        <h3>Upcoming Events</h3>
+        <div className="dashboard-header">Upcoming Events</div>
         <button onClick={() => setShowForm(!showForm)}>
           {showForm ? "Cancel" : "+ Add Event"}
         </button>

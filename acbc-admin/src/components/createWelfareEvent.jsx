@@ -57,47 +57,47 @@ function CreateWelfareEvent({ onCreated }) {
   /* ================= CREATE SINGLE EVENT ================= */
   const handleCreate = async (e) => {
     e.preventDefault();
-
+  
     try {
       setLoading(true);
-
+  
       const eventName =
         type === "DUES"
           ? `${getCurrentMonthName()} Dues`
           : name;
-
+  
       const res = await createWelfareEvent({
         event_name: eventName,
         event_type: type,
         default_amount: Number(amount),
         created_by: user.id
       });
-
-      if (!res.success) throw new Error();
-
-      // ✅ Assign members automatically
-      await assignMembersToWelfareEvent(res.event_id);
-
+  
+      // ✅ SAFER CHECK
+      if (!res || res.success !== true) {
+        throw new Error(res?.message || "Creation failed");
+      }
+  
       alert("✅ Event created successfully");
-
+  
       setOpen(false);
       setName("");
       setAmount("");
-
+  
       if (onCreated) onCreated();
-
+  
     } catch (err) {
-      console.error(err);
-      alert("❌ Failed to create event");
+      console.error("CREATE EVENT ERROR:", err);
+      alert(err.message || "❌ Failed to create event");
     }
-
+  
     setLoading(false);
   };
 
   return (
     <>
       <button
-        className="create-event-btn"
+        className="add-attendance-button"
         onClick={() => setOpen(true)}
       >
         ➕ Create Welfare Event

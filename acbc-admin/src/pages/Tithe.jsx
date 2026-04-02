@@ -1,5 +1,6 @@
 import DashboardLayout from "../layouts/DashboardLayout";
 import AdminTithe from "./Tithe/AdminTithe";
+import SecretaryTithe from "./Tithe/SecretaryTithe";
 
 function Tithe() {
   // Correct way to read role
@@ -15,6 +16,10 @@ function Tithe() {
 
     case "Pastor":
       Page = <PastorTithe />;
+      break;
+
+    case "General Secretary":
+      Page = <SecretaryTithe />;
       break;
 
     case "Financial Secretary":

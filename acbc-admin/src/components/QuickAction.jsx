@@ -7,7 +7,7 @@ import AdminGenerateReport from "./AdminGenerateReport";
 function QuickActions() {
   return (
     <div className="quick-actions">
-      <h3>Quick Actions</h3>
+      <div className="dashboard-header">Quick Actions</div>
 
       <div className="quick-actions-grid">
        

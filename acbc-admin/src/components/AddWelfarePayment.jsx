@@ -1,94 +1,84 @@
 import { useState } from "react";
-import { recordWelfarePayment } from "../services/api";
+import { recordWelfarePayment, getLoggedInUser } from "../services/api";
 
 function AddWelfarePayment({ member, onClose, onSaved }) {
   const [amount, setAmount] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("Cash");
-  const [paymentReference, setPaymentReference] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [method, setMethod] = useState("Cash");
+  const [ref, setRef] = useState("");
+  const [date, setDate] = useState("");
 
-  if (!member) return null;
+  const user = getLoggedInUser();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!amount || amount <= 0) {
-      alert("Enter a valid amount");
-      return;
-    }
-
-    setLoading(true);
-
     try {
       await recordWelfarePayment({
-        event_member_id: member.id,
+        event_member_id: member.event_member_id,
         amount: Number(amount),
-        payment_method: paymentMethod,
-        payment_reference: paymentReference,
-        date_paid: new Date().toISOString().split("T")[0],
-        recorded_by: JSON.parse(localStorage.getItem("user"))?.id
+        payment_method: method,
+        payment_reference: method === "Momo" ? ref : null,
+        date_paid: date,
+        recorded_by: user.id
       });
 
-      alert("Payment recorded successfully");
+      alert("✅ Payment successful");
 
-      onSaved();   // reload members
-      onClose();   // close modal
+      onClose();
+      onSaved();
 
     } catch (err) {
       console.error(err);
-      alert("Failed to record payment");
+      alert("❌ Payment failed");
     }
-
-    setLoading(false);
   };
-
-  const balance = member.expected_amount - member.total_paid;
 
   return (
     <div className="modal-overlay">
-      <div className="modal">
+      <div className="event-modal">
 
-        <h3>Record Payment</h3>
-
-        <p>
-          <strong>{member.first_name} {member.last_name}</strong>
-        </p>
-
-        <p>Balance: GH₵ {balance.toFixed(2)}</p>
+        <h3>Pay for {member.first_name}</h3>
 
         <form onSubmit={handleSubmit}>
 
           <input
             type="number"
             placeholder="Amount"
+            required
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
 
           <select
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
+            value={method}
+            onChange={(e) => setMethod(e.target.value)}
           >
             <option value="Cash">Cash</option>
             <option value="Momo">Momo</option>
-            <option value="Card">Card</option>
           </select>
 
+          {method === "Momo" && (
+            <input
+              type="text"
+              placeholder="Reference"
+              value={ref}
+              onChange={(e) => setRef(e.target.value)}
+              required
+            />
+          )}
+
           <input
-            type="text"
-            placeholder="Reference (optional)"
-            value={paymentReference}
-            onChange={(e) => setPaymentReference(e.target.value)}
+            type="date"
+            required
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
           />
 
           <div className="modal-actions">
-            <button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Payment"}
-            </button>
-
             <button type="button" onClick={onClose}>
               Cancel
             </button>
+            <button type="submit">Pay</button>
           </div>
 
         </form>

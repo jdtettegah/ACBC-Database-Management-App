@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { apiRequest } from "../../services/api";
+import {
+  getDepartments,
+  createDepartment,
+  assignMemberToDepartment,
+  getDepartmentMembers,
+  removeMemberFromDepartment,
+  getMembers
+} from "../../services/api";
+
+import DepartmentChart from "../../components/DepartmentChart";
 import "./AdminDepartment.css";
 
 function AdminDepartments() {
@@ -11,7 +20,7 @@ function AdminDepartments() {
   const [allMembers, setAllMembers] = useState([]);
 
   const [selectedDept, setSelectedDept] = useState(null);
-  const [selectedMember, setSelectedMember] = useState("");
+  const [selectedMember, setSelectedMember] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -23,49 +32,39 @@ function AdminDepartments() {
   const [assigning, setAssigning] = useState(false);
   const [removing, setRemoving] = useState(false);
 
-  const [reassignDept, setReassignDept] = useState({});
-  const [reassigning, setReassigning] = useState(false);
-
 
   /* ================= LOAD ================= */
 
   const loadDepartments = async () => {
     try {
-      const data = await apiRequest("/departments");
+      const data = await getDepartments();
       setDepartments(data);
     } catch {
       setError("Failed to load departments");
     }
   };
 
-
   const loadAllMembers = async () => {
     try {
-      const data = await apiRequest("/members");
+      const data = await getMembers();
       setAllMembers(data);
     } catch {
       setError("Failed to load members");
     }
   };
 
-
   const loadDepartmentMembers = async (departmentId) => {
     try {
-      const data = await apiRequest(
-        `/member-departments/department/${departmentId}`
-      );
+      const data = await getDepartmentMembers(departmentId);
       setMembers(data);
     } catch {
       setError("Failed to load department members");
     }
   };
 
-
   useEffect(() => {
-    Promise.all([
-      loadDepartments(),
-      loadAllMembers()
-    ]).finally(() => setLoading(false));
+    Promise.all([loadDepartments(), loadAllMembers()])
+      .finally(() => setLoading(false));
   }, []);
 
 
@@ -87,13 +86,9 @@ function AdminDepartments() {
     }
 
     try {
-
-      await apiRequest("/departments", {
-        method: "POST",
-        body: JSON.stringify({
-          name: deptName,
-          description: deptDesc
-        })
+      await createDepartment({
+        name: deptName,
+        description: deptDesc
       });
 
       setDeptName("");
@@ -117,27 +112,20 @@ function AdminDepartments() {
     setAssigning(true);
 
     try {
-
-      await apiRequest("/member-departments", {
-        method: "POST",
-        body: JSON.stringify({
-          member_id: selectedMember.id,  
-          member_code: selectedMember.member_code,
-          department_id: selectedDept.id
-        })
+      await assignMemberToDepartment({
+        member_id: selectedMember.id,
+        member_code: selectedMember.member_code,
+        department_id: selectedDept.id
       });
 
-      setSelectedMember("");
+      setSelectedMember(null);
       loadDepartmentMembers(selectedDept.id);
+      loadDepartments(); // update counts
 
     } catch (err) {
-
       alert(err.message || "Assignment failed");
-
     } finally {
-
       setAssigning(false);
-
     }
   };
 
@@ -151,50 +139,49 @@ function AdminDepartments() {
     setRemoving(true);
 
     try {
-
-      await apiRequest(
-        `/member-departments/${id}`,
-        { method: "DELETE" }
-      );
+      await removeMemberFromDepartment(id);
 
       loadDepartmentMembers(selectedDept.id);
+      loadDepartments(); // update counts
 
     } catch {
-
       alert("Failed to remove");
-
     } finally {
-
       setRemoving(false);
-
     }
   };
 
 
-  /* ================= FILTER ================= */
+  /* ================= DATA ================= */
 
   const unassignedMembers = allMembers.filter(
     m => !members.some(mem => mem.member_code === m.member_code)
   );
+
+  const totalDepartments = departments.length;
+
+  const totalAssigned = departments.reduce(
+    (acc, d) => acc + (d.member_count || 0), 0
+  );
+
+  const unassignedCount = allMembers.length - totalAssigned;
+
+  const largestDept = departments.reduce((max, d) => {
+    return (d.member_count || 0) > (max?.member_count || 0)
+      ? d
+      : max;
+  }, null);
 
 
   /* ================= UI ================= */
 
   if (loading) return <p>Loading...</p>;
 
-  const getOtherDepts = (currentId) => {
-    return departments.filter(d => d.id !== currentId);
-  };
-
-
   return (
     <div className="departments-page">
 
-
       {/* HEADER */}
-
       <div className="departments-header">
-
         <h2>Departments</h2>
 
         <button
@@ -203,17 +190,43 @@ function AdminDepartments() {
         >
           + Add Department
         </button>
-
       </div>
-
 
       {error && <p className="error">{error}</p>}
 
 
-      {/* CREATE FORM */}
+      {/* STATS */}
+      <div className="stats-cards">
 
+        <div className="card">
+          <h4>Total Departments</h4>
+          <p>{totalDepartments}</p>
+        </div>
+
+        <div className="card">
+          <h4>Total Members</h4>
+          <p>{totalAssigned}</p>
+        </div>
+
+        <div className="card">
+          <h4>Unassigned</h4>
+          <p>{unassignedCount}</p>
+        </div>
+
+        <div className="card">
+          <h4>Largest Dept</h4>
+          <p>{largestDept?.name || "-"}</p>
+        </div>
+
+      </div>
+
+
+      {/* CHART */}
+      <DepartmentChart departments={departments} />
+
+
+      {/* FORM */}
       {showForm && (
-
         <div className="dept-form">
 
           <h3>New Department</h3>
@@ -226,47 +239,34 @@ function AdminDepartments() {
           />
 
           <textarea
-            placeholder="Description (optional)"
+            placeholder="Description"
             value={deptDesc}
             onChange={(e) => setDeptDesc(e.target.value)}
           />
 
           <div className="form-actions">
-
-            <button
-              className="save-btn"
-              onClick={handleCreateDepartment}
-            >
+            <button className="save-btn" onClick={handleCreateDepartment}>
               Save
             </button>
 
-            <button
-              className="cancel-btn"
-              onClick={() => setShowForm(false)}
-            >
+            <button className="cancel-btn" onClick={() => setShowForm(false)}>
               Cancel
             </button>
-
           </div>
 
         </div>
-
       )}
 
 
-      {/* MAIN LAYOUT */}
-
+      {/* MAIN */}
       <div className="departments-layout">
 
-
         {/* LEFT */}
-
         <div className="departments-list">
 
           <h3>All Departments</h3>
 
           {departments.map(d => (
-
             <div
               key={d.id}
               className={
@@ -276,52 +276,42 @@ function AdminDepartments() {
               }
               onClick={() => handleSelectDept(d)}
             >
-              {d.name}
+              {d.name} ({d.member_count || 0})
             </div>
-
           ))}
 
         </div>
 
 
         {/* RIGHT */}
-
         <div className="department-panel">
 
-
           {selectedDept ? (
-
             <>
-
               <h3>{selectedDept.name}</h3>
 
-
               {/* ASSIGN */}
-
               <div className="assign-box">
 
                 <select
-                    value={selectedMember?.member_code || ""}
-                    onChange={(e) => {
-                        const mem = unassignedMembers.find(m => m.member_code === e.target.value);
-                        setSelectedMember(mem);
-                    }}
-                    disabled={assigning}
+                  value={selectedMember?.member_code || ""}
+                  onChange={(e) => {
+                    const mem = unassignedMembers.find(
+                      m => m.member_code === e.target.value
+                    );
+                    setSelectedMember(mem);
+                  }}
                 >
-                        <option value="">Select Member</option>
-                            {unassignedMembers.map(m => (
-                                <option key={m.id} value={m.member_code}>
-                            {m.first_name} {m.last_name} {m.other_names}
-                        </option>
-                        ))}
+                  <option value="">Select Member</option>
+
+                  {unassignedMembers.map(m => (
+                    <option key={m.id} value={m.member_code}>
+                      {m.first_name} {m.last_name}
+                    </option>
+                  ))}
                 </select>
 
-
-
-                <button
-                  onClick={handleAssign}
-                  disabled={assigning}
-                >
+                <button onClick={handleAssign}>
                   {assigning ? "Assigning..." : "Assign"}
                 </button>
 
@@ -329,7 +319,6 @@ function AdminDepartments() {
 
 
               {/* TABLE */}
-
               <table className="dept-table">
 
                 <thead>
@@ -343,7 +332,6 @@ function AdminDepartments() {
                 <tbody>
 
                   {members.map(m => (
-
                     <tr key={m.id}>
 
                       <td>
@@ -355,7 +343,6 @@ function AdminDepartments() {
                       <td>
                         <button
                           className="delete-btn"
-                          disabled={removing}
                           onClick={() => handleRemove(m.memberDepartmentId)}
                         >
                           {removing ? "Removing..." : "Remove"}
@@ -363,9 +350,7 @@ function AdminDepartments() {
                       </td>
 
                     </tr>
-
                   ))}
-
 
                   {members.length === 0 && (
                     <tr>
@@ -378,11 +363,8 @@ function AdminDepartments() {
               </table>
 
             </>
-
           ) : (
-
             <p>Select a department</p>
-
           )}
 
         </div>

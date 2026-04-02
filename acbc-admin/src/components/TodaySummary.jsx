@@ -8,7 +8,7 @@ function TodaySummary({ data }) {
 
   return (
     <div className="today-summary">
-      <h3>📅 Today Summary</h3>
+      <div className="dashboard-header">📅 Today Summary</div>
 
       <div className="todaySummary-grid">
 

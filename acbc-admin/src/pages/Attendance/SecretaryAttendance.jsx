@@ -1,181 +1,273 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import AddAttendance from "../../components/AddAttendance";
 import "./AdminAttendance.css";
 import { apiRequest } from "../../services/api";
+import SecretaryDashboardCharts from "../../components/SecretaryDashboardCharts";
 
 function SecretaryAttendance() {
 
   const [attendance, setAttendance] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [pagination, setPagination] = useState({});
+  const [page, setPage] = useState(1);
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
   const [filterDate, setFilterDate] = useState("");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [serviceFilter, setServiceFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All"); // ✅ NEW
 
-  const [viewOpen, setViewOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState(null);
-  const [memberAttendance, setMemberAttendance] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState("");
 
-  const [editOpen, setEditOpen] = useState(false);
+  const observer = useRef();
 
-  const [editData, setEditData] = useState({
-    attendance_code: "",
-    service_date: "",
-    service_type: "",
-    status: "",
-  });
-  // ==============================
-  // Fetch Attendance
-  // ==============================
-  const fetchAttendance = async () => {
+  // ======================
+  // DEBOUNCE SEARCH
+  // ======================
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(delay);
+  }, [search]);
+
+  // ======================
+  // FETCH DATA
+  // ======================
+  const fetchData = async (pageNumber = 1, append = false) => {
+
+    if (pageNumber === 1) setLoading(true);
+    else setLoadingMore(true);
+
     try {
-      const data = await apiRequest("/attendance");
-  
-      setAttendance(data);
-      setLoading(false);
-  
+      const query = new URLSearchParams({
+        page: pageNumber,
+        limit: 50,
+        search: debouncedSearch,
+        type: typeFilter,
+        service: serviceFilter,
+        date: filterDate,
+        status: statusFilter, // ✅ NEW
+      });
+
+      const res = await apiRequest(`/attendance?${query}`);
+
+      if (append) {
+        setAttendance(prev => [...prev, ...res.data]);
+      } else {
+        setAttendance(res.data);
+      }
+
+      setPagination(res.pagination);
+
     } catch (err) {
       console.error(err);
-      setError(err.message || "Failed to load attendance");
-      setLoading(false);
+      setError("Failed to load records");
     }
+
+    setLoading(false);
+    setLoadingMore(false);
   };
 
-  // Load on page open
+  // ======================
+  // REFETCH ON FILTER CHANGE
+  // ======================
   useEffect(() => {
-    fetchAttendance();
-  }, []);
+    setPage(1);
+    fetchData(1);
+  }, [debouncedSearch, filterDate, typeFilter, serviceFilter, statusFilter]);
 
-  // ==============================
-  // Filters
-  // ==============================
-  const filteredAttendance = attendance.filter((att) => {
+  // ======================
+  // INFINITE SCROLL (FIXED)
+  // ======================
+  const lastRowRef = useCallback(node => {
 
-    const fullName =
-      `${att.first_name} ${att.last_name}`.toLowerCase();
+    if (loadingMore) return;
 
-    const matchSearch = fullName.includes(search.toLowerCase());
+    if (observer.current) observer.current.disconnect();
 
-    const matchDate = filterDate
-      ? att.service_date.split("T")[0] === filterDate
-      : true;
+    observer.current = new IntersectionObserver(entries => {
+      if (
+        entries[0].isIntersecting &&
+        page < pagination.totalPages
+      ) {
+        const nextPage = page + 1;
 
-    return matchSearch && matchDate;
-  });
+        setPage(prev => prev + 1); // ✅ FIXED
+        fetchData(nextPage, true);
+      }
+    });
 
-  // ==============================
-  // Stats
-  // ==============================
+    if (node) observer.current.observe(node);
+
+  }, [loadingMore, page, pagination]);
+
+  // ======================
+  // STATS
+  // ======================
   const today = new Date().toISOString().split("T")[0];
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
 
-  const todayPresent = attendance.filter(
+  const presentToday = attendance.filter(
     (a) =>
       a.service_date?.split("T")[0] === today &&
       a.status === "Present"
   ).length;
 
-  const pending = attendance.filter(
-    (a) => a.status === "Pending"
+  const visitorsToday = attendance.filter(
+    (a) =>
+      a.type === "Visitor" &&
+      a.service_date?.split("T")[0] === today
   ).length;
 
-  // ==============================
-  // UI
-  // ==============================
-  if (loading) return <p>Loading attendance...</p>;
-  if (error) return <p className="error">{error}</p>;
+  const visitorsThisMonth = attendance.filter((a) => {
+    const date = new Date(a.service_date);
+    return (
+      a.type === "Visitor" &&
+      date.getMonth() === currentMonth &&
+      date.getFullYear() === currentYear
+    );
+  }).length;
 
-  const handleView = async (memberId) => {
+  const attendanceThisMonth = attendance.filter((a) => {
+    const date = new Date(a.service_date);
+    return (
+      date.getMonth() === currentMonth &&
+      date.getFullYear() === currentYear
+    );
+  });
 
-    if (isNaN(memberId)) {
-      alert("Invalid member ID");
-      return;
-    }
-  
+  const attendanceByDay = {};
+
+  attendanceThisMonth.forEach((a) => {
+    const day = a.service_date.split("T")[0];
+    if (!attendanceByDay[day]) attendanceByDay[day] = 0;
+    attendanceByDay[day]++;
+  });
+
+  const daysCount = Object.keys(attendanceByDay).length;
+
+  const averageAttendance =
+    daysCount > 0
+      ? Math.round(
+          Object.values(attendanceByDay).reduce((a, b) => a + b, 0) / daysCount
+        )
+      : 0;
+
+  // ======================
+  // EXPORT FILTERED DATA (FROM BACKEND)
+  // ======================
+  const exportToCSV = async () => {
     try {
-      const data = await apiRequest(`/attendance/member/${memberId}`);
-  
-      setMemberAttendance(data);
-      setViewOpen(true);
-  
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load attendance history");
-    }
-  };
-
-  const openEdit = (attendance) => {
-    setEditData({
-      attendance_code: attendance.attendance_code,
-      service_date: attendance.service_date.split("T")[0],
-      service_type: attendance.service_type,
-      status: attendance.status,
-    });
-  
-    setEditOpen(true);
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-  
-    try {
-      await apiRequest(`/attendance/${editData.attendance_code}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          service_date: editData.service_date,
-          service_type: editData.service_type,
-          status: editData.status,
-        }),
+      const query = new URLSearchParams({
+        search: debouncedSearch,
+        type: typeFilter,
+        service: serviceFilter,
+        date: filterDate,
+        status: statusFilter,
+        export: "true", // 👈 tell backend to return ALL filtered data
       });
-  
-      alert("Attendance updated successfully");
-  
-      setEditOpen(false);
-  
-      fetchAttendance(); // Reload table
-  
+
+      const res = await apiRequest(`/attendance?${query}`);
+
+      const data = res.data;
+
+      const headers = [
+        "Code", "Name", "Member Code",
+        "Date", "Service", "Status", "Type"
+      ];
+
+      const rows = data.map(row => [
+        row.attendance_code,
+        `${row.first_name} ${row.last_name}`,
+        row.member_code,
+        row.service_date?.split("T")[0],
+        row.service_type,
+        row.status,
+        row.type
+      ]);
+
+      let csvContent =
+        "data:text/csv;charset=utf-8," +
+        [headers, ...rows].map(e => e.join(",")).join("\n");
+
+      const link = document.createElement("a");
+      link.href = encodeURI(csvContent);
+      link.download = "attendance_filtered.csv";
+      link.click();
+
     } catch (err) {
-      alert(err.message || "Update failed");
+      console.error("Export failed", err);
     }
   };
+
+  // ======================
+  // UI STATES
+  // ======================
+  if (loading) return <p className="loading">Loading attendance...</p>;
+
+  if (error) {
+    return (
+      <div className="error-box">
+        <p>{error}</p>
+        <button onClick={() => fetchData(1)}>Retry</button>
+      </div>
+    );
+  }
 
   return (
-    <div className="attendance-page">
+    <div className="m-attendance-page">
 
       {/* HEADER */}
       <div className="attendance-header">
-        <h2>Attendance</h2>
+        <div className="attendance-table-header">Attendance</div>
 
         <div className="action-btn">
-          <AddAttendance refresh={fetchAttendance} />
+          <AddAttendance refresh={() => fetchData(1)} />
+          
         </div>
       </div>
 
       {/* STATS */}
-      <div className="attendance-stats">
+      <div className="members-stats">
 
         <div className="stats-card">
-          <h3>Today</h3>
-          <p>{todayPresent} Present</p>
+          <h3>Present Today</h3>
+          <p>{presentToday}</p>
         </div>
 
         <div className="stats-card">
-          <h3>Total Records</h3>
-          <p>{attendance.length}</p>
+          <h3>Visitors Today</h3>
+          <p>{visitorsToday}</p>
         </div>
 
         <div className="stats-card">
-          <h3>Pending</h3>
-          <p>{pending}</p>
+          <h3>Visitors This Month</h3>
+          <p>{visitorsThisMonth}</p>
+        </div>
+
+        <div className="stats-card">
+          <h3>Avg Attendance</h3>
+          <p>{averageAttendance}</p>
         </div>
 
       </div>
 
-      {/* CONTROLS */}
+      <div>
+        < SecretaryDashboardCharts />
+      </div>
+      <div className="attendance-table-header">Attendance Table</div>
+      {/* FILTERS */}
       <div className="attendance-controls">
-
+        
         <input
           type="text"
-          placeholder="Search member..."
+          placeholder="Search name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -186,185 +278,92 @@ function SecretaryAttendance() {
           onChange={(e) => setFilterDate(e.target.value)}
         />
 
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+        >
+          <option>All</option>
+          <option>Member</option>
+          <option>Visitor</option>
+        </select>
+
+        <select
+          value={serviceFilter}
+          onChange={(e) => setServiceFilter(e.target.value)}
+        >
+          <option>All</option>
+          <option>Sunday Service</option>
+          <option>Midweek Service</option>
+        </select>
+
+        {/* ✅ NEW STATUS FILTER */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option>All</option>
+          <option>Present</option>
+          <option>Absent</option>
+        </select>
+
       </div>
+
+      <button className="export-btn" onClick={exportToCSV}>
+            Export To Excel
+      </button>
 
       {/* TABLE */}
       <div className="attendance-table-wrapper">
 
         <table className="attendance-table">
-
           <thead>
             <tr>
-              <th>Code</th>
               <th>Name</th>
               <th>Member Code</th>
               <th>Date</th>
               <th>Service</th>
               <th>Status</th>
-              <th>Actions</th>
+              <th>Type</th>
             </tr>
           </thead>
 
           <tbody>
+            {attendance.map((row, index) => {
 
-            {filteredAttendance.length === 0 ? (
-              <tr>
-                <td colSpan="7" style={{ textAlign: "center" }}>
-                  No records found
-                </td>
-              </tr>
-            ) : (
+              if (attendance.length === index + 1) {
+                return (
+                  <tr ref={lastRowRef} key={row.id}>
+                    <td>{row.first_name} {row.last_name}</td>
+                    <td>{row.member_code}</td>
+                    <td>{row.service_date?.split("T")[0]}</td>
+                    <td>{row.service_type}</td>
+                    <td>{row.status}</td>
+                    <td>{row.type}</td>
+                  </tr>
+                );
+              }
 
-              filteredAttendance.map((att) => (
-
-                <tr key={att.id}>
-
-                  <td>{att.attendance_code}</td>
-
-                  <td>
-                    {att.first_name} {att.last_name}
-                  </td>
-
-                  <td>{att.member_code}</td>
-
-                  <td>
-                    {att.service_date?.split("T")[0]}
-                  </td>
-
-                  <td>{att.service_type}</td>
-
-                  <td
-                    className={
-                      att.status === "Present"
-                        ? "status present"
-                        : "status absent"
-                    }
-                  >
-                    {att.status}
-                  </td>
-
-                  <td>
-                    <button className="view-btn" onClick={() => handleView(att.member_id)}>View</button>
-                    <button className="edit-btn" onClick={() => openEdit(att)}>Edit</button>
-                  </td>
-
+              return (
+                <tr key={row.id}>
+                  <td>{row.first_name} {row.last_name}</td>
+                  <td>{row.member_code}</td>
+                  <td>{row.service_date?.split("T")[0]}</td>
+                  <td>{row.service_type}</td>
+                  <td>{row.status}</td>
+                  <td>{row.type}</td>
                 </tr>
-              ))
-
-            )}
-
+              );
+            })}
           </tbody>
-
         </table>
+
+        {loadingMore && (
+          <p className="loading-more">Loading more...</p>
+        )}
 
       </div>
 
-      {viewOpen && (
-          <div className="modal-overlay">
-
-            <div className="view-box">
-              <h3 className="view-title">Attendance History</h3>
-
-              <div className="table-container">
-                <table className="attendance-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Service</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {memberAttendance.map((a) => (
-                      <tr key={a.attendance_code}>
-                        <td>{a.service_date.split("T")[0]}</td>
-                        <td>{a.service_type}</td>
-                        <td>
-                          <span className={`status ${a.status.toLowerCase()}`}>
-                            {a.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <button className="close-btn" onClick={() => setViewOpen(false)}>
-                Close
-              </button>   
-            </div>
-
-          </div>
-        )}
-
-        {editOpen && (
-          <div className="modal-overlay">
-
-            <div className="edit-box">
-
-              <h3>Edit Attendance</h3>
-
-              <form onSubmit={handleEditSubmit}>
-
-                <label>Date</label>
-                <input
-                  type="date"
-                  value={editData.service_date}
-                  onChange={(e) =>
-                    setEditData({ ...editData, service_date: e.target.value })
-                  }
-                  required
-                />
-
-                <label>Service</label>
-                <input
-                  type="text"
-                  value={editData.service_type}
-                  onChange={(e) =>
-                    setEditData({ ...editData, service_type: e.target.value })
-                  }
-                  required
-                />
-
-                <label>Status</label>
-                <select
-                  value={editData.status}
-                  onChange={(e) =>
-                    setEditData({ ...editData, status: e.target.value })
-                  }
-                  required
-                >
-                  <option value="">Select</option>
-                  <option value="Present">Present</option>
-                  <option value="Absent">Absent</option>
-                  <option value="Late">Late</option>
-                </select>
-
-                <div className="form-actions">
-
-                  <button type="submit" className="save-btn">
-                    Save
-                  </button>
-
-                  <button
-                    type="button"
-                    className="cancel-btn"
-                    onClick={() => setEditOpen(false)}
-                  >
-                    Cancel
-                  </button>
-
-                </div>
-
-              </form>
-
-            </div>
-          </div>
-        )}
-
-
+      
 
     </div>
   );

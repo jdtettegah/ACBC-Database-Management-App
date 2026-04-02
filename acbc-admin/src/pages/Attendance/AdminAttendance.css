@@ -1,4 +1,4 @@
-.attendance-page {
+.m-attendance-page {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -71,6 +71,13 @@
 .attendance-controls {
   display: flex;
   gap: 10px;
+}
+
+.attendance-table-header{
+  font-size: 30px;
+  color: #2f2fd6;
+  font-weight: bold;
+  margin-top: 30px;
 }
 
 .attendance-controls input,

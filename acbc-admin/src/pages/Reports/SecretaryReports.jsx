@@ -1,55 +1,181 @@
-import ReportCards from "../../components/ReportCards";
-import AttendanceChart from "../../components/AttendanceChart";
-import ServiceChart from "../../components/ServiceChart"
-import ReportsTable from "../../components/ReportsTable"
-import "./SecretaryReports.css"
+import { useEffect, useState } from "react";
 import AdminGenerateReport from "../../components/AdminGenerateReport";
-import SecretaryGenerateReport from "../../components/SecretaryGenerateReports";
+import "./AdminReports.css";
 
+import { getAllReports } from "../../services/api";
 
 function SecretaryReports() {
-    return (
-        <div className="reports-page">
-        {/* HEADER */}
-        <div className="reports-header">
-          <h2>Reports</h2>
-          <div className="report-filters">
-          <input type="date" />
-          <input type="date" />
-          <select>
-            <option>All Services</option>
-            <option>Sunday Service</option>
-            <option>Bible Study</option>
-          </select>
-          
-        </div>
-          <div className="action-btn"><SecretaryGenerateReport/></div>
-        </div>
-        {/* Filters */}
-        
 
-        
-  
-        {/* Summary Cards */}
-        <div className="reports-stats">
-         <ReportCards />
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedReport, setSelectedReport] = useState(null);
+
+  const loadReports = async () => {
+
+    try {
+
+      const data = await getAllReports();
+      setReports(data);
+
+    } catch (err) {
+
+      console.error(err);
+      alert("Failed to load reports");
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+  useEffect(() => {
+    loadReports();
+  }, []);
+
+  return (
+
+    <div className="report-page">
+
+      <div className="report-header">
+
+        <div className="attendance-table-header">Reports</div>
+
+        <div className="action-btn">
+          <AdminGenerateReport refreshReports={loadReports} />
         </div>
-  
-        {/* Charts */}
-        <div className="charts-grid">
-          <div className="chart-card">Attendance Trend</div>
-          <div className="chart-card">Attendance by Service</div>
-          <AttendanceChart />
-          <ServiceChart />
-        </div>
-  
-        {/* Table */}
-        <div className="report-table">
-            <ReportsTable />
-        </div>
+
       </div>
-    );
-  }
-  
-  export default SecretaryReports;
-  
+
+
+      <div className="report-stats">
+
+        <div className="stats-card">
+          <h3>Total Reports</h3>
+          <p>{reports.length}</p>
+        </div>
+
+        <div className="stats-card">
+          <h3>This Month</h3>
+          <p>
+            {reports.filter(r => {
+
+              const today = new Date();
+              const reportDate = new Date(r.created_at);
+
+              return (
+                reportDate.getMonth() === today.getMonth() &&
+                reportDate.getFullYear() === today.getFullYear()
+              );
+
+            }).length}
+          </p>
+        </div>
+
+        <div className="stats-card">
+          <h3>Pending</h3>
+          <p>{reports.filter(r => r.status === "Pending").length}</p>
+        </div>
+
+      </div>
+
+
+      <div className="report-table-wrapper">
+
+        {loading ? (
+
+          <p>Loading reports...</p>
+
+        ) : (
+
+          <table className="report-table">
+
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Period</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {reports.length === 0 ? (
+
+                <tr>
+                  <td colSpan="6">No reports found</td>
+                </tr>
+
+              ) : (
+
+                reports.map(report => (
+
+                  <tr key={report.id}>
+
+                    <td>{report.id}</td>
+                    <td>{report.title}</td>
+                    <td>{report.category}</td>
+                    <td>{report.period}</td>
+
+                    <td
+                      className={
+                        report.status === "Generated"
+                          ? "status generated"
+                          : "status pending"
+                      }
+                    >
+                      {report.status}
+                    </td>
+
+                    <td>
+
+                      <button
+                        className="view-btn"
+                        onClick={() => setSelectedReport(report)}
+                      >
+                        View
+                      </button>
+
+                      <button
+                        className="download-btn"
+                        onClick={() => setSelectedReport(report)}
+                      >
+                        Download
+                      </button>
+
+                    </td>
+
+                  </tr>
+
+                ))
+
+              )}
+
+            </tbody>
+
+          </table>
+
+        )}
+
+      </div>
+
+
+      {selectedReport && (
+
+        <AdminGenerateReport
+          existingReport={selectedReport}
+          onClose={() => setSelectedReport(null)}
+        />
+
+      )}
+
+    </div>
+
+  );
+}
+
+export default SecretaryReports;

@@ -31,7 +31,7 @@ const RecentActivity = () => {
 
   return (
     <div className="recent-activity">
-      <h3>Recent Activity</h3>
+      <div className="dashboard-header">Recent Activity</div>
   
       {activities.length === 0 ? (
         <p>No recent activity</p>

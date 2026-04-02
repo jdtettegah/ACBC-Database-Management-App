@@ -36,9 +36,10 @@ function Sidebar() {
       { name: "Dashboard", path: "/dashboard" },
       { name: "Members", path: "/dashboard/members" },
       { name: "Attendance", path: "/dashboard/attendance" },
-      { name: "Meetings", path: "/dashboard/meetings" },
-      { name: "Reports", path: "/dashboard/reports" },
+      { name: "Tithe", path: "/dashboard/tithe"},
       { name: "Department", path: "/dashboard/department"},
+      { name: "Reports", path: "/dashboard/reports" },
+     
       
     ],
 

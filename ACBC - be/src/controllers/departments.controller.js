@@ -47,9 +47,31 @@ exports.getAllDepartments = async (req, res) => {
         const pool = await poolPromise;
 
         const result = await pool.request().query(`
-            SELECT id, name, description, is_active, created_at
-            FROM Departments
-            ORDER BY name
+            SELECT 
+                d.id,
+                d.name,
+                d.description,
+                d.is_active,
+                d.created_at,
+
+                COUNT(md.id) AS member_count
+
+            FROM Departments d
+
+            LEFT JOIN MemberDepartments md 
+                ON d.id = md.department_id
+                AND md.is_active = 1
+
+            WHERE d.is_active = 1
+
+            GROUP BY 
+                d.id,
+                d.name,
+                d.description,
+                d.is_active,
+                d.created_at
+
+            ORDER BY d.name
         `);
 
         res.json(result.recordset);
@@ -59,7 +81,6 @@ exports.getAllDepartments = async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch departments' });
     }
 };
-
 
 /**
  * GET DEPARTMENT BY ID

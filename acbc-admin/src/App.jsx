@@ -11,6 +11,7 @@ import Meetings from "./pages/Meetings";
 import Department from "./pages/Department";
 import Welfare from "./pages/Welfare";
 import Tithe from "./pages/Tithe";
+import WelfareHistoryModal from "./pages/Welfare/WelfareHistoryModal";
 
 
 function App() {
@@ -106,7 +107,7 @@ function App() {
           path="/dashboard/welfare"
           element={
             <ProtectedRoute>
-              <RoleProtectedRoute allowedRoles={ ["Admin", "Pastor", "General Secretary", "Financial Secretary"]}>
+              <RoleProtectedRoute allowedRoles={ ["Admin", "Pastor", "Financial Secretary"]}>
                 <Welfare />
               </RoleProtectedRoute>
             </ProtectedRoute>
@@ -122,6 +123,17 @@ function App() {
               </RoleProtectedRoute>
             </ProtectedRoute>
             }
+        />
+
+        <Route
+          path="/dashboard/welfare/history/:id"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Admin", "Pastor", "General Secretary", "Financial Secretary"]}>
+                <WelfareHistoryModal />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
         />
 
 

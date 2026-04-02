@@ -12,14 +12,22 @@ const generateEventCode = (type, date = new Date()) => {
   return `SPC-${Date.now()}`;
 };
 
-const generateWelfareCode = async (pool, datePaid) => {
-  const result = await pool.request()
+const generateWelfareCode = async (request, datePaid) => {
+  const result = await request
     .input('date_paid', sql.Date, datePaid)
-    .query(`SELECT COUNT(*) AS count FROM WelfareFunds WHERE date_paid = @date_paid`);
+    .query(`
+      SELECT COUNT(*) AS count 
+      FROM WelfareFunds 
+      WHERE date_paid = @date_paid
+    `);
 
   const seq = result.recordset[0].count + 1;
-  const datePart = new Date(datePaid).toISOString().slice(0,10).replace(/-/g, '');
-  return `${datePart}-WF-${String(seq).padStart(3,'0')}`;
+  const datePart = new Date(datePaid)
+    .toISOString()
+    .slice(0, 10)
+    .replace(/-/g, '');
+
+  return `${datePart}-WF-${String(seq).padStart(3, '0')}`;
 };
 
 /* ================= CREATE EVENT ================= */
@@ -36,7 +44,6 @@ const createEvent = async (req, res) => {
 
     await transaction.begin();
 
-    // ✅ MONTHLY DUES → CREATE FULL YEAR
     if (event_type === "DUES") {
       const year = new Date().getFullYear();
 
@@ -52,22 +59,28 @@ const createEvent = async (req, res) => {
 
         const result = await new sql.Request(transaction)
           .input("event_code", sql.VarChar, code)
-          .input("event_name", sql.VarChar, `Welfare Dues - ${date.toLocaleString('default',{month:'long'})} ${year}`)
+          .input(
+            "event_name",
+            sql.VarChar,
+            `Welfare Dues - ${date.toLocaleString('default', {
+              month: 'long'
+            })} ${year}`
+          )
           .input("event_type", sql.VarChar, "DUES")
-          .input("default_amount", sql.Decimal(18,2), default_amount)
+          .input("default_amount", sql.Decimal(18, 2), default_amount)
           .input("created_by", sql.Int, created_by)
           .query(`
-            INSERT INTO WelfareEvents (event_code, event_name, event_type, default_amount, created_by)
+            INSERT INTO WelfareEvents 
+            (event_code, event_name, event_type, default_amount, created_by)
             OUTPUT INSERTED.id
             VALUES (@event_code,@event_name,@event_type,@default_amount,@created_by)
           `);
 
         const eventId = result.recordset[0].id;
 
-        // ✅ Assign active members
         await new sql.Request(transaction)
           .input("event_id", sql.Int, eventId)
-          .input("amount", sql.Decimal(18,2), default_amount)
+          .input("amount", sql.Decimal(18, 2), default_amount)
           .query(`
             INSERT INTO WelfareEventMembers (event_id, member_id, expected_amount)
             SELECT @event_id, m.id, @amount
@@ -80,17 +93,18 @@ const createEvent = async (req, res) => {
       return res.json({ success: true, message: "Yearly dues created" });
     }
 
-    // ✅ SPECIAL EVENT
+    // SPECIAL EVENT
     const code = generateEventCode("SPECIAL");
 
     const result = await new sql.Request(transaction)
       .input("event_code", sql.VarChar, code)
       .input("event_name", sql.VarChar, event_name)
       .input("event_type", sql.VarChar, "SPECIAL")
-      .input("default_amount", sql.Decimal(18,2), default_amount)
+      .input("default_amount", sql.Decimal(18, 2), default_amount)
       .input("created_by", sql.Int, created_by)
       .query(`
-        INSERT INTO WelfareEvents (event_code,event_name,event_type,default_amount,created_by)
+        INSERT INTO WelfareEvents 
+        (event_code,event_name,event_type,default_amount,created_by)
         OUTPUT INSERTED.id
         VALUES (@event_code,@event_name,@event_type,@default_amount,@created_by)
       `);
@@ -99,7 +113,7 @@ const createEvent = async (req, res) => {
 
     await new sql.Request(transaction)
       .input("event_id", sql.Int, eventId)
-      .input("amount", sql.Decimal(18,2), default_amount)
+      .input("amount", sql.Decimal(18, 2), default_amount)
       .query(`
         INSERT INTO WelfareEventMembers (event_id, member_id, expected_amount)
         SELECT @event_id, m.id, @amount
@@ -118,72 +132,81 @@ const createEvent = async (req, res) => {
   }
 };
 
-/* ================= RECORD PAYMENT ================= */
+/* ================= BULK PAYMENT ================= */
 
-const recordPayment = async (req, res) => {
+const recordBulkPayment = async (req, res) => {
   const transaction = new sql.Transaction(await poolPromise);
 
   try {
-    const { event_member_id, amount, date_paid, recorded_by } = req.body;
+    const { payments, date_paid, recorded_by } = req.body;
 
-    if (!event_member_id || !amount || !date_paid) {
-      return res.status(400).json({ message: "Missing fields" });
+    if (!payments || payments.length === 0) {
+      return res.status(400).json({ message: "No payments provided" });
     }
 
     await transaction.begin();
 
-    const request = new sql.Request(transaction);
+    for (let p of payments) {
+      const { event_member_id, amount, payment_method, payment_reference } = p;
 
-    const check = await request
-      .input("id", sql.Int, event_member_id)
-      .query(`SELECT expected_amount,total_paid FROM WelfareEventMembers WHERE id=@id`);
+      const request = new sql.Request(transaction);
 
-    if (check.recordset.length === 0) {
-      await transaction.rollback();
-      return res.status(404).json({ message: "Invalid member" });
+      const check = await request
+        .input("id", sql.Int, event_member_id)
+        .query(`
+          SELECT expected_amount, total_paid 
+          FROM WelfareEventMembers 
+          WHERE id = @id
+        `);
+
+      if (check.recordset.length === 0) continue;
+
+      const member = check.recordset[0];
+
+      if (member.total_paid + amount > member.expected_amount) continue;
+
+      const code = await generateWelfareCode(request, date_paid);
+
+      await request
+        .input("code", sql.VarChar, code)
+        .input("event_member_id", sql.Int, event_member_id)
+        .input("amount", sql.Decimal(18, 2), amount)
+        .input("method", sql.VarChar, payment_method || "Cash")
+        .input("ref", sql.VarChar, payment_reference || null)
+        .input("date", sql.Date, date_paid)
+        .input("user", sql.Int, recorded_by)
+        .query(`
+          INSERT INTO WelfareFunds 
+          (welfare_code,event_member_id,amount,payment_method,payment_reference,date_paid,recorded_by)
+          VALUES (@code,@event_member_id,@amount,@method,@ref,@date,@user)
+        `);
+
+      await request
+        .input("amt", sql.Decimal(18, 2), amount)
+        .input("id2", sql.Int, event_member_id)
+        .query(`
+          UPDATE WelfareEventMembers
+          SET total_paid = total_paid + @amt,
+              status = CASE 
+                WHEN total_paid + @amt < expected_amount THEN 'PARTIAL'
+                ELSE 'PAID'
+              END
+          WHERE id = @id2
+        `);
     }
-
-    const member = check.recordset[0];
-
-    if (member.total_paid + amount > member.expected_amount) {
-      await transaction.rollback();
-      return res.status(400).json({ message: "Exceeds expected amount" });
-    }
-
-    const code = await generateWelfareCode(await poolPromise, date_paid);
-
-    await request
-      .input("code", sql.VarChar, code)
-      .input("event_member_id", sql.Int, event_member_id)
-      .input("amount", sql.Decimal(18,2), amount)
-      .input("date", sql.Date, date_paid)
-      .input("user", sql.Int, recorded_by)
-      .query(`
-        INSERT INTO WelfareFunds (welfare_code,event_member_id,amount,payment_method,date_paid,recorded_by)
-        VALUES (@code,@event_member_id,@amount,'Cash',@date,@user)
-      `);
-
-    await request
-      .input("amt", sql.Decimal(18,2), amount)
-      .input("id2", sql.Int, event_member_id)
-      .query(`
-        UPDATE WelfareEventMembers
-        SET total_paid = total_paid + @amt,
-            status = CASE 
-              WHEN total_paid + @amt < expected_amount THEN 'PARTIAL'
-              ELSE 'PAID'
-            END
-        WHERE id = @id2
-      `);
 
     await transaction.commit();
 
-    res.json({ success: true, message: "Payment recorded" });
+    res.json({
+      success: true,
+      message: "Bulk payments recorded",
+      count: payments.length
+    });
 
   } catch (err) {
     await transaction.rollback();
     console.error(err);
-    res.status(500).json({ message: "Payment failed" });
+    res.status(500).json({ message: "Bulk payment failed" });
   }
 };
 
@@ -191,7 +214,12 @@ const recordPayment = async (req, res) => {
 
 const getEvents = async (req, res) => {
   const pool = await poolPromise;
-  const result = await pool.request().query(`SELECT * FROM WelfareEvents ORDER BY event_date DESC`);
+
+  const result = await pool.request().query(`
+    SELECT * FROM WelfareEvents
+    ORDER BY event_code ASC
+  `);
+
   res.json(result.recordset);
 };
 
@@ -215,9 +243,126 @@ const getEventMembersFull = async (req, res) => {
   res.json(result.recordset);
 };
 
+
+const recordSinglePayment = async (req, res) => {
+  const transaction = new sql.Transaction(await poolPromise);
+
+  try {
+    const {
+      event_member_id,
+      amount,
+      payment_method,
+      payment_reference,
+      date_paid,
+      recorded_by
+    } = req.body;
+
+    if (!event_member_id || !amount || !date_paid) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
+
+    await transaction.begin();
+
+    const request = new sql.Request(transaction);
+
+    const check = await request
+      .input("id", sql.Int, event_member_id)
+      .query(`
+        SELECT expected_amount, total_paid 
+        FROM WelfareEventMembers 
+        WHERE id = @id
+      `);
+
+    if (check.recordset.length === 0) {
+      await transaction.rollback();
+      return res.status(404).json({ message: "Invalid member" });
+    }
+
+    const member = check.recordset[0];
+
+    if (member.total_paid + amount > member.expected_amount) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: "Exceeds expected amount"
+      });
+    }
+
+    const code = await generateWelfareCode(request, date_paid);
+
+    await request
+      .input("code", sql.VarChar, code)
+      .input("event_member_id", sql.Int, event_member_id)
+      .input("amount", sql.Decimal(18,2), amount)
+      .input("method", sql.VarChar, payment_method || "Cash")
+      .input("ref", sql.VarChar, payment_reference || null)
+      .input("date", sql.Date, date_paid)
+      .input("user", sql.Int, recorded_by)
+      .query(`
+        INSERT INTO WelfareFunds 
+        (welfare_code,event_member_id,amount,payment_method,payment_reference,date_paid,recorded_by)
+        VALUES (@code,@event_member_id,@amount,@method,@ref,@date,@user)
+      `);
+
+    await request
+      .input("amt", sql.Decimal(18,2), amount)
+      .input("id2", sql.Int, event_member_id)
+      .query(`
+        UPDATE WelfareEventMembers
+        SET total_paid = total_paid + @amt,
+            status = CASE 
+              WHEN total_paid + @amt < expected_amount THEN 'PARTIAL'
+              ELSE 'PAID'
+            END
+        WHERE id = @id2
+      `);
+
+    await transaction.commit();
+
+    res.json({ success: true, message: "Payment successful" });
+
+  } catch (err) {
+    await transaction.rollback();
+    console.error(err);
+    res.status(500).json({ message: "Payment failed" });
+  }
+};
+
+const getMemberFullHistory = async (req, res) => {
+  try {
+    const pool = await poolPromise;
+
+    const result = await pool.request()
+      .input("id", sql.Int, req.params.event_member_id)
+      .query(`
+        SELECT 
+          we.event_name,
+          wem.expected_amount,   -- ✅ ADD THIS
+          wf.amount,
+          wf.payment_method,
+          wf.payment_reference,
+          wf.date_paid
+        FROM WelfareFunds wf
+        JOIN WelfareEventMembers wem ON wf.event_member_id = wem.id
+        JOIN WelfareEvents we ON wem.event_id = we.id
+        WHERE wem.member_id = (
+          SELECT member_id FROM WelfareEventMembers WHERE id = @id
+        )
+        ORDER BY wf.date_paid DESC
+      `);
+
+    res.json(result.recordset);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch history" });
+  }
+};
+
 module.exports = {
   createEvent,
-  recordPayment,   // ✅ IMPORTANT
+  recordBulkPayment,
   getEvents,
-  getEventMembersFull
+  getEventMembersFull,
+  recordSinglePayment,
+  getMemberFullHistory
 };
