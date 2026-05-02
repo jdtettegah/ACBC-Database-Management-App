@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getAllTithes } from "../../services/api";
 import AddTithe from "../../components/AddTithe";
 import "./AdminTithe.css";
+import { FileSpreadsheet, Landmark } from "lucide-react";
 
 function AdminTithe() {
   const [tithes, setTithes] = useState([]);
@@ -90,23 +91,37 @@ function AdminTithe() {
     if (filtered.length === 0) {
       return alert("No data to export");
     }
-
-    const exportData = filtered.map(t => ({
-      Name: `${t.first_name} ${t.last_name}`,
-      MemberCode: t.member_code,
-      TitheCode: t.tithe_code,
-      Amount: t.amount,
-      Method: t.payment_method,
-      Reference: t.payment_reference || "",
-      Date: new Date(t.date_paid).toLocaleDateString(),
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Tithes");
-
-    XLSX.writeFile(workbook, "tithe-report.xlsx");
+  
+    const headers = [
+      "Name",
+      "Member Code",
+      "Tithe Code",
+      "Amount",
+      "Method",
+      "Reference",
+      "Date"
+    ];
+  
+    const rows = filtered.map(t => [
+      `${t.first_name} ${t.last_name}`,
+      t.member_code,
+      t.tithe_code,
+      t.amount,
+      t.payment_method,
+      t.payment_reference || "",
+      new Date(t.date_paid).toLocaleDateString()
+    ]);
+  
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows]
+        .map(row => row.join(","))
+        .join("\n");
+  
+    const link = document.createElement("a");
+    link.href = encodeURI(csvContent);
+    link.download = "tithe-report.csv";
+    link.click();
   };
 
   /* ================= UI ================= */
@@ -116,15 +131,18 @@ function AdminTithe() {
   }
 
   return (
-    <div className="finance-page">
+    <div className="tithe-page">
 
       {/* HEADER */}
-      <div className="finance-header">
-        <h2>Tithe</h2>
+      <div className="tithe-header">
+        <div className="tithe-title">
+          <span className="tithe-title-icon"><Landmark /></span>
+          <span className="tithe-title-text">Tithe Management</span>
+        </div>
 
-        <div className="action-btns">
+        <div className="tithe-action-btns">
 
-          <div className="action-btn">
+          <div className="tithe-action-btn">
             <AddTithe onSaved={loadTithes} />
           </div>
 
@@ -134,19 +152,19 @@ function AdminTithe() {
       </div>
 
       {/* STATS */}
-      <div className="finance-stats">
+      <div className="tithe-stats">
 
-        <div className="stats-card">
+        <div className="tithe-stats-card">
           <h3>Total Tithe</h3>
           <p>GH₵ {totalTithe.toFixed(2)}</p>
         </div>
 
-        <div className="stats-card">
+        <div className="tithe-stats-card">
           <h3>Tithe Today</h3>
           <p>GH₵ {todayTotal.toFixed(2)}</p>
         </div>
 
-        <div className="stats-card">
+        <div className="tithe-stats-card">
           <h3>Members Today</h3>
           <p>{membersToday}</p>
         </div>
@@ -154,7 +172,7 @@ function AdminTithe() {
       </div>
 
       {/* FILTERS */}
-      <div className="finance-controls">
+      <div className="tithe-controls">
 
         <input
           type="text"
@@ -169,11 +187,12 @@ function AdminTithe() {
           onChange={(e) => setDateFilter(e.target.value)}
         />
 
-        <div className="export-btn">
+        <div className="tithe-export-btn">
             <button
               onClick={exportToExcel}
             >
-              Export Excel
+              <FileSpreadsheet size={18} />
+              Export
             </button>
         </div>
 
@@ -182,9 +201,9 @@ function AdminTithe() {
       
 
       {/* TABLE */}
-      <div className="finance-table-wrapper">
+      <div className="tithe-table-wrapper">
 
-        <table className="finance-table">
+        <table className="tithe-table">
 
           <thead>
             <tr>

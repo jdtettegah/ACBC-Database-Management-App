@@ -13,11 +13,12 @@ import {
 import { getAttendanceChart, getFinanceChart } from "../services/api";
 import "./DashboardCharts.css";
 
+import { Users, Wallet } from "lucide-react"; // 👈 add icons
+
 function DashboardCharts() {
   const [attendanceData, setAttendanceData] = useState([]);
   const [financeData, setFinanceData] = useState([]);
 
-  // Get current month range
   const getCurrentMonthDates = () => {
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -30,7 +31,6 @@ function DashboardCharts() {
     };
   };
 
-  // Normalize weeks to always show Week 1–5
   const normalizeWeeks = (data) => {
     const allWeeks = ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5"];
 
@@ -58,7 +58,6 @@ function DashboardCharts() {
 
         setAttendanceData(Array.isArray(attendance.weeks) ? normalizeWeeks(attendance.weeks) : []);
         setFinanceData(Array.isArray(finance.weeks) ? normalizeWeeks(finance.weeks) : []);
-
       } catch (err) {
         console.error("Error fetching chart data:", err);
       }
@@ -69,7 +68,6 @@ function DashboardCharts() {
 
   const { month } = getCurrentMonthDates();
 
-  // Custom Tooltip for both charts
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -108,7 +106,13 @@ function DashboardCharts() {
 
       {/* Attendance Chart */}
       <div className="chart-card">
-        <h3>{month} Attendance (Sunday vs Midweek)</h3>
+        <div className="chart-header">
+          <span className="chart-icon">
+            <Users size={18} />
+          </span>
+          <h3>{month} Attendance</h3>
+        </div>
+
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={attendanceData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -124,7 +128,13 @@ function DashboardCharts() {
 
       {/* Finance Chart */}
       <div className="chart-card">
-        <h3>{month} Finance (Income vs Expense)</h3>
+        <div className="chart-header">
+          <span className="chart-icon">
+            <Wallet size={18} />
+          </span>
+          <h3>{month} Finance</h3>
+        </div>
+
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={financeData}>
             <CartesianGrid strokeDasharray="3 3" />

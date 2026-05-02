@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import "./PastorMember.css";
 import PastorMemberTable from "./PastorMemberTable";
 import { apiRequest } from "../../services/api";
+import { Users } from "lucide-react";
 
 const COLORS = ["#4d4dea", "#2f2fd6", "#6f6ff2", "#9999ff"];
 
@@ -85,34 +86,36 @@ function PastorMember() {
   return (
     <div className="pastor-members">
 
-      <h2>Members Overview</h2>
+        <div className="member-title">
+          <span className="member-title-icon"><Users /></span>
+          <span className="member-title-text">Members</span>
+        </div>
 
       {/* SUMMARY */}
       <div className="member-summary">
-        <div className="summary-card">
+        <div className="member-summary-card">
           <h4>Total Members</h4>
           <p>{totalMembers}</p>
         </div>
 
-        <div className="summary-card">
+        <div className="member-summary-card">
           <h4>New Members (Month)</h4>
           <p>{newMembers}</p>
         </div>
 
-        <div className="summary-card">
+        <div className="member-summary-card">
           <h4>Auxiliary Groups</h4>
           <p>{auxGroupData.length}</p>
         </div>
       </div>
 
-      {/* TABLE */}
-      <PastorMemberTable members={members} />
+     
 
       {/* CHARTS */}
       <div className="member-charts">
 
         {/* Gender */}
-        <div className="chart-box">
+        <div className="member-chart-box">
           <h3>Gender Distribution</h3>
 
           <ResponsiveContainer width="100%" height={260}>
@@ -138,7 +141,7 @@ function PastorMember() {
         </div>
 
         {/* Auxiliary Groups */}
-        <div className="chart-box">
+        <div className="member-chart-box">
           <h3>Auxiliary Groups</h3>
 
           <ResponsiveContainer width="100%" height={260}>
@@ -152,10 +155,11 @@ function PastorMember() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      <PastorMemberTable members={members} />
     </div>
   );
 }
 
 export default PastorMember;
 
-/* I have to add departments graph */

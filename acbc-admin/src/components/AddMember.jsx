@@ -1,7 +1,10 @@
 // AddMember.jsx
 import "./AddMember.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { apiRequest } from "../services/api";
+import { UserPlus } from "lucide-react";
+import { createPortal } from "react-dom";
+
 
 function AddMember({ onSuccess}) {
   const [open, setOpen] = useState(false);
@@ -108,18 +111,33 @@ function AddMember({ onSuccess}) {
     }
   };
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+  
+    if (open) {
+      window.addEventListener("keydown", handleEsc);
+    }
+  
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [open]);
+
   return (
     <>
       <button
-        className="add-attendance-button"
+        className="add-member-button"
         onClick={() => setOpen(true)}
       >
-        ➕ Add Member
+        <UserPlus size={18} />
+        Add Member
       </button>
 
-      {open && (
-        <div className="modal-overlay">
-          <div className="add-member-page">
+      {open && createPortal(
+        <div className="add-member-modal-overlay" onClick={() => setOpen(false)}>
+          <div className="add-member-page" onClick={(e) => e.stopPropagation()}>
 
             <div className="add-member-header">
               <h2>Add New Member</h2>
@@ -127,10 +145,10 @@ function AddMember({ onSuccess}) {
             </div>
 
             <form className="add-member-form" onSubmit={handleSubmit}>
-              <div className="form-grid">
+              <div className="add-member-form-grid">
 
                 {/* First Name */}
-                <div className="form-group">
+                <div className="add-member-form-group">
                   <label>First Name</label>
                   <input
                     type="text"
@@ -142,7 +160,7 @@ function AddMember({ onSuccess}) {
                 </div>
 
                 {/* Last Name */}
-                <div className="form-group">
+                <div className="add-member-form-group">
                   <label>Last Name</label>
                   <input
                     type="text"
@@ -154,7 +172,7 @@ function AddMember({ onSuccess}) {
                 </div>
 
                 {/* Other Names */}
-                <div className="form-group">
+                <div className="add-member-form-group">
                   <label>Other Names</label>
                   <input
                     type="text"
@@ -165,7 +183,7 @@ function AddMember({ onSuccess}) {
                 </div>
 
                 {/* Gender */}
-                <div className="form-group">
+                <div className="add-member-form-group">
                   <label>Gender</label>
                   <select
                     name="gender"
@@ -180,7 +198,7 @@ function AddMember({ onSuccess}) {
                 </div>
 
                 {/* DOB */}
-                <div className="form-group">
+                <div className="add-member-form-group">
                   <label>Date of Birth</label>
                   <input
                     type="date"
@@ -191,7 +209,7 @@ function AddMember({ onSuccess}) {
                 </div>
 
                 {/* Phone */}
-                <div className="form-group">
+                <div className="add-member-form-group">
                   <label>Phone</label>
                   <input
                     type="tel"
@@ -202,7 +220,7 @@ function AddMember({ onSuccess}) {
                 </div>
 
                 {/* Email */}
-                <div className="form-group">
+                <div className="add-member-form-group">
                   <label>Email</label>
                   <input
                     type="email"
@@ -213,7 +231,7 @@ function AddMember({ onSuccess}) {
                 </div>
 
                 {/* Status */}
-                <div className="form-group">
+                <div className="add-member-form-group">
                   <label>Status</label>
                   <select
                     name="membership_status"
@@ -227,7 +245,7 @@ function AddMember({ onSuccess}) {
                 </div>
 
                 {/* Date Joined */}
-                <div className="form-group">
+                <div className="add-member-form-group">
                   <label>Date Joined</label>
                   <input
                     type="date"
@@ -238,21 +256,10 @@ function AddMember({ onSuccess}) {
                   />
                 </div>
 
-                {/* Baptized */}
-                <div className="form-group">
-                  <label>
-                    <input
-                      type="checkbox"
-                      name="baptized"
-                      checked={formData.baptized}
-                      onChange={handleChange}
-                    />
-                    Baptized
-                  </label>
-                </div>
+               
 
                 {/* Auxiliary Group */}
-                <div className="form-group">
+                <div className="add-member-form-group">
                   <label>Auxiliary Group</label>
                   <select
                     name="Auxiliary_Group"
@@ -267,8 +274,21 @@ function AddMember({ onSuccess}) {
                   </select>
                 </div>
 
+                 {/* Baptized */}
+                 <div className="baptised-check">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="baptized"
+                      checked={formData.baptized}
+                      onChange={handleChange}
+                    />
+                    Baptized
+                  </label>
+                </div>
+
                 {/* Address */}
-                <div className="form-group full-width">
+                <div className="add-member-form-group">
                   <label>Address</label>
                   <textarea
                     name="address"
@@ -280,10 +300,10 @@ function AddMember({ onSuccess}) {
               </div>
 
               {/* Buttons */}
-              <div className="form-actions">
+              <div className="add-member-form-actions">
                 <button
                   type="button"
-                  className="cancel-btn"
+                  className="add-member-cancel-btn"
                   onClick={() => setOpen(false)}
                 >
                   Cancel
@@ -291,7 +311,7 @@ function AddMember({ onSuccess}) {
 
                 <button
                   type="submit"
-                  className="save-btn"
+                  className="add-member-save-btn"
                   disabled={loading}
                 >
                   {loading ? "Saving..." : "Save Member"}
@@ -300,7 +320,8 @@ function AddMember({ onSuccess}) {
 
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

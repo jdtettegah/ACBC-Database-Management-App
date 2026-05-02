@@ -1,170 +1,382 @@
+/* ========================================
+   PAGE LAYOUT
+======================================== */
 .departments-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
+  animation: fadeIn 0.4s ease;
 }
 
-/* HEADER */
+/* ========================================
+   HEADER
+======================================== */
+
 .departments-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
-.add-btn {
-  background: #4d4dea;
-  color: white;
+.department-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ICON STYLE */
+.department-title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e7edff;
+  color: #4A6FD3;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+/* TEXT STYLE */
+.department-title-text {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2f2fd6;
+  letter-spacing: -0.3px;
+}
+
+.add-department-button {
+  background: #2563eb;
+  color: #ffffff;
   border: none;
-  border-radius: 8px;
-  padding: 7px 12px;
-  cursor: pointer;
-}
-
-/* STATS */
-.stats-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-}
-
-.card {
-  background: white;
-  padding: 15px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-.card h4 {
-  font-size: 14px;
-  color: #777;
-}
-
-.card p {
-  font-size: 22px;
-  font-weight: bold;
-}
-
-/* CHART */
-.chart-box {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-}
-
-/* FORM */
-.dept-form {
-  background: white;
-  padding: 20px;
   border-radius: 10px;
-  max-width: 450px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-department-button :hover{
+  background: #3c3cd9;
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   STATS
+======================================== */
+.department-stats-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.department-stats-card {
+  background: var(--card-bg, #ffffff);
+  padding: 1.5rem;
+  border-radius: 18px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border-left: 5px solid #2f2fd6;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.department-stats-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.department-stats-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  margin: 0;
+}
+
+.department-stats-card p {
+  margin-top: 10px;
+  font-size: 25px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+/* ========================================
+   FORM
+======================================== */
+.dept-form {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  max-width: 500px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.dept-form h3 {
+  margin-bottom: 18px;
+  color: #1e293b;
 }
 
 .dept-form input,
 .dept-form textarea {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border: 1px solid #dbe3f0;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s ease;
 }
 
-.form-actions {
+.dept-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.department-dept-form input:focus,
+.department-dept-form textarea:focus {
+  border-color: #2f2fd6;
+  box-shadow: 0 0 0 3px rgba(47, 47, 214, 0.08);
+}
+
+.department-form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
 }
 
-.save-btn {
-  background: #4d4dea;
+.department-save-btn {
+  background: #2f2fd6;
   color: white;
   border: none;
-  padding: 7px 14px;
-  border-radius: 6px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
 }
 
-.cancel-btn {
-  background: #e5e7eb;
+.department-save-btn:hover {
+  background: #1f1fc0;
+}
+
+.department-cancel-btn {
+  background: #e2e8f0;
+  color: #334155;
   border: none;
-  padding: 7px 14px;
-  border-radius: 6px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
 }
 
-/* LAYOUT */
+.department-cancel-btn:hover {
+  background: #cbd5e1;
+}
+
+/* ========================================
+   MAIN LAYOUT
+======================================== */
 .departments-layout {
   display: grid;
-  grid-template-columns: 250px 1fr;
+  grid-template-columns: 280px 1fr;
   gap: 20px;
+  align-items: start;
 }
 
-/* LEFT */
+/* ========================================
+   LEFT PANEL
+======================================== */
 .departments-list {
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.departments-list h3 {
+  margin-bottom: 16px;
+  color: #1e293b;
 }
 
 .dept-item {
-  padding: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
   cursor: pointer;
-  border-radius: 6px;
+  transition: 0.2s ease;
+  font-weight: 500;
 }
 
 .dept-item:hover {
-  background: #f0f3ff;
+  background: #f5f7ff;
 }
 
 .dept-item.active {
-  background: #4d4dea;
+  background: #2f2fd6;
   color: white;
 }
 
-/* RIGHT */
+/* ========================================
+   RIGHT PANEL
+======================================== */
 .department-panel {
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
 }
 
-/* ASSIGN */
-.assign-box {
+.department-panel h3 {
+  margin-bottom: 18px;
+  color: #1e293b;
+}
+
+/* ========================================
+   ASSIGN BOX
+======================================== */
+.department-assign-box {
   display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
-.assign-box select {
+.department-assign-box select {
   flex: 1;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 12px 14px;
+  border: 1px solid #dbe3f0;
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
 }
 
-.assign-box button {
-  background: #4d4dea;
+.department-assign-box select:focus {
+  border-color: #2f2fd6;
+}
+
+.department-assign-box button {
+  background: #2f2fd6;
   color: white;
   border: none;
-  border-radius: 6px;
-  padding: 8px 12px;
+  padding: 12px 18px;
+  border-radius: 10px;
   cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
 }
 
-/* TABLE */
+.department-assign-box button:hover {
+  background: #1f1fc0;
+}
+
+/* ========================================
+   TABLE
+======================================== */
 .dept-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px;
 }
 
 .dept-table th,
 .dept-table td {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #edf2f7;
+  font-size: 14px;
 }
 
-.delete-btn {
-  background: red;
+.dept-table th {
+  background: #f5f7fb;
+  color: #2f2fd6;
+  font-weight: 700;
+}
+
+.dept-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+/* ========================================
+   DELETE BUTTON
+======================================== */
+.department-delete-btn {
+  background: #dc2626;
   color: white;
   border: none;
-  padding: 5px 10px;
-  border-radius: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.department-delete-btn:hover {
+  background: #b91c1c;
+}
+
+/* ========================================
+   ERROR
+======================================== */
+.error {
+  color: #dc2626;
+  font-weight: 500;
+  background: #fef2f2;
+  padding: 12px 16px;
+  border-radius: 10px;
+}
+
+/* ========================================
+   FADE IN
+======================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 1024px) {
+  .department-stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .departments-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .departments-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .department-stats-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .department-assign-box {
+    flex-direction: column;
+  }
+
+  .dept-table {
+    min-width: 100%;
+  }
+
+  .department-panel {
+    overflow-x: auto;
+  }
 }

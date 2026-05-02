@@ -1,106 +1,243 @@
-/* BUTTON */
-.create-event-btn {
-    background: #2563eb;
-    color: white;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
+/* ========================================
+   PRIMARY BUTTON
+======================================== */
+
+.add-welfareEvent-button {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-welfareEvent-button:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+
+/* ========================================
+   MODAL OVERLAY
+======================================== */
+
+.add-welfareEvent-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 1000;
+}
+
+
+/* ========================================
+   MAIN MODAL
+======================================== */
+
+.add-welfareEvent-modal {
+  width: 90%;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+
+  animation: slideUp 0.35s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px) scale(0.98);
   }
-  
-  .create-event-btn:hover {
-    background: #1e40af;
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
-  
-  /* MODAL */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
+}
+
+
+/* ========================================
+   HEADER
+======================================== */
+
+.add-welfareEvent-modal h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+
+/* ========================================
+   FORM GROUP
+======================================== */
+
+.add-welfareEvent-form-group {
+  margin-bottom: 18px;
+}
+
+.add-welfareEvent-form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.add-welfareEvent-form-group input,
+.add-welfareEvent-form-group select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  font-size: 14px;
+  background: #ffffff;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.add-welfareEvent-form-group input:focus,
+.add-welfareEvent-form-group select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+
+/* ========================================
+   INFO TEXT
+======================================== */
+
+.info-text {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #475569;
+  margin-top: 6px;
+  margin-bottom: 20px;
+}
+
+.info-text b {
+  color: #1e293b;
+}
+
+
+/* ========================================
+   ACTION BUTTONS
+======================================== */
+
+.add-welfareEvent-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.add-welfareEvent-cancel-btn {
+  flex: 1;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #e2e8f0;
+  color: #1e293b;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.add-welfareEvent-cancel-btn:hover {
+  background: #cbd5e1;
+}
+
+.add-welfareEvent-submit-btn {
+  flex: 1;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #16a34a;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.15);
+}
+
+.add-welfareEvent-submit-btn:hover {
+  background: #15803d;
+  transform: translateY(-2px);
+}
+
+.add-welfareEvent-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* ========================================
+   FULL YEAR BUTTON
+======================================== */
+
+.btn-year {
+  margin-top: 18px;
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 12px;
+  background: #f59e0b;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.15);
+}
+
+.btn-year:hover {
+  background: #d97706;
+  transform: translateY(-2px);
+}
+
+.btn-year:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 768px) {
+  .add-welfareEvent-modal {
+    padding: 24px;
+  }
+
+  .add-welfareEvent-modal-actions {
+    flex-direction: column;
+  }
+
+  .add-welfareEvent-cancel-btn,
+  .add-welfareEvent-submit-btn {
     width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-  
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
   }
-  
-  .event-modal {
-    background: white;
-    padding: 25px;
-    width: 400px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  }
-  
-  /* FORM */
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-group label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 5px;
-  }
-  
-  .form-group input,
-  .form-group select {
-    width: 100%;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-  }
-  
-  /* INFO */
-  .info-text {
-    font-size: 14px;
-    color: #666;
-  }
-  
-  /* ACTIONS */
-  .modal-actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-  }
-  
-  .btn-primary {
-    background: #16a34a;
-    color: white;
-    padding: 8px 14px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  
-  .btn-primary:hover {
-    background: #15803d;
-  }
-  
-  .btn-cancel {
-    background: #e5e7eb;
-    padding: 8px 14px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  
-  /* YEAR BUTTON */
-  .btn-year {
-    margin-top: 15px;
-    width: 100%;
-    background: #f59e0b;
-    color: white;
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  
-  .btn-year:hover {
-    background: #d97706;
-  }
+}

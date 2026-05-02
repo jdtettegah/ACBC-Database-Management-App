@@ -1,139 +1,185 @@
-import {
-    LineChart, Line, BarChart, Bar, XAxis, YAxis,
-    CartesianGrid, Tooltip, ResponsiveContainer
-  } from "recharts";
-  import "./PastorReports.css";
+import { useEffect, useState } from "react";
 import AdminGenerateReport from "../../components/AdminGenerateReport";
-  
-  const stats = [
-    { label: "Total Members", value: 482 },
-    { label: "Avg Attendance", value: "78%" },
-    { label: "Growth Rate", value: "+6.4%" },
-    { label: "Monthly Giving", value: "GH₵ 42,000" },
-  ];
-  
-  const attendanceTrend = [
-    { month: "Jan", attendance: 310 },
-    { month: "Feb", attendance: 340 },
-    { month: "Mar", attendance: 370 },
-    { month: "Apr", attendance: 395 },
-  ];
-  
-  const membershipGrowth = [
-    { year: "2022", members: 390 },
-    { year: "2023", members: 430 },
-    { year: "2024", members: 460 },
-    { year: "2025", members: 482 },
-  ];
-  
-  const ministryData = [
-    { ministry: "Choir", count: 64 },
-    { ministry: "Ushering", count: 58 },
-    { ministry: "Media", count: 22 },
-    { ministry: "Children", count: 71 },
-  ];
-  
-  function PastorReports() {
-    return (
-      <div className="pastor-reports">
-  
-        <h2>Church Reports Overview</h2>
-        
-  
-        {/* STATS */}
-        <div className="report-stats">
-          {stats.map((item, index) => (
-            <div className="stats-card" key={index}>
-              <h4>{item.label}</h4>
-              <p>{item.value}</p>
-            </div>
-          ))}
-        </div>
-        
-        
-  
-        {/* FILTER */}
-        <div className="report-filter">
-          <select>
-            <option>2026</option>
-            <option>2025</option>
-            <option>2024</option>
-          </select>
-  
-          <select>
-            <option>All Services</option>
-            <option>Sunday Service</option>
-            <option>Midweek</option>
-          </select>
+import "./AdminReports.css";
 
-          <div>
-          <div className="action-btn"><AdminGenerateReport/></div>
+import { getAllReports } from "../../services/api";
+import { FileText } from "lucide-react";
+
+function PastorReports() {
+
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedReport, setSelectedReport] = useState(null);
+
+  const loadReports = async () => {
+
+    try {
+
+      const data = await getAllReports();
+      setReports(data);
+
+    } catch (err) {
+
+      console.error(err);
+      alert("Failed to load reports");
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+  useEffect(() => {
+    loadReports();
+  }, []);
+
+  return (
+
+    <div className="report-page">
+
+      <div className="report-header">
+
+        <div className="report-title">
+          <span className="report-title-icon"><FileText /></span>
+          <span className="report-title-text">Reports</span>
         </div>
+
+        <div className="report-action-btn">
+          <AdminGenerateReport refreshReports={loadReports} />
         </div>
-  
-        {/* CHARTS */}
-        <div className="report-charts">
-  
-          {/* ATTENDANCE */}
-          <div className="chart-box">
-            <h3>Attendance Trend</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={attendanceTrend}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="attendance"
-                  stroke="#4d4dea"
-                  strokeWidth={3}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-  
-          {/* MEMBERSHIP */}
-          <div className="chart-box">
-            <h3>Membership Growth</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={membershipGrowth}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="year" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="members" fill="#4d4dea" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-  
+
+      </div>
+
+
+      <div className="report-stats">
+
+        <div className="report-stats-card">
+          <h3>Total Reports</h3>
+          <p>{reports.length}</p>
         </div>
-  
-        {/* MINISTRY */}
-        <div className="ministry-summary">
-          <h3>Ministry Participation</h3>
-  
-          <table>
+
+        <div className="report-stats-card">
+          <h3>This Month</h3>
+          <p>
+            {reports.filter(r => {
+
+              const today = new Date();
+              const reportDate = new Date(r.created_at);
+
+              return (
+                reportDate.getMonth() === today.getMonth() &&
+                reportDate.getFullYear() === today.getFullYear()
+              );
+
+            }).length}
+          </p>
+        </div>
+
+        <div className="report-stats-card">
+          <h3>Pending</h3>
+          <p>{reports.filter(r => r.status === "Pending").length}</p>
+        </div>
+
+      </div>
+
+
+      <div className="report-table-wrapper">
+
+        {loading ? (
+
+          <p>Loading reports...</p>
+
+        ) : (
+
+          <table className="report-table">
+
             <thead>
               <tr>
-                <th>Ministry</th>
-                <th>Active Members</th>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Period</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
+
             <tbody>
-              {ministryData.map((m, index) => (
-                <tr key={index}>
-                  <td>{m.ministry}</td>
-                  <td>{m.count}</td>
+
+              {reports.length === 0 ? (
+
+                <tr>
+                  <td colSpan="6">No reports found</td>
                 </tr>
-              ))}
+
+              ) : (
+
+                reports.map(report => (
+
+                  <tr key={report.id}>
+
+                    <td>{report.id}</td>
+                    <td>{report.title}</td>
+                    <td>{report.category}</td>
+                    <td>{report.period}</td>
+
+                    <td
+                      className={
+                        report.status === "Generated"
+                          ? "status generated"
+                          : "status pending"
+                      }
+                    >
+                      {report.status}
+                    </td>
+
+                    <td>
+
+                      <button
+                        className="report-view-btn"
+                        onClick={() => setSelectedReport(report)}
+                      >
+                        View
+                      </button>
+
+                      <button
+                        className="report-download-btn"
+                        onClick={() => setSelectedReport(report)}
+                      >
+                        Download
+                      </button>
+
+                    </td>
+
+                  </tr>
+
+                ))
+
+              )}
+
             </tbody>
+
           </table>
-        </div>
-  
+
+        )}
+
       </div>
-    );
-  }
-  
-  export default PastorReports;
-  
+
+
+      {selectedReport && (
+
+        <AdminGenerateReport
+          existingReport={selectedReport}
+          onClose={() => setSelectedReport(null)}
+        />
+
+      )}
+
+    </div>
+
+  );
+}
+
+export default PastorReports;

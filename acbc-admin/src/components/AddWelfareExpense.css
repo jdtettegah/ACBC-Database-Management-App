@@ -1,0 +1,195 @@
+/* ===============================
+   MODAL OVERLAY
+================================= */
+
+.welfareExpense-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+
+/* ===============================
+   MAIN MODAL
+================================= */
+
+.welfareExpense-modal-content {
+  background: #ffffff;
+  width: 90%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  padding: 28px;
+  border-radius: 18px;
+
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+
+  animation: slideUp 0.35s ease;
+}
+
+.welfareExpense-modal-content h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+
+/* ===============================
+   FORM GRID
+================================= */
+
+.welfareExpense-form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+
+/* ===============================
+   INPUTS + SELECT + TEXTAREA
+================================= */
+
+.welfareExpense-form-grid input,
+.welfareExpense-form-grid select,
+.welfareExpense-form-grid textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  font-size: 14px;
+  background: #ffffff;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.welfareExpense-form-grid textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.welfareExpense-form-grid input:focus,
+.welfareExpense-form-grid select:focus,
+.welfareExpense-form-grid textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+
+/* ===============================
+   ACTION BUTTONS
+================================= */
+
+.welfareExpense-form-action {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+
+/* CANCEL BUTTON */
+
+.welfareExpense-cancel-button {
+  padding: 11px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #e2e8f0;
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.welfareExpense-cancel-button:hover {
+  background: #cbd5e1;
+}
+
+
+/* SAVE BUTTON */
+
+.welfareExpense-save-button {
+  padding: 11px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.18);
+}
+
+.welfareExpense-save-button:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.welfareExpense-save-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* ===============================
+   SCROLLBAR
+================================= */
+
+.welfareExpense-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.welfareExpense-modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+
+/* ===============================
+   ANIMATION
+================================= */
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* ===============================
+   RESPONSIVE
+================================= */
+
+@media (max-width: 768px) {
+  .welfareExpense-modal-content {
+    padding: 22px;
+  }
+
+  .welfareExpense-form-action {
+    justify-content: center;
+  }
+
+  .welfareExpense-cancel-button,
+  .welfareExpense-save-button {
+    width: 100%;
+  }
+}

@@ -1,181 +1,269 @@
+/* ========================================
+   PAGE LAYOUT
+======================================== */
 .report-page {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeIn 0.4s ease;
+}
+
+/* ========================================
+   HEADER
+======================================== */
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.report-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ICON STYLE */
+.report-title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e7edff;
+  color: #4A6FD3;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+/* TEXT STYLE */
+.report-title-text {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2f2fd6;
+  letter-spacing: -0.3px;
+}
+
+.report-action-btn {
+  display: flex;
+  align-items: center;
+}
+
+/* ========================================
+   GENERATE REPORT BUTTON
+======================================== */
+.generate-report-btn {
+  background: #2f2fd6;
+  color: #ffffff;
+  border: none;
+  padding: 11px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.25s ease;
+  box-shadow: 0 8px 18px rgba(47, 47, 214, 0.15);
+}
+
+.generate-report-btn:hover {
+  background: #1f1fc0;
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   STATS
+======================================== */
+.report-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.report-stats-card {
+  background: var(--card-bg, #ffffff);
+  padding: 1.5rem;
+  border-radius: 18px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border-left: 5px solid #2f2fd6;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.report-stats-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+}
+
+.report-stats-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  margin: 0;
+}
+
+.report-stats-card p {
+  margin-top: 10px;
+  font-size: 25px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+/* ========================================
+   TABLE WRAPPER
+======================================== */
+.report-table-wrapper {
+  background: #ffffff;
+  border-radius: 18px;
+  overflow-x: auto;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+/* ========================================
+   TABLE
+======================================== */
+.report-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+.report-table thead {
+  background: #f8fafc;
+}
+
+.report-table th,
+.report-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #edf2f7;
+  font-size: 14px;
+}
+
+.report-table th {
+  background: #f5f7fb;
+  color: #2f2fd6;
+  font-weight: 700;
+}
+
+.report-table tbody tr {
+  transition: 0.2s ease;
+}
+
+.report-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+/* ========================================
+   STATUS BADGES
+======================================== */
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+  margin-top: 7px;
+}
+
+.status.generated {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status.pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+/* ========================================
+   ACTION BUTTONS
+======================================== */
+.report-view-btn,
+.report-download-btn {
+  padding: 8px 14px;
+  margin-right: 8px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.report-view-btn {
+  background: #e0e7ff;
+  color: #2f2fd6;
+}
+
+.report-view-btn:hover {
+  background: #c7d2fe;
+  transform: translateY(-2px);
+}
+
+.report-download-btn {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.report-download-btn:hover {
+  background: #bbf7d0;
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   EMPTY / LOADING STATE
+======================================== */
+.report-table-wrapper p {
+  padding: 24px;
+  text-align: center;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* ========================================
+   ANIMATION
+======================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
-  
-  /* HEADER */
-  .report-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .generate-report-btn {
-    background: #4d4dea;
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  
-  .generate-report-btn:hover {
-    background: #3c3cd9;
-  }
-  
-  /* STATS */
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 1024px) {
   .report-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  .stat-card {
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  }
-  
-  .stat-card h3 {
-    font-size: 14px;
-    color: #666;
-  }
-  
-  .stat-card p {
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 5px;
-  }
-  
-  /* CONTROLS */
-  .report-controls {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .report-controls input,
-  .report-controls select {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-  }
-  
-  /* TABLE */
-  .report-table-wrapper {
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  }
-  
-  .report-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .report-table th,
-  .report-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .report-table th {
-    background: #f5f7fb;
-    font-weight: bold;
-  }
-  
-  /* STATUS */
-  .status.generated {
-    color: green;
-    font-weight: bold;
-  }
-  
-  .status.pending {
-    color: orange;
-    font-weight: bold;
-  }
-  
-  /* ACTIONS */
-  .view-btn,
-  .download-btn {
-    padding: 6px 10px;
-    margin-right: 5px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
-  }
-  
-  .view-btn {
-    background: #e0e7ff;
-  }
-  
-  .download-btn {
-    background: #bbf7d0;
-  }
-  
-  @media (max-width: 1024px) {
-    .reports-stats {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  
-    .members-controls {
-      flex-wrap: wrap;
-    }
-  
-    .members-controls input,
-    .members-controls select {
-      flex: 1;
-      min-width: 180px;
-    }
+}
+
+@media (max-width: 768px) {
+  .report-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  @media (max-width: 600px) {
-    /* HEADER */
-    .members-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-    }
-  
-    .add-member-btn {
-      width: 100%;
-    }
-  
-    /* STATS */
-    .members-stats {
-      grid-template-columns: 1fr;
-    }
-  
-    /* CONTROLS */
-    .members-controls {
-      flex-direction: column;
-    }
-  
-    .members-controls input,
-    .members-controls select {
-      width: 100%;
-    }
-  
-    /* TABLE */
-    .reports-table-wrapper {
-      overflow-x: auto;
-      margin: auto;
-    }
-  
-    .reports-table {
-      min-width: 650px;
-      margin: auto;
-    }
-  
-    /* ACTION BUTTONS */
-    .view-btn,
-    .edit-btn,
-    .delete-btn {
-      margin-bottom: 5px;
-    }
+  .report-stats {
+    grid-template-columns: 1fr;
   }
-  
+
+  .generate-report-btn {
+    width: 100%;
+  }
+
+  .report-action-btn {
+    width: 100%;
+  }
+
+  .report-table-wrapper {
+    overflow-x: auto;
+  }
+}

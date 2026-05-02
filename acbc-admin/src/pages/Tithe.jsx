@@ -1,6 +1,8 @@
 import DashboardLayout from "../layouts/DashboardLayout";
 import AdminTithe from "./Tithe/AdminTithe";
 import SecretaryTithe from "./Tithe/SecretaryTithe";
+import FinanceTithe from "./Tithe/FinanceTithe";
+import PastorTithe from "./Tithe/PastorTithe";
 
 function Tithe() {
   // Correct way to read role

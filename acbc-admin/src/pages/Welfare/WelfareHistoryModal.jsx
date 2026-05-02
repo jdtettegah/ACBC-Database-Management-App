@@ -16,11 +16,11 @@ function WelfareHistoryModal() {
   };
 
   return (
-    <div className="finance-page">
+    <div className="welfare-page">
 
       <h2>Member Welfare History</h2>
 
-      <table className="finance-table">
+      <table className="welfare-table">
         <thead>
           <tr>
             <th>Event</th>

@@ -3,38 +3,40 @@
   min-height: 100vh;
   background-image: url("../assets/background-7.png");
   background-size: cover;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background-attachment: fixed;
   position: relative;
 }
 
+/* Main container */
 .dashboard-container {
   display: flex;
   width: 100%;
-  max-width: 1300px;
-  height: 85vh;
-  border: 2px solid rgb(31, 65, 186);
-  border-radius: 20px;
-  background-color: #f5f7fb;
-  transition: all 0.3s ease;
+  min-height: 100vh;
+  background-color: rgba(245, 247, 251, 0.9);
 }
 
+/* ===== FIXED SIDEBAR ===== */
 .dashboard-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 250px;
-  transition: all 0.3s ease;
+  height: 100vh;
+  z-index: 1000;
   overflow-y: auto;
   scrollbar-width: none;
-  z-index: 20;  
 }
 
 .dashboard-sidebar::-webkit-scrollbar {
-  width: 0px;
-  background: transparent; /* optional: just hide scrollbar */
+  width: 0;
+  background: transparent;
 }
 
+/* ===== MAIN CONTENT ===== */
 .dashboard-main {
   flex: 1;
+  margin-left: 250px; /* important so content does not go under sidebar */
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -42,7 +44,6 @@
 .dashboard-content {
   flex: 1;
   padding: 1.5rem;
-  overflow-y: auto;
 }
 
 /* ===== Topbar ===== */
@@ -53,69 +54,43 @@
 }
 
 .hamburger {
-  display: none; /* visible only on mobile */
+  display: none;
   font-size: 1.5rem;
   background: none;
   border: none;
   color: #4d4dea;
   cursor: pointer;
   margin-right: 1rem;
-  z-index: 5;
+  z-index: 1100;
 }
 
-/* ===== Overlay for mobile ===== */
+/* ===== Overlay ===== */
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;;
+  height: 100%;
   z-index: 900;
 }
 
-/* ===== Mobile / Tablet ===== */
+/* ===== Mobile ===== */
 @media (max-width: 900px) {
-  .dashboard-container {
-    flex-direction: column;
-    height: 100vh;
-    max-width: 100%;
-    border-radius: 0;
-    border: none;
-    margin: auto;
-  }
-
   .dashboard-sidebar {
-    position: fixed;
-    top: 0;
-    left: -250px; /* hidden by default */
-    height: 100%;
-    z-index: 1000;
-    ;
+    left: -250px;
+    transition: all 0.3s ease;
   }
 
   .dashboard-container.sidebar-open .dashboard-sidebar {
-    left: 0; /* slide in */
+    left: 0;
   }
 
   .dashboard-main {
-    flex: 1;
     margin-left: 0;
     width: 100%;
   }
 
   .hamburger {
-    display: block; /* show on mobile */
+    display: block;
   }
 }
-
-@media (max-width: 480px) {
-  .dashboard-container {
-    margin: auto;
-    border: none;
-  }
-
-  .dashboard-sidebar{
-    z-index: 1000;
-  }
-}
-

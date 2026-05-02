@@ -1,0 +1,189 @@
+/* ===============================
+   OPEN BUTTON
+================================= */
+
+.add-user-button {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-user-button:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+
+/* ===============================
+   MODAL OVERLAY
+================================= */
+
+.add-user-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+
+/* ===============================
+   MAIN MODAL BOX
+================================= */
+
+.add-user-box {
+  background: #ffffff;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  padding: 30px;
+  border-radius: 18px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+
+  animation: slideUp 0.35s ease;
+}
+
+.add-user-box h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+
+/* ===============================
+   INPUTS + SELECT
+================================= */
+
+.add-user-box input,
+.add-user-box select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  font-size: 14px;
+  background: #ffffff;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.add-user-box input:focus,
+.add-user-box select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+
+/* ===============================
+   CREATE BUTTON
+================================= */
+
+.add-user-box button {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+}
+
+.add-user-box button:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.add-user-box button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* ===============================
+   CANCEL BUTTON
+================================= */
+
+.add-user-cancel-btn {
+  background: #e2e8f0 !important;
+  color: #1e293b !important;
+  box-shadow: none !important;
+}
+
+.add-user-cancel-btn:hover {
+  background: #cbd5e1 !important;
+  transform: none !important;
+}
+
+
+/* ===============================
+   SCROLLBAR
+================================= */
+
+.add-user-box::-webkit-scrollbar {
+  width: 6px;
+}
+
+.add-user-box::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+
+/* ===============================
+   ANIMATION
+================================= */
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* ===============================
+   RESPONSIVE
+================================= */
+
+@media (max-width: 768px) {
+  .add-user-box {
+    padding: 22px;
+  }
+
+  .add-user-box button,
+  .add-user-cancel-btn {
+    width: 100%;
+  }
+}

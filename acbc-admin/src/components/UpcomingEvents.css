@@ -1,155 +1,278 @@
+/* ========================================
+   CONTAINER
+======================================== */
 .events-container {
   background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  border-radius: 18px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
   margin-top: 20px;
+  animation: fadeIn 0.4s ease;
 }
 
-/* HEADER */
+/* ========================================
+   HEADER
+======================================== */
 .events-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
-.events-header h3 {
-  font-size: 18px;
-  color: #333;
+.add-event-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-/* ADD BUTTON */
+
+.events-dashbaord-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ICON STYLE */
+.events-title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e7edff;
+  color: #4A6FD3;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+/* TEXT STYLE */
+.events-title-text {
+  font-size: 22px;
+  font-weight: 700;
+  color: black;
+  letter-spacing: -0.3px;
+}
+
+
+/* ADD EVENT BUTTON */
 .events-header button {
-  background: #4d4dea;
+  background: #2f2fd6;
   color: white;
   border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 11px 18px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 13px;
-  transition: 0.3s ease;
+  font-size: 14px;
+  font-weight: 600;
+  transition: 0.25s ease;
 }
 
 .events-header button:hover {
-  background: #3c3cd9;
+  background: #1f1fc0;
+  transform: translateY(-2px);
 }
 
-/* FORM */
+/* ========================================
+   FORM
+======================================== */
 .event-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 15px;
-  padding: 15px;
-  background: #f8f9ff;
-  border-radius: 10px;
+  gap: 14px;
+  margin-bottom: 22px;
+  padding: 20px;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 16px;
 }
 
 .event-form input {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid #dbe3f0;
+  border-radius: 10px;
   outline: none;
-  font-size: 13px;
+  font-size: 14px;
+  background: #ffffff;
+  transition: 0.2s ease;
 }
 
 .event-form input:focus {
-  border-color: #4d4dea;
+  border-color: #2f2fd6;
+  box-shadow: 0 0 0 3px rgba(47, 47, 214, 0.08);
 }
 
 /* SAVE BUTTON */
 .event-form button {
   grid-column: span 2;
-  background: #4d4dea;
+  background: #2f2fd6;
   color: white;
   border: none;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: 0.3s;
+  font-weight: 600;
+  transition: 0.25s ease;
 }
 
 .event-form button:hover {
-  background: #3c3cd9;
+  background: #1f1fc0;
+  transform: translateY(-2px);
 }
 
-/* EVENTS LIST */
+/* ========================================
+   EVENTS LIST
+======================================== */
 .events-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
-/* EVENT CARD */
+/* ========================================
+   EVENT CARD
+======================================== */
 .event-card {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 15px;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  transition: 0.3s;
+  gap: 18px;
+  padding: 20px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  transition: all 0.25s ease;
 }
 
 .event-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+  background: #f1f5ff;
+  border-color: #dbeafe;
+  transform: translateY(-3px);
 }
 
-/* INFO */
+/* ========================================
+   EVENT INFO
+======================================== */
+.event-info {
+  flex: 1;
+}
+
 .event-info h4 {
-  margin: 0;
-  font-size: 15px;
-  color: #333;
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
 }
 
 .event-info p {
-  margin: 3px 0;
-  font-size: 13px;
-  color: #666;
+  margin: 4px 0;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.5;
 }
 
-/* ACTIONS */
-.event-actions {
-  display: flex;
-  flex-direction: column;
+/* ========================================
+   ACTIONS
+======================================== */
+.event-actions button {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
 }
 
-/* BUTTONS */
-.addToCalender-btn {
-  background: #4d4dea;
-  color: white;
+.save-event-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ========================================
+   BUTTONS
+======================================== */
+.addToCalender-btn,
+.delete-btn {
   border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.addToCalender-btn {
+  background: #e0e7ff;
+  color: #2f2fd6;
 }
 
 .addToCalender-btn:hover {
-  background: #3c3cd9;
+  background: #c7d2fe;
+  transform: translateY(-2px);
 }
 
 .delete-btn {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 .delete-btn:hover {
-  background: #c0392b;
+  background: #fecaca;
+  transform: translateY(-2px);
 }
 
-/* EMPTY STATE */
+/* ========================================
+   EMPTY STATE
+======================================== */
 .no-events {
   text-align: center;
-  color: #888;
+  color: #64748b;
   font-size: 14px;
-  padding: 10px;
+  font-weight: 500;
+  padding: 24px;
+}
+
+/* ========================================
+   FADE IN
+======================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 768px) {
+  .events-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .event-form {
+    grid-template-columns: 1fr;
+  }
+
+  .event-form button {
+    grid-column: span 1;
+  }
+
+  .event-card {
+    flex-direction: column;
+  }
+
+  .event-actions {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .addToCalender-btn,
+  .delete-btn {
+    width: 100%;
+  }
 }

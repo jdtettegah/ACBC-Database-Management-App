@@ -57,13 +57,13 @@ function AddVisitor({ refresh }) {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="add-attendance-button">
+      <button onClick={() => setOpen(true)} className="add-visitor-button">
         ➕ Add Visitor
       </button>
 
       {open && (
-        <div className="modal-overlay">
-          <div className="edit-box">
+        <div className="add-visitor-modal-overlay">
+          <div className="add-visitor-edit-box">
 
             <h3>Add Visitor</h3>
 
@@ -124,7 +124,7 @@ function AddVisitor({ refresh }) {
                 onChange={handleChange}
               />
 
-              <div className="form-actions">
+              <div className="add-visitor-form-actions">
 
                 <button type="submit" disabled={loading}>
                   {loading ? "Saving..." : "Save"}

@@ -1,55 +1,170 @@
-import { NavLink, useLocation } from "react-router-dom";
-import churchLogo from "../assets/church-logo.png";
+import { NavLink, Link } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Users,
+  ClipboardCheck,
+  Wallet,
+  Landmark,
+  HeartHandshake,
+  FileText,
+  Building2,
+} from "lucide-react";
+
+import acbclogo from "../assets/acbc-logo.png";
 import "./sidebar.css";
+
+
 
 function Sidebar() {
   const user = JSON.parse(localStorage.getItem("user"));
   const role = user?.role;
-  const location = useLocation();
 
   const menuByRole = {
     Admin: [
-      { name: "Dashboard", path: "/dashboard" },
-      { name: "Members", path: "/dashboard/members" },
-      { name: "Attendance", path: "/dashboard/attendance" },
-      { name: "Finance", path: "/dashboard/finance" },
-      { name: "Tithe", path: "/dashboard/tithe"},
-      { name: "Welfare", path: "/dashboard/welfare"},
-      { name: "Reports", path: "/dashboard/reports" },
-      { name: "Department", path: "/dashboard/department"},
-     
+      {
+        name: "Dashboard",
+        path: "/dashboard",
+        icon: <LayoutDashboard size={20} />,
+      },
+      {
+        name: "Members",
+        path: "/dashboard/members",
+        icon: <Users size={20} />,
+      },
+      {
+        name: "Attendance",
+        path: "/dashboard/attendance",
+        icon: <ClipboardCheck size={20} />,
+      },
+      {
+        name: "Finance",
+        path: "/dashboard/finance",
+        icon: <Wallet size={20} />,
+      },
+      {
+        name: "Tithe",
+        path: "/dashboard/tithe",
+        icon: <Landmark size={20} />,
+      },
+      {
+        name: "Welfare",
+        path: "/dashboard/welfare",
+        icon: <HeartHandshake size={20} />,
+      },
+      {
+        name: "Reports",
+        path: "/dashboard/reports",
+        icon: <FileText size={20} />,
+      },
+      {
+        name: "Department",
+        path: "/dashboard/department",
+        icon: <Building2 size={20} />,
+      },
     ],
 
     Pastor: [
-      { name: "Dashboard", path: "/dashboard" },
-      { name: "Members", path: "/dashboard/members" },
-      { name: "Attendance", path: "/dashboard/attendance" },
-      { name: "Finance", path: "/dashboard/finance" },
-      { name: "Tithe", path: "/dashboard/tithe"},
-      { name: "Welfare", path: "/dashboard/welfare"}, // view only
-      { name: "Reports", path: "/dashboard/reports" },
-      { name: "Department", path: "/dashboard/department"},
-  
+      {
+        name: "Dashboard",
+        path: "/dashboard",
+        icon: <LayoutDashboard size={20} />,
+      },
+      {
+        name: "Members",
+        path: "/dashboard/members",
+        icon: <Users size={20} />,
+      },
+      {
+        name: "Attendance",
+        path: "/dashboard/attendance",
+        icon: <ClipboardCheck size={20} />,
+      },
+      {
+        name: "Finance",
+        path: "/dashboard/finance",
+        icon: <Wallet size={20} />,
+      },
+      {
+        name: "Tithe",
+        path: "/dashboard/tithe",
+        icon: <Landmark size={20} />,
+      },
+      {
+        name: "Welfare",
+        path: "/dashboard/welfare",
+        icon: <HeartHandshake size={20} />,
+      },
+      {
+        name: "Reports",
+        path: "/dashboard/reports",
+        icon: <FileText size={20} />,
+      },
+      {
+        name: "Department",
+        path: "/dashboard/department",
+        icon: <Building2 size={20} />,
+      },
     ],
 
     "General Secretary": [
-      { name: "Dashboard", path: "/dashboard" },
-      { name: "Members", path: "/dashboard/members" },
-      { name: "Attendance", path: "/dashboard/attendance" },
-      { name: "Tithe", path: "/dashboard/tithe"},
-      { name: "Department", path: "/dashboard/department"},
-      { name: "Reports", path: "/dashboard/reports" },
-     
-      
+      {
+        name: "Dashboard",
+        path: "/dashboard",
+        icon: <LayoutDashboard size={20} />,
+      },
+      {
+        name: "Members",
+        path: "/dashboard/members",
+        icon: <Users size={20} />,
+      },
+      {
+        name: "Attendance",
+        path: "/dashboard/attendance",
+        icon: <ClipboardCheck size={20} />,
+      },
+      {
+        name: "Tithe",
+        path: "/dashboard/tithe",
+        icon: <Landmark size={20} />,
+      },
+      {
+        name: "Department",
+        path: "/dashboard/department",
+        icon: <Building2 size={20} />,
+      },
+      {
+        name: "Reports",
+        path: "/dashboard/reports",
+        icon: <FileText size={20} />,
+      },
     ],
 
     "Financial Secretary": [
-      { name: "Dashboard", path: "/dashboard" },
-      { name: "Finance", path: "/dashboard/finance" },
-      { name: "Tithe", path: "/dashboard/tithe"},
-      { name: "Welfare", path: "/dashboard/welfare"},
-      { name: "Reports", path: "/dashboard/reports" },
-      
+      {
+        name: "Dashboard",
+        path: "/dashboard",
+        icon: <LayoutDashboard size={20} />,
+      },
+      {
+        name: "Finance",
+        path: "/dashboard/finance",
+        icon: <Wallet size={20} />,
+      },
+      {
+        name: "Tithe",
+        path: "/dashboard/tithe",
+        icon: <Landmark size={20} />,
+      },
+      {
+        name: "Welfare",
+        path: "/dashboard/welfare",
+        icon: <HeartHandshake size={20} />,
+      },
+      {
+        name: "Reports",
+        path: "/dashboard/reports",
+        icon: <FileText size={20} />,
+      },
     ],
   };
 
@@ -58,8 +173,14 @@ function Sidebar() {
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <h2 className="logo">acbcAdmin</h2>
-        <img src={churchLogo} alt="ACBC Logo" id="acbc-sidebar-logo" />
+      <Link to="/dashboard">
+        <img
+          src={acbclogo}
+          alt="ACBC Logo"
+          id="acbc-sidebar-logo"
+          style={{ cursor: "pointer" }}
+        />
+      </Link>
       </div>
 
       <nav>
@@ -67,12 +188,13 @@ function Sidebar() {
           <NavLink
             key={link.name}
             to={link.path}
-            end={link.path === "/dashboard"} 
+            end={link.path === "/dashboard"}
             className={({ isActive }) =>
               isActive ? "active" : ""
             }
           >
-            {link.name}
+            <span className="nav-icon">{link.icon}</span>
+            <span>{link.name}</span>
           </NavLink>
         ))}
       </nav>

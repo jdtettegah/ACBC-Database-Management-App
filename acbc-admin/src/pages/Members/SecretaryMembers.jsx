@@ -2,14 +2,13 @@ import "./AdminMember.css";
 import AddMember from "../../components/AddMember";
 import { useEffect, useState } from "react";
 import { apiRequest } from "../../services/api";
-import EditMember from "../../components/EditMember";
+import { FileSpreadsheet, Users} from "lucide-react";
 
-function AdminMembers() {
+function SecretaryMembers() {
 
   /* ================= STATES ================= */
 
   const [members, setMembers] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -17,44 +16,43 @@ function AdminMembers() {
   const [deletingMember, setDeletingMember] = useState(null);
   const [viewingMember, setViewingMember] = useState(null);
 
+  const [editForm, setEditForm] = useState({});
+
   const [searchTerm, setSearchTerm] = useState("");
   const [genderFilter, setGenderFilter] = useState("");
   const [baptizedFilter, setBaptizedFilter] = useState("");
   const [groupFilter, setGroupFilter] = useState("");
   const [ageFilter, setAgeFilter] = useState("");
 
+  /* ================= AGE CALCULATOR ================= */
 
-  /* ================= HELPERS ================= */
-
-  // Accurate age calculator
   const calculateAge = (dob) => {
+
     if (!dob) return null;
   
-    const [year, month, day] = dob.split("-").map(Number);
+    // Force YYYY-MM-DD only
+    const cleanDate = dob.toString().split("T")[0];
   
-    const birth = new Date(year, month - 1, day); // local date, no timezone shift
+    const [year, month, day] = cleanDate.split("-").map(Number);
+  
+    const birthDate = new Date(year, month - 1, day);
     const today = new Date();
   
-    let age = today.getFullYear() - birth.getFullYear();
+    let age = today.getFullYear() - birthDate.getFullYear();
   
-    const monthDiff = today.getMonth() - birth.getMonth();
+    const m = today.getMonth() - birthDate.getMonth();
   
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birth.getDate())
-    ) {
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
   
     return age;
   };
-  
-  
-
 
   /* ================= LOAD MEMBERS ================= */
 
   const loadMembers = async () => {
+
     try {
 
       setLoading(true);
@@ -71,18 +69,110 @@ function AdminMembers() {
     } finally {
 
       setLoading(false);
+
     }
   };
-
 
   useEffect(() => {
     loadMembers();
   }, []);
 
 
+  const exportToCSV = () => {
+
+    const headers = [
+      "Code",
+      "First Name",
+      "Last Name",
+      "Phone",
+      "Gender",
+      "Group",
+      "Status",
+      "Baptized"
+    ];
+
+    const rows = filteredMembers.map(m => [
+      m.member_code,
+      m.first_name,
+      m.last_name,
+      m.phone || "",
+      m.gender,
+      m.Auxiliary_Group || "",
+      m.membership_status,
+      m.baptized ? "Yes" : "No"
+    ]);
+
+    let csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map(e => e.join(",")).join("\n");
+
+    const link = document.createElement("a");
+    link.href = encodeURI(csvContent);
+    link.download = "members_filtered.csv";
+    link.click();
+  };
+
+  /* ================= EDIT FUNCTIONS ================= */
+
+  const openEdit = (member) => {
+
+    setEditingMember(member);
+
+    setEditForm({
+      first_name: member.first_name || "",
+      last_name: member.last_name || "",
+      other_names: member.other_names || "",
+      gender: member.gender || "",
+      phone: member.phone || "",
+      email: member.email || "",
+      address: member.address || "",
+      baptized: member.baptized ? 1 : 0,
+      Auxiliary_Group: member.Auxiliary_Group || "",
+      membership_status: member.membership_status || "Active",
+      date_of_birth: member.date_of_birth
+        ? member.date_of_birth.split("T")[0]
+        : ""
+    });
+
+  };
+
+  const handleEditChange = (e) => {
+
+    const { name, value } = e.target;
+
+    setEditForm({
+      ...editForm,
+      [name]: value
+    });
+
+  };
+
+  const handleEditSubmit = async (e) => {
+
+    e.preventDefault();
+
+    try {
+
+      await apiRequest(`/members/${editingMember.id}`, {
+        method: "PUT",
+        body: JSON.stringify(editForm)
+      });
+
+      setEditingMember(null);
+      loadMembers();
+
+    } catch {
+
+      alert("Failed to update member");
+
+    }
+
+  };
+
   /* ================= DELETE ================= */
 
   const handleDelete = async () => {
+
     try {
 
       await apiRequest(`/members/${deletingMember.id}`, {
@@ -93,82 +183,65 @@ function AdminMembers() {
       loadMembers();
 
     } catch {
-      alert("Failed to delete member");
-    }
-  };
 
+      alert("Failed to delete member");
+
+    }
+
+  };
 
   /* ================= FILTER ================= */
 
   const filteredMembers = members.filter((m) => {
-
-    /* SEARCH */
 
     const search = searchTerm.toLowerCase();
 
     const fullName =
       `${m.first_name} ${m.last_name}`.toLowerCase();
 
-
-    /* AGE */
-
     const age = calculateAge(m.date_of_birth);
-
-
-    /* BAPTIZED NORMALIZE */
 
     const baptizedValue =
       m.baptized === true || m.baptized === 1 ? "1" : "0";
 
+      let ageMatch = true;
 
-    /* AGE FILTER */
-
-    let ageMatch = true; // allow all by default
-
-      if (ageFilter && ageFilter !== "all") {
-        ageMatch = false;
-
-        if (age !== null && !isNaN(age)) {
-
+      if (ageFilter) {
+      
+        if (age === null || isNaN(age)) {
+          ageMatch = false;
+        } else {
+      
           if (ageFilter === "under18") ageMatch = age < 18;
-
-          if (ageFilter === "18-35") ageMatch = age >= 18 && age <= 35;
-
-          if (ageFilter === "36-60") ageMatch = age >= 36 && age <= 60;
-
-          if (ageFilter === "60plus") ageMatch = age > 60;
+      
+          else if (ageFilter === "18-35") ageMatch = age >= 18 && age <= 35;
+      
+          else if (ageFilter === "36-60") ageMatch = age >= 36 && age <= 60;
+      
+          else if (ageFilter === "60plus") ageMatch = age > 60;
+      
         }
+      
       }
-
-  
-
-
-    /* FINAL MATCH */
 
     return (
 
-      /* SEARCH */
       (
         fullName.includes(search) ||
         m.phone?.includes(search) ||
         m.member_code?.toLowerCase().includes(search)
       )
 
-      /* GENDER */
       && (genderFilter === "" || m.gender === genderFilter)
 
-      /* BAPTIZED */
       && (baptizedFilter === "" || baptizedValue === baptizedFilter)
 
-      /* GROUP */
       && (groupFilter === "" || m.Auxiliary_Group === groupFilter)
 
-      /* AGE */
       && ageMatch
     );
 
   });
-
 
   /* ================= STATS ================= */
 
@@ -179,71 +252,59 @@ function AdminMembers() {
 
   const inactive = total - active;
 
-
   /* ================= UI ================= */
 
   return (
-    <div className="members-page">
 
+    <div className="members-page">
 
       {/* HEADER */}
 
       <div className="members-header">
 
-        <div className="attendance-table-header">Members</div>
-        <div className="action-btn">
-        <AddMember onSuccess={loadMembers} />
+        <div className="member-title">
+          <span className="member-title-icon"><Users /></span>
+          <span className="member-title-text">Members</span>
         </div>
-        
+
+        <div className="member-action-btn">
+          <AddMember onSuccess={loadMembers} />
+        </div>
 
       </div>
-
 
       {/* STATS */}
 
       <div className="members-stats">
 
-        <div className="stats-card">
+        <div className="member-stats-card">
           <h3>Total</h3>
           <p>{total}</p>
         </div>
 
-        <div className="stats-card">
+        <div className="member-stats-card">
           <h3>Active</h3>
           <p>{active}</p>
         </div>
 
-        <div className="stats-card">
+        <div className="member-stats-card">
           <h3>Inactive</h3>
           <p>{inactive}</p>
         </div>
 
       </div>
 
-
-      {/* ERROR */}
-
       {error && <p className="error">{error}</p>}
 
-
-      {/* LOADING */}
-
       {loading && <p>Loading members...</p>}
-
-
-      {/* TABLE */}
 
       {!loading && (
 
         <div className="members-table-wrapper">
 
-
           {/* FILTER BAR */}
 
-          <div className="filter-bar">
-
-
-            {/* SEARCH */}
+          <div className="member-filter-bar">
 
             <input
               type="text"
@@ -251,9 +312,6 @@ function AdminMembers() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-
-
-            {/* GENDER */}
 
             <select
               value={genderFilter}
@@ -264,9 +322,6 @@ function AdminMembers() {
               <option value="Female">Female</option>
             </select>
 
-
-            {/* BAPTIZED */}
-
             <select
               value={baptizedFilter}
               onChange={(e) => setBaptizedFilter(e.target.value)}
@@ -275,9 +330,6 @@ function AdminMembers() {
               <option value="1">Baptized</option>
               <option value="0">Not Baptized</option>
             </select>
-
-
-            {/* GROUP */}
 
             <select
               value={groupFilter}
@@ -289,30 +341,30 @@ function AdminMembers() {
               <option value="WMU">WMU</option>
             </select>
 
-
-            {/* AGE */}
-
             <select
               value={ageFilter}
               onChange={(e) => setAgeFilter(e.target.value)}
             >
               <option value="">All Ages</option>
-
               <option value="under18">Under 18</option>
               <option value="18-35">18 - 35</option>
               <option value="36-60">36 - 60</option>
               <option value="60plus">60+</option>
             </select>
 
-          </div>
 
+            <button className="member-export-btn" onClick={exportToCSV}>
+            <FileSpreadsheet size={18} />
+            Export
+            </button>
+
+          </div>
 
           {/* TABLE */}
 
           <table className="members-table">
 
             <thead>
-
               <tr>
                 <th>Code</th>
                 <th>Name</th>
@@ -320,9 +372,7 @@ function AdminMembers() {
                 <th>Phone</th>
                 <th>Actions</th>
               </tr>
-
             </thead>
-
 
             <tbody>
 
@@ -348,23 +398,23 @@ function AdminMembers() {
 
                   <td>{member.phone || "-"}</td>
 
-
                   <td>
 
                     <button
-                      className="view-btn"
+                      className="member-view-btn"
                       onClick={() => setViewingMember(member)}
                     >
                       View
                     </button>
 
                     <button
-                      className="edit-btn"
-                      onClick={() => setEditingMember(member)}
+                      className="member-edit-btn"
+                      onClick={() => openEdit(member)}
                     >
                       Edit
                     </button>
 
+                  
 
                   </td>
 
@@ -377,16 +427,16 @@ function AdminMembers() {
           </table>
 
         </div>
-      )}
 
+      )}
 
       {/* VIEW MODAL */}
 
       {viewingMember && (
 
-        <div className="modal-overlay">
+        <div className="member-modal-overlay">
 
-          <div className="view-box">
+          <div className="member-view-box">
 
             <h3>Member Profile</h3>
 
@@ -410,9 +460,8 @@ function AdminMembers() {
 
             <p><b>Address:</b> {viewingMember.address || "-"}</p>
 
-
             <button
-              className="cancel-btn"
+              className="member-cancel-btn"
               onClick={() => setViewingMember(null)}
             >
               Close
@@ -421,54 +470,153 @@ function AdminMembers() {
           </div>
 
         </div>
+
       )}
 
-
-      {/* EDIT */}
+      {/* EDIT MODAL */}
 
       {editingMember && (
 
-        <EditMember
-          member={editingMember}
-          onClose={() => setEditingMember(null)}
-          onSuccess={loadMembers}
-        />
+        <div className="member-modal-overlay">
 
-      )}
+          <div className="member-form-box">
 
+            <h3>Edit Member</h3>
 
-      {/* DELETE */}
+            <form onSubmit={handleEditSubmit} className="edit-form">
 
-      {deletingMember && (
+              <div className="member-form-group">
+                <label>First Name</label>
+                <input
+                  name="first_name"
+                  value={editForm.first_name}
+                  onChange={handleEditChange}
+                />
+              </div>
 
-        <div className="modal-overlay">
+              <div className="member-form-group">
+                <label>Last Name</label>
+                <input
+                  name="last_name"
+                  value={editForm.last_name}
+                  onChange={handleEditChange}
+                />
+              </div>
 
-          <div className="confirm-box">
+              <div className="member-form-group">
+                <label>Other Names</label>
+                <input
+                  name="other_names"
+                  value={editForm.other_names}
+                  onChange={handleEditChange}
+                />
+              </div>
 
-            <h3>Delete Member</h3>
+              <div className="member-form-group">
+                <label>Gender</label>
+                <select
+                  name="gender"
+                  value={editForm.gender}
+                  onChange={handleEditChange}
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
 
-            <p>
-              Delete{" "}
-              <strong>
-                {deletingMember.first_name}{" "}
-                {deletingMember.last_name}
-              </strong>
-              ?
-            </p>
+              <div className="member-form-group">
+                <label>Date of Birth</label>
+                <input
+                  type="date"
+                  name="date_of_birth"
+                  value={editForm.date_of_birth}
+                  onChange={handleEditChange}
+                />
+              </div>
 
+              <div className="member-form-group">
+                <label>Phone</label>
+                <input
+                  name="phone"
+                  value={editForm.phone}
+                  onChange={handleEditChange}
+                />
+              </div>
 
-            <div className="confirm-actions">
+              <div className="member-form-group">
+                <label>Email</label>
+                <input
+                  name="email"
+                  value={editForm.email}
+                  onChange={handleEditChange}
+                />
+              </div>
 
-              <button
-                className="cancel-btn"
-                onClick={() => setDeletingMember(null)}
-              >
-                Cancel
-              </button>
+              <div className="member-form-group">
+                <label>Address</label>
+                <input
+                  name="address"
+                  value={editForm.address}
+                  onChange={handleEditChange}
+                />
+              </div>
 
-              
+              <div className="member-form-group">
+                <label>Baptized</label>
+                <select
+                  name="baptized"
+                  value={editForm.baptized}
+                  onChange={handleEditChange}
+                >
+                  <option value={1}>Yes</option>
+                  <option value={0}>No</option>
+                </select>
+              </div>
 
-            </div>
+              <div className="member-form-group">
+                <label>Auxiliary Group</label>
+                <select
+                  name="Auxiliary_Group"
+                  value={editForm.Auxiliary_Group}
+                  onChange={handleEditChange}
+                >
+                  <option value="">None</option>
+                  <option value="Youth">Youth</option>
+                  <option value="Men">Men</option>
+                  <option value="WMU">WMU</option>
+                </select>
+              </div>
+
+              <div className="member-form-group">
+                <label>Status</label>
+                <select
+                  name="membership_status"
+                  value={editForm.membership_status}
+                  onChange={handleEditChange}
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div className="member-confirm-actions">
+
+                <button
+                  type="button"
+                  className="member-cancel-btn"
+                  onClick={() => setEditingMember(null)}
+                >
+                  Cancel
+                </button>
+
+                <button type="submit" className="member-edit-btn">
+                  Save Changes
+                </button>
+
+              </div>
+
+            </form>
 
           </div>
 
@@ -476,8 +624,9 @@ function AdminMembers() {
 
       )}
 
+
     </div>
   );
 }
 
-export default AdminMembers;
+export default SecretaryMembers;

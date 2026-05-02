@@ -3,8 +3,9 @@ import AddMember from "./AddMember";
 import AddAttendance from "./AddAttendance";
 import AddTransaction from "./AddTransaction";
 import AdminGenerateReport from "./AdminGenerateReport";
+import SecretaryGenerateReport from "./SecretaryGenerateReports";
 
-function QuickActions() {
+function SecretaryQuickActions() {
   return (
     <div className="quick-actions">
       <h3>Quick Actions</h3>
@@ -22,11 +23,11 @@ function QuickActions() {
 
 
         <div className="action-btn">
-          <AdminGenerateReport/>
+          <SecretaryGenerateReport/>
         </div>
       </div>
     </div>
   );
 }
 
-export default QuickActions;
+export default SecretaryQuickActions;

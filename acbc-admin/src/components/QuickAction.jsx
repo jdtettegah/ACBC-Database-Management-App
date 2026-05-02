@@ -3,11 +3,18 @@ import AddMember from "./AddMember";
 import AddAttendance from "./AddAttendance";
 import AddTransaction from "./AddTransaction";
 import AdminGenerateReport from "./AdminGenerateReport";
+import AddUser from "./AddUser";
+import { Zap } from "lucide-react";
 
 function QuickActions() {
   return (
     <div className="quick-actions">
-      <div className="dashboard-header">Quick Actions</div>
+      <div className="quick-action-dashboard-header">
+        <span className="quick-header-icon">
+          <Zap size={20} />
+        </span>
+        <span>Quick Actions</span>
+      </div>
 
       <div className="quick-actions-grid">
        
@@ -19,6 +26,8 @@ function QuickActions() {
         <div className="action-btn">
           <AddAttendance />
         </div>
+
+        
 
         <div className="action-btn">
            <AddTransaction />

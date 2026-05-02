@@ -530,6 +530,109 @@ const weeklyFinanceChart = async (req, res) => {
   }
 };
 
+
+/**
+ * 🏥 Welfare Financial Report
+ * /api/reports/welfare?start=2026-01-01&end=2026-01-31
+ */
+const welfareReport = async (req, res) => {
+  try {
+    const { start, end } = req.query;
+
+    if (!start || !end) {
+      return res.status(400).json({
+        message: "Start and end date required"
+      });
+    }
+
+    const pool = await poolPromise;
+
+    // ===============================
+    // OPENING BALANCE
+    // ===============================
+    const openingIncome = await pool.request()
+      .input("start", sql.Date, start)
+      .query(`
+        SELECT ISNULL(SUM(amount),0) as total
+        FROM WelfareFunds
+        WHERE date_paid < @start
+      `);
+
+    const openingExpense = await pool.request()
+      .input("start", sql.Date, start)
+      .query(`
+        SELECT ISNULL(SUM(amount),0) as total
+        FROM WelfareExpenses
+        WHERE date_spent < @start
+        AND status = 'APPROVED'
+      `);
+
+    const openingBalance =
+      openingIncome.recordset[0].total -
+      openingExpense.recordset[0].total;
+
+    // ===============================
+    // INCOME
+    // ===============================
+    const incomeResult = await pool.request()
+      .input("start", sql.Date, start)
+      .input("end", sql.Date, end)
+      .query(`
+        SELECT 
+          we.event_type,
+          SUM(wf.amount) as total
+        FROM WelfareFunds wf
+        JOIN WelfareEventMembers wem ON wf.event_member_id = wem.id
+        JOIN WelfareEvents we ON wem.event_id = we.id
+        WHERE wf.date_paid BETWEEN @start AND @end
+        GROUP BY we.event_type
+      `);
+
+    // ===============================
+    // EXPENSES
+    // ===============================
+    const expenseResult = await pool.request()
+      .input("start", sql.Date, start)
+      .input("end", sql.Date, end)
+      .query(`
+        SELECT 
+          et.name as category,
+          SUM(we.amount) as total
+        FROM WelfareExpenses we
+        JOIN WelfareExpenseTypes et ON we.expense_type_id = et.id
+        WHERE we.date_spent BETWEEN @start AND @end
+        AND we.status = 'APPROVED'
+        GROUP BY et.name
+      `);
+
+    const income = incomeResult.recordset;
+    const expenses = expenseResult.recordset;
+
+    const totalIncome = income.reduce((sum, i) => sum + Number(i.total), 0);
+    const totalExpense = expenses.reduce((sum, e) => sum + Number(e.total), 0);
+
+    const closingBalance =
+      openingBalance + totalIncome - totalExpense;
+
+    res.json({
+      start,
+      end,
+      openingBalance,
+      income,
+      expenses,
+      totalIncome,
+      totalExpense,
+      closingBalance
+    });
+
+  } catch (err) {
+    console.error("Welfare Report Error:", err);
+    res.status(500).json({
+      message: "Failed to generate welfare report"
+    });
+  }
+};
+
 module.exports = {
   monthlyFinanceReport,
   titheSummary,
@@ -537,5 +640,6 @@ module.exports = {
   getAllReports,
   saveReport,
   weeklyAttendanceChart,
-  weeklyFinanceChart
+  weeklyFinanceChart,
+  welfareReport
 };

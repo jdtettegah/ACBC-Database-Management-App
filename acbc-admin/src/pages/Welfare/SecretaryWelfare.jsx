@@ -90,23 +90,23 @@ function SecretaryWelfare() {
   }
 
   return (
-    <div className="finance-page">
+    <div className="welfare-page">
       {/* HEADER */}
-      <div className="finance-header">
+      <div className="welfare-header">
         <h2>Finance</h2>
 
-        <div className="action-btns">
-          <div className="action-btn">
+        <div className="welfare-action-btns">
+          <div className="welfare-action-btn">
             <AddTransaction onSaved={loadFinance} />
           </div>
 
-          <div className="action-btn">
+          <div className="welfare-action-btn">
             <TithePage />
           </div>
 
-          <div className="action-btn">
+          <div className="welfare-action-btn">
             <button
-              className="add-attendance-button"
+              className="add-welfare-button"
               onClick={() => setViewTitheOpen(true)}
             >
               View Tithes
@@ -122,25 +122,25 @@ function SecretaryWelfare() {
       <ViewTithe open={viewTitheOpen} onClose={() => setViewTitheOpen(false)} />
 
       {/* STATS */}
-      <div className="finance-stats">
-        <div className="stats-card">
+      <div className="welfare-stats">
+        <div className="welfare-stats-card">
           <h3>Total Income</h3>
           <p>GH₵ {totalIncome.toFixed(2)}</p>
         </div>
 
-        <div className="stats-card">
+        <div className="welfare-stats-card">
           <h3>Total Expense</h3>
           <p>GH₵ {totalExpense.toFixed(2)}</p>
         </div>
 
-        <div className="stats-card">
+        <div className="welfare-stats-card">
           <h3>Net Balance</h3>
           <p>GH₵ {netBalance.toFixed(2)}</p>
         </div>
       </div>
 
       {/* FILTERS */}
-      <div className="finance-controls">
+      <div className="welfare-controls">
 
         <input
           type="text"
@@ -167,8 +167,8 @@ function SecretaryWelfare() {
       </div>
 
       {/* TABLE */}
-      <div className="finance-table-wrapper">
-        <table className="finance-table">
+      <div className="welfare-table-wrapper">
+        <table className="welfare-table">
           <thead>
             <tr>
               <th>ID</th>

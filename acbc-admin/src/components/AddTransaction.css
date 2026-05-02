@@ -1,174 +1,273 @@
-/* Add Transaction Button */
-.add-attendance-button {
-
+/* ===============================
+   OPEN BUTTON
+================================= */
+.add-transaction-button {
+  background: #2563eb;
     color: #fff;
     padding: 10px 18px;
     border: none;
-    border-radius: 6px;
-    font-size: 15px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    transition: 0.3s;
-    margin: 10px;
-}
-
-
-/* Modal Overlay */
-.modal-overlay {
+    transition: 0.25s ease;
+    box-shadow: 0 6px 18px rgba(77, 77, 234, 0.18);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .add-transaction-button:hover {
+    background: #3c3cd9;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(77, 77, 234, 0.22);
+  }
+  
+  /* ===============================
+     MODAL OVERLAY
+  ================================= */
+  .add-transaction-modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.55);
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(6px);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-}
-
-/* Main Container */
-.transaction-page {
-    background: #fff;
-    width: 90%;
-    max-width: 600px;
-    border-radius: 12px;
-    padding: 25px 30px;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.25);
-    animation: slideUp 0.3s ease-in-out;
+    padding: 20px;
+  }
+  
+  /* ===============================
+     MAIN CONTAINER
+  ================================= */
+  .add-transaction-page {
+    width: 100%;
+    max-width: 700px;
     max-height: 90vh;
     overflow-y: auto;
-}
-
-/* Animation */
-@keyframes slideUp {
+  
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 28px;
+  
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.15);
+  
+    animation: fadeUp 0.3s ease;
+  }
+  
+  /* ===============================
+     ANIMATION
+  ================================= */
+  @keyframes fadeUp {
     from {
-        opacity: 0;
-        transform: translateY(40px);
+      opacity: 0;
+      transform: translateY(25px) scale(0.98);
     }
     to {
-        opacity: 1;
-        transform: translateY(0);
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
-}
-
-/* Header */
-.transaction-header {
+  }
+  
+  /* ===============================
+     HEADER
+  ================================= */
+  .add-transaction-header {
     text-align: center;
-    margin-bottom: 25px;
-}
-
-.transaction-header h2 {
-    color: #333;
-    margin-bottom: 5px;
-}
-
-.transaction-header p {
-    color: #777;
+    margin-bottom: 24px;
+  }
+  
+  .add-transaction-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 6px;
+  }
+  
+  .add-transaction-header p {
     font-size: 14px;
-}
-
-/* Form */
-.transaction-form {
+    color: #64748b;
+  }
+  
+  /* ===============================
+     FORM
+  ================================= */
+  .add-transaction-form {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 18px;
-}
-
-/* Form Group */
-.form-group {
+  }
+  
+  /* ===============================
+     FORM GROUP
+  ================================= */
+  .add-transaction-form-group {
     display: flex;
     flex-direction: column;
-}
-
-.form-group label {
+  }
+  
+  .add-transaction-group label {
     font-size: 14px;
-    font-weight: 500;
-    color: #444;
+    font-weight: 600;
+    color: #334155;
     margin-bottom: 6px;
-}
-
-/* Inputs */
-.form-group input,
-.form-group select,
-.form-group textarea {
-    padding: 9px 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+  }
+  
+  /* ===============================
+     INPUTS
+  ================================= */
+  .add-transaction-form-group input,
+  .add-transaction-form-group select,
+  .add-transaction-form-group textarea {
+    padding: 11px 14px;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
     font-size: 14px;
-    transition: 0.2s;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: #ff9800;
+    background: #fff;
+    transition: 0.2s ease;
     outline: none;
-    box-shadow: 0 0 4px rgba(255,152,0,0.4);
-}
-
-/* Full width textarea */
-.full-width {
-    grid-column: span 2;
-}
-
-textarea {
+  }
+  
+  .add-transaction-form-group input:focus,
+  .add-transaction-form-group select:focus,
+  .add-transaction-form-group textarea:focus {
+    border-color: #4d4dea;
+    box-shadow: 0 0 0 3px rgba(77, 77, 234, 0.12);
+  }
+  
+  /* Placeholder */
+  .add-transaction-form-group input::placeholder,
+  .add-transaction-form-group textarea::placeholder {
+    color: #94a3b8;
+  }
+  
+  /* ===============================
+     TEXTAREA
+  ================================= */
+  textarea {
     resize: vertical;
-    min-height: 80px;
-}
-
-/* Action Buttons */
-.transaction-actions {
+    min-height: 100px;
+    font-family: inherit;
+  }
+  
+  /* ===============================
+     FULL WIDTH
+  ================================= */
+  .full-width {
+    grid-column: span 2;
+  }
+  
+  /* ===============================
+     ACTION BUTTONS
+  ================================= */
+  .add-transaction-actions {
     grid-column: span 2;
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    margin-top: 20px;
-}
-
-/* Buttons */
-.cancel-btn,
-.save-btn {
-    padding: 9px 18px;
-    border-radius: 6px;
+    margin-top: 10px;
+  }
+  
+  /* ===============================
+     BUTTONS
+  ================================= */
+  .add-transaction-cancel-btn,
+  .add-transaction-save-btn {
+    padding: 11px 20px;
     border: none;
+    border-radius: 10px;
     font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    transition: 0.3s;
-}
-
-/* Cancel */
-.cancel-btn {
-    background: #d7c6c5;
-    color: #fff;
-}
-
-.cancel-btn:hover {
-    background: #d32f2f;
-}
-
-/* Save */
-.save-btn {
-    background-color: #4CAF50;
+    transition: 0.25s ease;
+  }
+  
+  /* Cancel */
+  .add-transaction-cancel-btn {
+    background: #e2e8f0;
+    color: #334155;
+  }
+  
+  .add-transaction-cancel-btn:hover {
+    background: #cbd5e1;
+  }
+  
+  /* Save */
+  .add-transaction-save-btn {
+    background: #16a34a;
     color: white;
-}
-
-.save-btn:hover {
-    background-color: #45a049;
-}
-
-/* Mobile Responsive */
-@media (max-width: 600px) {
-
-    .transaction-form {
-        grid-template-columns: 1fr;
+    box-shadow: 0 6px 16px rgba(22, 163, 74, 0.18);
+  }
+  
+  .add-transaction-save-btn:hover {
+    background: #15803d;
+    transform: translateY(-1px);
+  }
+  
+  /* Disabled */
+  .add-transaction-save-btn:disabled,
+  .add-transaction-cancel-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  /* ===============================
+     SELECT DROPDOWN FIX
+  ================================= */
+  select {
+    appearance: none;
+    background: #fff;
+  }
+  
+  /* ===============================
+     SCROLLBAR (OPTIONAL NICE UI)
+  ================================= */
+  .add-transaction-page::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .add-transaction-page::-webkit-scrollbar-thumb {
+    background: #dbe2ea;
+    border-radius: 20px;
+  }
+  
+  /* ===============================
+     MOBILE RESPONSIVE
+  ================================= */
+  @media (max-width: 768px) {
+    .add-transaction-page {
+      padding: 22px;
     }
-
-    .full-width,
-    .transaction-actions {
-        grid-column: span 1;
+  
+    .add-transaction-form {
+      grid-template-columns: 1fr;
     }
-
-    .transaction-actions {
-        justify-content: center;
+  
+    .add-transaction-full-width,
+    .add-transaction-actions {
+      grid-column: span 1;
     }
-}
+  
+    .add-transaction-actions {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  
+    .add-transaction-save-btn,
+    .add-transaction-cancel-btn {
+      width: 100%;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .add-transaction-header h2 {
+      font-size: 20px;
+    }
+  
+    .add-transaction-page {
+      border-radius: 14px;
+      padding: 18px;
+    }
+  }

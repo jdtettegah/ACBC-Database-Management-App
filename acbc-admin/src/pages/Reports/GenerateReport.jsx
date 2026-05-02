@@ -13,11 +13,11 @@ const GenerateReport = () => {
       </div>
 
       {open && (
-        <div className="modal-overlay">
-          <div className="modal-card">
+        <div className="generate-report-modal-overlay">
+          <div className="generate-report-modal-card">
             <h3>Generate Financial Report</h3>
 
-            <div className="modal-form">
+            <div className="generate-report-modal-form">
               <label>From Date</label>
               <input type="date" />
 
@@ -32,11 +32,11 @@ const GenerateReport = () => {
               </select>
             </div>
 
-            <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setOpen(false)}>
+            <div className="generate-report-modal-actions">
+              <button className="generate-report-btn-secondary" onClick={() => setOpen(false)}>
                 Cancel
               </button>
-              <button className="btn-primary">
+              <button className="generate-report-btn-primary">
                 Generate
               </button>
             </div>

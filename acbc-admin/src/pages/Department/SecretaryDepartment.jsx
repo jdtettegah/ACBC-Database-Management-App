@@ -1,6 +1,16 @@
 import { useEffect, useState } from "react";
-import { apiRequest } from "../../services/api";
+import {
+  getDepartments,
+  createDepartment,
+  assignMemberToDepartment,
+  getDepartmentMembers,
+  removeMemberFromDepartment,
+  getMembers
+} from "../../services/api";
+
+import DepartmentChart from "../../components/DepartmentChart";
 import "./AdminDepartment.css";
+import { Building2 } from "lucide-react";
 
 function SecretaryDepartments() {
 
@@ -11,7 +21,7 @@ function SecretaryDepartments() {
   const [allMembers, setAllMembers] = useState([]);
 
   const [selectedDept, setSelectedDept] = useState(null);
-  const [selectedMember, setSelectedMember] = useState("");
+  const [selectedMember, setSelectedMember] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -28,41 +38,34 @@ function SecretaryDepartments() {
 
   const loadDepartments = async () => {
     try {
-      const data = await apiRequest("/departments");
+      const data = await getDepartments();
       setDepartments(data);
     } catch {
       setError("Failed to load departments");
     }
   };
 
-
   const loadAllMembers = async () => {
     try {
-      const data = await apiRequest("/members");
+      const data = await getMembers();
       setAllMembers(data);
     } catch {
       setError("Failed to load members");
     }
   };
 
-
   const loadDepartmentMembers = async (departmentId) => {
     try {
-      const data = await apiRequest(
-        `/member-departments/department/${departmentId}`
-      );
+      const data = await getDepartmentMembers(departmentId);
       setMembers(data);
     } catch {
       setError("Failed to load department members");
     }
   };
 
-
   useEffect(() => {
-    Promise.all([
-      loadDepartments(),
-      loadAllMembers()
-    ]).finally(() => setLoading(false));
+    Promise.all([loadDepartments(), loadAllMembers()])
+      .finally(() => setLoading(false));
   }, []);
 
 
@@ -84,13 +87,9 @@ function SecretaryDepartments() {
     }
 
     try {
-
-      await apiRequest("/departments", {
-        method: "POST",
-        body: JSON.stringify({
-          name: deptName,
-          description: deptDesc
-        })
+      await createDepartment({
+        name: deptName,
+        description: deptDesc
       });
 
       setDeptName("");
@@ -114,27 +113,20 @@ function SecretaryDepartments() {
     setAssigning(true);
 
     try {
-
-      await apiRequest("/member-departments", {
-        method: "POST",
-        body: JSON.stringify({
-          member_id: selectedMember.id,  
-          member_code: selectedMember.member_code,
-          department_id: selectedDept.id
-        })
+      await assignMemberToDepartment({
+        member_id: selectedMember.id,
+        member_code: selectedMember.member_code,
+        department_id: selectedDept.id
       });
 
-      setSelectedMember("");
+      setSelectedMember(null);
       loadDepartmentMembers(selectedDept.id);
+      loadDepartments(); // update counts
 
     } catch (err) {
-
       alert(err.message || "Assignment failed");
-
     } finally {
-
       setAssigning(false);
-
     }
   };
 
@@ -148,65 +140,90 @@ function SecretaryDepartments() {
     setRemoving(true);
 
     try {
-
-      await apiRequest(
-        `/member-departments/${id}`,
-        { method: "DELETE" }
-      );
+      await removeMemberFromDepartment(id);
 
       loadDepartmentMembers(selectedDept.id);
+      loadDepartments(); // update counts
 
     } catch {
-
       alert("Failed to remove");
-
     } finally {
-
       setRemoving(false);
-
     }
   };
 
 
-  /* ================= FILTER ================= */
+  /* ================= DATA ================= */
 
   const unassignedMembers = allMembers.filter(
     m => !members.some(mem => mem.member_code === m.member_code)
   );
+
+  const totalDepartments = departments.length;
+
+  const totalAssigned = departments.reduce(
+    (acc, d) => acc + (d.member_count || 0), 0
+  );
+
+  const unassignedCount = allMembers.length - totalAssigned;
+
+  const largestDept = departments.reduce((max, d) => {
+    return (d.member_count || 0) > (max?.member_count || 0)
+      ? d
+      : max;
+  }, null);
 
 
   /* ================= UI ================= */
 
   if (loading) return <p>Loading...</p>;
 
-
   return (
     <div className="departments-page">
 
-
       {/* HEADER */}
-
       <div className="departments-header">
+        <div className="department-title">
+          <span className="department-title-icon"><Building2 /></span>
+          <span className="department-title-text">Departments</span>
+        </div>
 
-        <h2>Departments</h2>
-
-        <button
-          className="add-btn"
-          onClick={() => setShowForm(true)}
-        >
-          + Add Department
-        </button>
-
+        <div className="department-action-btn">
+          <button className="add-department-button"
+            
+            onClick={() => setShowForm(true)}
+          >
+            <Building2 size={18} />
+            Add Department
+          </button>
+          </div>
       </div>
-
 
       {error && <p className="error">{error}</p>}
 
 
-      {/* CREATE FORM */}
+      {/* STATS */}
+      <div className="department-stats-cards">
+
+        <div className="department-stats-card">
+          <h3>Total Departments</h3>
+          <p>{totalDepartments}</p>
+        </div>
+
+        <div className="department-stats-card">
+          <h3>Total Members</h3>
+          <p>{totalAssigned}</p>
+        </div>
+
+
+        <div className="department-stats-card">
+          <h3>Largest Dept</h3>
+          <p>{largestDept?.name || "-"}</p>
+        </div>
+
+      </div>
 
       {showForm && (
-
         <div className="dept-form">
 
           <h3>New Department</h3>
@@ -219,47 +236,42 @@ function SecretaryDepartments() {
           />
 
           <textarea
-            placeholder="Description (optional)"
+            placeholder="Description"
             value={deptDesc}
             onChange={(e) => setDeptDesc(e.target.value)}
           />
 
-          <div className="form-actions">
-
-            <button
-              className="save-btn"
-              onClick={handleCreateDepartment}
-            >
+          <div className="department-form-actions">
+            <button className="department-save-btn" onClick={handleCreateDepartment}>
               Save
             </button>
 
-            <button
-              className="cancel-btn"
-              onClick={() => setShowForm(false)}
-            >
+            <button className="department-cancel-btn" onClick={() => setShowForm(false)}>
               Cancel
             </button>
-
           </div>
 
         </div>
-
       )}
 
 
-      {/* MAIN LAYOUT */}
+      {/* CHART */}
+      <DepartmentChart departments={departments} />
 
+
+      {/* FORM */}
+      
+
+
+      {/* MAIN */}
       <div className="departments-layout">
 
-
         {/* LEFT */}
-
         <div className="departments-list">
 
           <h3>All Departments</h3>
 
           {departments.map(d => (
-
             <div
               key={d.id}
               className={
@@ -269,52 +281,42 @@ function SecretaryDepartments() {
               }
               onClick={() => handleSelectDept(d)}
             >
-              {d.name}
+              {d.name} ({d.member_count || 0})
             </div>
-
           ))}
 
         </div>
 
 
         {/* RIGHT */}
-
         <div className="department-panel">
 
-
           {selectedDept ? (
-
             <>
-
               <h3>{selectedDept.name}</h3>
 
-
               {/* ASSIGN */}
-
               <div className="assign-box">
 
                 <select
-                    value={selectedMember?.id || ""}
-                    onChange={(e) => {
-                        const mem = unassignedMembers.find(m => m.member_code === e.target.value);
-                        setSelectedMember(mem);
-                    }}
-                    disabled={assigning}
+                  value={selectedMember?.member_code || ""}
+                  onChange={(e) => {
+                    const mem = unassignedMembers.find(
+                      m => m.member_code === e.target.value
+                    );
+                    setSelectedMember(mem);
+                  }}
                 >
-                        <option value="">Select Member</option>
-                            {unassignedMembers.map(m => (
-                                <option key={m.id} value={m.member_code}>
-                            {m.first_name} {m.last_name} {m.other_names}
-                        </option>
-                        ))}
+                  <option value="">Select Member</option>
+
+                  {unassignedMembers.map(m => (
+                    <option key={m.id} value={m.member_code}>
+                      {m.first_name} {m.last_name}
+                    </option>
+                  ))}
                 </select>
 
-
-
-                <button
-                  onClick={handleAssign}
-                  disabled={assigning}
-                >
+                <button onClick={handleAssign}>
                   {assigning ? "Assigning..." : "Assign"}
                 </button>
 
@@ -322,7 +324,6 @@ function SecretaryDepartments() {
 
 
               {/* TABLE */}
-
               <table className="dept-table">
 
                 <thead>
@@ -336,7 +337,6 @@ function SecretaryDepartments() {
                 <tbody>
 
                   {members.map(m => (
-
                     <tr key={m.id}>
 
                       <td>
@@ -347,8 +347,7 @@ function SecretaryDepartments() {
 
                       <td>
                         <button
-                          className="delete-btn"
-                          disabled={removing}
+                          className="department-delete-btn"
                           onClick={() => handleRemove(m.memberDepartmentId)}
                         >
                           {removing ? "Removing..." : "Remove"}
@@ -356,9 +355,7 @@ function SecretaryDepartments() {
                       </td>
 
                     </tr>
-
                   ))}
-
 
                   {members.length === 0 && (
                     <tr>
@@ -371,11 +368,8 @@ function SecretaryDepartments() {
               </table>
 
             </>
-
           ) : (
-
             <p>Select a department</p>
-
           )}
 
         </div>

@@ -19,7 +19,7 @@ export async function apiRequest(endpoint, options = {}) {
     headers,
   });
 
-  // Auto logout if expired
+  // Auto logout if expiredw
   if (response.status === 401) {
     console.error("❌ 401 ERROR FROM:", endpoint);
   
@@ -323,4 +323,47 @@ export function removeMemberFromDepartment(id) {
   return apiRequest(`/member-departments/${id}`, {
     method: "DELETE",
   });
+}
+
+/* ================= WELFARE EXPENSE ================= */
+
+// Expense Types
+export function getWelfareExpenseTypes() {
+  return apiRequest("/welfare/expenses/types");
+}
+
+export function createWelfareExpenseType(data) {
+  return apiRequest("/welfare/expenses/types", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// Expenses
+export function addWelfareExpense(data) {
+  return apiRequest("/welfare/expenses", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function getWelfareExpenses() {
+  return apiRequest("/welfare/expenses");
+}
+
+export function getSingleWelfareExpense(id) {
+  return apiRequest(`/welfare/expenses/${id}`);
+}
+
+// Summary (VERY IMPORTANT 🔥)
+export function getWelfareSummary() {
+  return apiRequest("/welfare/expenses/summary/all");
+}
+
+export function getWelfareReport(start, end) {
+  return apiRequest(`/reports/welfare?start=${start}&end=${end}`);
+}
+
+export function getRoles() {
+  return apiRequest("/role");
 }

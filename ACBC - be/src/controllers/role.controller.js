@@ -1,5 +1,6 @@
-const sql = require('mssql');
+
 const db = require('../services/db');
+const { poolPromise, sql } = require('../services/db');
 
 /**
  * CREATE ROLE
@@ -13,7 +14,7 @@ exports.createRole = async (req, res) => {
   }
 
   try {
-    const pool = await db.getConnection();
+    const pool = await poolPromise;
 
     await pool.request()
       .input('name', sql.VarChar, name)
@@ -37,7 +38,7 @@ exports.createRole = async (req, res) => {
  */
 exports.getRoles = async (req, res) => {
   try {
-    const pool = await db.getConnection();
+    const pool = await poolPromise;
 
     const result = await pool.request().query(`
       SELECT 

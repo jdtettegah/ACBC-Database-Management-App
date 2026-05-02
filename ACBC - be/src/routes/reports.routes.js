@@ -8,7 +8,8 @@ const {
   getAllReports,
   saveReport,
   weeklyAttendanceChart,
-  weeklyFinanceChart
+  weeklyFinanceChart,
+  welfareReport
 } = require('../controllers/reports.controller');
 
 // MAIN LIST ROUTE (VERY IMPORTANT)
@@ -20,5 +21,7 @@ router.get('/attendance/summary', attendanceSummary);
 router.post("/save", saveReport);
 router.get("/attendance/weekly", weeklyAttendanceChart);
 router.get("/finance/weekly", weeklyFinanceChart);
+router.get('/welfare', welfareReport);
+
 
 module.exports = router;

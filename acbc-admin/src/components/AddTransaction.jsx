@@ -8,6 +8,8 @@ import {
 } from "../services/api";
 
 import { getLoggedInUser } from "../services/api";
+import { HandCoins } from "lucide-react";
+import { createPortal } from "react-dom";
 
 
 function AddTransaction({ onSaved }) {
@@ -149,6 +151,20 @@ function AddTransaction({ onSaved }) {
     }
   };
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+  
+    if (open) {
+      window.addEventListener("keydown", handleEsc);
+    }
+  
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [open]);
+
 
 
   /* ================= UI ================= */
@@ -157,22 +173,23 @@ function AddTransaction({ onSaved }) {
     <>
       {/* OPEN BUTTON */}
       <button
-        className="add-attendance-button"
+        className="add-transaction-button"
         onClick={() => setOpen(true)}
       >
-        💰 Add Transaction
+        <HandCoins size={18}/>
+        Add Transaction
       </button>
 
 
       {/* MODAL */}
-      {open && (
+      {open && createPortal(
 
-        <div className="modal-overlay">
+        <div className="add-transaction-modal-overlay" onClick={() => setOpen(false)}>
 
-          <div className="transaction-page">
+          <div className="add-transaction-page" onClick={(e) => e.stopPropagation()}>
 
             {/* HEADER */}
-            <div className="transaction-header">
+            <div className="add-transaction-header">
               <h2>Add Transaction</h2>
               <p>Record Church Income or Expense</p>
             </div>
@@ -180,12 +197,12 @@ function AddTransaction({ onSaved }) {
 
             {/* FORM */}
             <form
-              className="transaction-form"
+              className="add-transaction-form"
               onSubmit={handleSubmit}
             >
 
               {/* TYPE */}
-              <div className="form-group">
+              <div className="add-transaction-form-group">
                 <label>Transaction Type</label>
 
                 <select
@@ -199,7 +216,7 @@ function AddTransaction({ onSaved }) {
 
 
               {/* CATEGORY */}
-              <div className="form-group">
+              <div className="add-transaction-form-group">
                 <label>Category</label>
 
                 <input
@@ -213,7 +230,7 @@ function AddTransaction({ onSaved }) {
 
 
               {/* AMOUNT */}
-              <div className="form-group">
+              <div className="add-transaction-form-group">
                 <label>Amount (GHS)</label>
 
                 <input
@@ -228,7 +245,7 @@ function AddTransaction({ onSaved }) {
 
 
               {/* DATE */}
-              <div className="form-group">
+              <div className="add-transaction-form-group">
                 <label>Date</label>
 
                 <input
@@ -244,7 +261,7 @@ function AddTransaction({ onSaved }) {
               {/* APPROVED BY (ONLY FOR EXPENSE) */}
               {type === "Expense" && (
 
-                <div className="form-group">
+                <div className="add-transaction-form-group">
                   <label>Approved By</label>
 
                   <select
@@ -276,7 +293,7 @@ function AddTransaction({ onSaved }) {
 
 
               {/* DESCRIPTION */}
-              <div className="form-group full-width">
+              <div className="add-transaction-form-group full-width">
                 <label>Description</label>
 
                 <textarea
@@ -289,11 +306,11 @@ function AddTransaction({ onSaved }) {
 
 
               {/* ACTION BUTTONS */}
-              <div className="transaction-actions">
+              <div className="add-transaction-actions">
 
                 <button
                   type="button"
-                  className="cancel-btn"
+                  className="add-transaction-cancel-btn"
                   onClick={() => setOpen(false)}
                   disabled={loading}
                 >
@@ -302,7 +319,7 @@ function AddTransaction({ onSaved }) {
 
                 <button
                   type="submit"
-                  className="save-btn"
+                  className="add-transaction-save-btn"
                   disabled={loading}
                 >
                   {loading ? "Saving..." : "Save"}
@@ -314,7 +331,8 @@ function AddTransaction({ onSaved }) {
 
           </div>
 
-        </div>
+        </div>,
+        document.body
 
       )}
 

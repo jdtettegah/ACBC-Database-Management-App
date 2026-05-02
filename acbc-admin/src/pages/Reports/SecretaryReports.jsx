@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import AdminGenerateReport from "../../components/AdminGenerateReport";
 import "./AdminReports.css";
+import { FileText } from "lucide-react";
 
 import { getAllReports } from "../../services/api";
+import SecretaryGenerateReport from "../../components/SecretaryGenerateReports";
 
 function SecretaryReports() {
 
@@ -40,10 +42,13 @@ function SecretaryReports() {
 
       <div className="report-header">
 
-        <div className="attendance-table-header">Reports</div>
+        <div className="report-title">
+          <span className="report-title-icon"><FileText /></span>
+          <span className="report-title-text">Reports</span>
+        </div>
 
-        <div className="action-btn">
-          <AdminGenerateReport refreshReports={loadReports} />
+        <div className="report-action-btn">
+          <SecretaryGenerateReport refreshReports={loadReports} />
         </div>
 
       </div>
@@ -51,12 +56,12 @@ function SecretaryReports() {
 
       <div className="report-stats">
 
-        <div className="stats-card">
+        <div className="report-stats-card">
           <h3>Total Reports</h3>
           <p>{reports.length}</p>
         </div>
 
-        <div className="stats-card">
+        <div className="report-stats-card">
           <h3>This Month</h3>
           <p>
             {reports.filter(r => {
@@ -73,7 +78,7 @@ function SecretaryReports() {
           </p>
         </div>
 
-        <div className="stats-card">
+        <div className="report-stats-card">
           <h3>Pending</h3>
           <p>{reports.filter(r => r.status === "Pending").length}</p>
         </div>
@@ -134,14 +139,14 @@ function SecretaryReports() {
                     <td>
 
                       <button
-                        className="view-btn"
+                        className="report-view-btn"
                         onClick={() => setSelectedReport(report)}
                       >
                         View
                       </button>
 
                       <button
-                        className="download-btn"
+                        className="report-download-btn"
                         onClick={() => setSelectedReport(report)}
                       >
                         Download
@@ -166,7 +171,7 @@ function SecretaryReports() {
 
       {selectedReport && (
 
-        <AdminGenerateReport
+        <SecretaryGenerateReport
           existingReport={selectedReport}
           onClose={() => setSelectedReport(null)}
         />

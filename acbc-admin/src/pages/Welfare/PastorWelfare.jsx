@@ -12,9 +12,9 @@ import AddWelfarePayment from "../../components/AddWelfarePayment";
 import AddWelfareExpense from "../../components/AddWelfareExpense";
 
 import "./AdminWelfare.css";
-import { CalendarPlus, FileSpreadsheet, HeartHandshake, Receipt } from "lucide-react";
+import { FileSpreadsheet, HeartHandshake } from "lucide-react";
 
-function AdminWelfare() {
+function PastorWelfare() {
 
   const [events, setEvents] = useState([]);
   const [selectedEventId, setSelectedEventId] = useState("");
@@ -158,22 +158,6 @@ function AdminWelfare() {
         </div>
       </div>
 
-      {/* ACTION BUTTONS */}
-      <div className="welfare-buttons-grid">
-        <div className="welfare-button"><CreateWelfareEvent onCreated={loadEvents} /></div>
-
-        <div className="welfare-button"><AddWelfareBulk onSaved={() => loadMembers(selectedEventId)} /></div>
-
-        <div className="welfare-button">
-          <button
-            className="add-welfare-button"
-            onClick={() => setExpenseOpen(true)}
-          >
-            <Receipt size={18} />
-            Add Expense
-          </button>
-        </div>
-      </div>
 
       {/* GLOBAL STATS */}
       <div className="welfare-stats">
@@ -256,7 +240,7 @@ function AdminWelfare() {
               <th>Paid</th>
               <th>Balance</th>
               <th>Status</th>
-              <th></th>
+             
             </tr>
           </thead>
 
@@ -288,21 +272,7 @@ function AdminWelfare() {
                     </span>
                   </td>
 
-                  <td>
-                    <button
-                      className="pay-btn"
-                      disabled={m.status === "PAID"}
-                      onClick={() => {
-                        setSelectedMember(m);
-                        setPaymentOpen(true);
-                      }}
-                    >
-                      Pay
-                    </button>
-
-                    {/* ✅ HISTORY BUTTON */}
-                    
-                  </td>
+                  
                 </tr>
               );
             })}
@@ -338,4 +308,4 @@ function AdminWelfare() {
   );
 }
 
-export default AdminWelfare;
+export default PastorWelfare;

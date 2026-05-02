@@ -1,0 +1,250 @@
+/* ========================================
+   PAGE LAYOUT
+======================================== */
+.tithe-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeIn 0.4s ease;
+}
+
+/* ========================================
+   HEADER
+======================================== */
+.tithe-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.tithe-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ICON STYLE */
+.tithe-title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e7edff;
+  color: #4A6FD3;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+/* TEXT STYLE */
+.tithe-title-text {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2f2fd6;
+  letter-spacing: -0.3px;
+}
+
+.tithe-action-btns {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tithe-action-btn {
+  display: flex;
+  align-items: center;
+}
+
+/* ========================================
+   STATS
+======================================== */
+.tithe-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.tithe-stats-card {
+  background: var(--card-bg, #ffffff);
+  padding: 1.5rem;
+  border-radius: 18px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border-left: 5px solid #2f2fd6;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.tithe-stats-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+}
+
+.tithe-stats-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  margin: 0;
+}
+
+.tithe-stats-card p {
+  margin-top: 10px;
+  font-size: 25px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+/* ========================================
+   CONTROLS
+======================================== */
+.tithe-controls {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tithe-controls input {
+  padding: 11px 14px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.tithe-controls input[type="text"] {
+  flex: 1;
+  min-width: 260px;
+}
+
+.tithe-controls input[type="date"] {
+  min-width: 180px;
+}
+
+.tithe-controls input:focus {
+  border-color: #4d4dea;
+  box-shadow: 0 0 0 3px rgba(77, 77, 234, 0.12);
+}
+
+.tithe-export-btn button {
+  background: #22C55E;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tithe-export-btn button:hover {
+  background: #1f1fc0;
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   TABLE WRAPPER
+======================================== */
+.tithe-table-wrapper {
+  background: #ffffff;
+  border-radius: 18px;
+  overflow-x: auto;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+/* ========================================
+   TABLE
+======================================== */
+.tithe-table {
+  width: 100%;
+  min-width: 950px;
+  border-collapse: collapse;
+}
+
+.tithe-table thead {
+  background: #f8fafc;
+}
+
+.tithe-table th,
+.tithe-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #edf2f7;
+  font-size: 14px;
+}
+
+.tithe-table th {
+  background: #f5f7fb;
+  color: #2f2fd6;
+  font-weight: 700;
+}
+
+.tithe-table tbody tr {
+  transition: 0.2s ease;
+}
+
+.tithe-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+/* ========================================
+   EMPTY STATE
+======================================== */
+.tithe-table td[colspan] {
+  text-align: center;
+  padding: 24px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* ========================================
+   ANIMATION
+======================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 1024px) {
+  .tithe-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .tithe-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tithe-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .tithe-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tithe-controls input,
+  .tithe-export-btn button {
+    width: 100%;
+  }
+
+  .tithe-table-wrapper {
+    overflow-x: auto;
+  }
+}

@@ -1,250 +1,384 @@
-import { useEffect, useState } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from "recharts";
-
-import "./PastorAttendance.css";
+import { useEffect, useState, useRef, useCallback } from "react";
+import AddAttendance from "../../components/AddAttendance";
+import "./AdminAttendance.css";
 import { apiRequest } from "../../services/api";
+import SecretaryDashboardCharts from "../../components/SecretaryDashboardCharts";
+import { FileSpreadsheet, ClipboardCheck } from "lucide-react";
 
 function PastorAttendance() {
 
   const [attendance, setAttendance] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({});
+  const [page, setPage] = useState(1);
 
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // ==============================
-  // Fetch Attendance
-  // ==============================
-  const fetchAttendance = async () => {
+  const [filterDate, setFilterDate] = useState("");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [serviceFilter, setServiceFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  // ✅ NEW STATES (DO NOT REMOVE YOUR OLD LOGIC)
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [error, setError] = useState("");
+
+  const observer = useRef();
+
+  // ======================
+  // DEBOUNCE SEARCH
+  // ======================
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(delay);
+  }, [search]);
+
+  // ======================
+  // FETCH DATA
+  // ======================
+  const fetchData = async (pageNumber = 1, append = false) => {
+
+    if (initialLoading) {
+      setUpdating(false);
+    } else if (pageNumber === 1) {
+      setUpdating(true); // ✅ smooth update instead of full reload
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
-      const data = await apiRequest("/attendance");
+      const query = new URLSearchParams({
+        page: pageNumber,
+        limit: 50,
+        search: debouncedSearch,
+        type: typeFilter,
+        service: serviceFilter,
+        date: filterDate,
+        status: statusFilter,
+      });
 
-      setAttendance(data);
-      setLoading(false);
+      const res = await apiRequest(`/attendance?${query}`);
+
+      if (append) {
+        setAttendance(prev => [...prev, ...res.data]);
+      } else {
+        setAttendance(res.data);
+      }
+
+      setPagination(res.pagination);
 
     } catch (err) {
       console.error(err);
-      setLoading(false);
+      setError("Failed to load records");
     }
+
+    setInitialLoading(false);
+    setUpdating(false);
+    setLoadingMore(false);
   };
 
+  // ======================
+  // REFETCH ON FILTER CHANGE
+  // ======================
   useEffect(() => {
-    fetchAttendance();
-  }, []);
+    setPage(1);
+    fetchData(1);
+  }, [debouncedSearch, filterDate, typeFilter, serviceFilter, statusFilter]);
 
-  // ==============================
-  // Filter By Date
-  // ==============================
-  const dailyAttendance = attendance.filter(
-    (a) =>
-      a.service_date?.split("T")[0] === selectedDate &&
-      a.status === "Present"
-  );
+  // ======================
+  // INFINITE SCROLL (UNCHANGED)
+  // ======================
+  const lastRowRef = useCallback(node => {
 
-  // ==============================
-  // Group By Service
-  // ==============================
-  const serviceSummary = {};
+    if (loadingMore) return;
 
-  dailyAttendance.forEach((a) => {
-    if (!serviceSummary[a.service_type]) {
-      serviceSummary[a.service_type] = 0;
-    }
+    if (observer.current) observer.current.disconnect();
 
-    serviceSummary[a.service_type]++;
-  });
+    observer.current = new IntersectionObserver(entries => {
+      if (
+        entries[0].isIntersecting &&
+        page < pagination.totalPages
+      ) {
+        const nextPage = page + 1;
 
-  const dailyData = Object.keys(serviceSummary).map((key) => ({
-    service: key,
-    count: serviceSummary[key],
-  }));
-
-  // ==============================
-  // Totals
-  // ==============================
-  const total = dailyAttendance.length;
-  const servicesHeld = dailyData.length;
-
-  // ==============================
-  // Weekly Trend (Last 4 Weeks)
-  // ==============================
-  const getWeekData = () => {
-    const weeks = {};
-
-    attendance.forEach((a) => {
-      if (a.status !== "Present") return;
-
-      const date = new Date(a.service_date);
-
-      const week = `Week ${Math.ceil(date.getDate() / 7)}`;
-
-      if (!weeks[week]) weeks[week] = 0;
-
-      weeks[week]++;
+        setPage(prev => prev + 1);
+        fetchData(nextPage, true);
+      }
     });
 
-    return Object.keys(weeks).map((w) => ({
-      week: w,
-      count: weeks[w],
-    }));
-  };
+    if (node) observer.current.observe(node);
 
-  const weeklyData = getWeekData();
+  }, [loadingMore, page, pagination]);
 
-  // ==============================
-  // Chart: By Service (All Time)
-  // ==============================
-  const serviceChartData = {};
+  // ======================
+  // STATS (UNCHANGED 🔥)
+  // ======================
+  const today = new Date().toISOString().split("T")[0];
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
 
-  attendance.forEach((a) => {
-    if (a.status !== "Present") return;
+  const presentToday = attendance.filter(
+    (a) =>
+      a.service_date?.split("T")[0] === today &&
+      a.status === "Present"
+  ).length;
 
-    if (!serviceChartData[a.service_type]) {
-      serviceChartData[a.service_type] = 0;
-    }
+  const visitorsToday = attendance.filter(
+    (a) =>
+      a.type === "Visitor" &&
+      a.service_date?.split("T")[0] === today
+  ).length;
 
-    serviceChartData[a.service_type]++;
+  const visitorsThisMonth = attendance.filter((a) => {
+    const date = new Date(a.service_date);
+    return (
+      a.type === "Visitor" &&
+      date.getMonth() === currentMonth &&
+      date.getFullYear() === currentYear
+    );
+  }).length;
+
+  const attendanceThisMonth = attendance.filter((a) => {
+    const date = new Date(a.service_date);
+    return (
+      date.getMonth() === currentMonth &&
+      date.getFullYear() === currentYear
+    );
   });
 
-  const barData = Object.keys(serviceChartData).map((key) => ({
-    service: key,
-    count: serviceChartData[key],
-  }));
+  const attendanceByDay = {};
 
-  // ==============================
-  // UI
-  // ==============================
-  if (loading) return <p>Loading attendance...</p>;
+  attendanceThisMonth.forEach((a) => {
+    const day = a.service_date.split("T")[0];
+    if (!attendanceByDay[day]) attendanceByDay[day] = 0;
+    attendanceByDay[day]++;
+  });
+
+  const daysCount = Object.keys(attendanceByDay).length;
+
+  const averageAttendance =
+    daysCount > 0
+      ? Math.round(
+          Object.values(attendanceByDay).reduce((a, b) => a + b, 0) / daysCount
+        )
+      : 0;
+
+  // ======================
+  // EXPORT (UNCHANGED)
+  // ======================
+  const exportToCSV = async () => {
+    try {
+      const query = new URLSearchParams({
+        search: debouncedSearch,
+        type: typeFilter,
+        service: serviceFilter,
+        date: filterDate,
+        status: statusFilter,
+        export: "true",
+      });
+
+      const res = await apiRequest(`/attendance?${query}`);
+
+      const data = res.data;
+
+      const headers = [
+        "Code", "Name", "Member Code",
+        "Date", "Service", "Status", "Type"
+      ];
+
+      const rows = data.map(row => [
+        row.attendance_code,
+        `${row.first_name} ${row.last_name}`,
+        row.member_code,
+        row.service_date?.split("T")[0],
+        row.service_type,
+        row.status,
+        row.type
+      ]);
+
+      let csvContent =
+        "data:text/csv;charset=utf-8," +
+        [headers, ...rows].map(e => e.join(",")).join("\n");
+
+      const link = document.createElement("a");
+      link.href = encodeURI(csvContent);
+      link.download = "attendance_filtered.csv";
+      link.click();
+
+    } catch (err) {
+      console.error("Export failed", err);
+    }
+  };
+
+  // ======================
+  // INITIAL LOADING (SKELETON)
+  // ======================
+  if (initialLoading) {
+    return (
+      <div className="skeleton-container">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="skeleton-row"></div>
+        ))}
+      </div>
+    );
+  }
+
+  // ======================
+  // ERROR
+  // ======================
+  if (error) {
+    return (
+      <div className="error-box">
+        <p>{error}</p>
+        <button onClick={() => fetchData(1)}>Retry</button>
+      </div>
+    );
+  }
 
   return (
-    <div className="pastor-attendance">
+    <div className="m-attendance-page fade-in">
 
-      <h2>Attendance Overview</h2>
+      {/* HEADER */}
+      <div className="attendance-table-header">
+        <span className="attendance-title-icon"><ClipboardCheck size={25}/></span>
+        <span className="attendance-title-text">Attendance</span>
+      </div>
 
-      {/* DATE FILTER */}
-      <div className="date-filter">
-        <label>View attendance for:</label>
+      {/* STATS (UNCHANGED ✅) */}
+      <div className="attendance-members-stats">
+
+        <div className="attendance-stats-card">
+          <h3>Present Today</h3>
+          <p>{presentToday}</p>
+        </div>
+
+        <div className="attendance-stats-card">
+          <h3>Visitors Today</h3>
+          <p>{visitorsToday}</p>
+        </div>
+
+        <div className="attendance-stats-card">
+          <h3>Visitors This Month</h3>
+          <p>{visitorsThisMonth}</p>
+        </div>
+
+        <div className="attendance-stats-card">
+          <h3>Avg Attendance</h3>
+          <p>{averageAttendance}</p>
+        </div>
+
+      </div>
+
+      <div>
+        <SecretaryDashboardCharts />
+      </div>
+
+      <div className="attendance-table-header">Attendance Table</div>
+
+      {/* FILTERS */}
+      <div className="attendance-controls">
+
+        <input
+          type="text"
+          placeholder="Search name..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
         <input
           type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
+          value={filterDate}
+          onChange={(e) => setFilterDate(e.target.value)}
         />
+
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+          <option>All</option>
+          <option>Member</option>
+          <option>Visitor</option>
+        </select>
+
+        <select value={serviceFilter} onChange={(e) => setServiceFilter(e.target.value)}>
+          <option>All</option>
+          <option>Sunday Service</option>
+          <option>Midweek Service</option>
+        </select>
+
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <option>All</option>
+          <option>Present</option>
+          <option>Absent</option>
+        </select>
+
       </div>
 
-      {/* SUMMARY */}
-      <div className="attendance-summary">
+      <button className="attendance-export-btn" onClick={exportToCSV}>
+      <FileSpreadsheet size={18} />
+      Export
+      </button>
 
-        <div className="attendance-card">
-          <h4>Total Attendance</h4>
-          <p>{total || "--"}</p>
-        </div>
-
-        <div className="attendance-card">
-          <h4>Services Held</h4>
-          <p>{servicesHeld}</p>
-        </div>
-
-      </div>
+      {/* ✅ SMOOTH UPDATE INDICATOR */}
+      {updating && <p className="updating">Updating...</p>}
 
       {/* TABLE */}
-      <div className="attendance-table">
+      <div className="attendance-table-wrapper fade-in">
 
-        <h3>Service Breakdown</h3>
+        <table className="attendance-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Member Code</th>
+              <th>Date</th>
+              <th>Service</th>
+              <th>Status</th>
+              <th>Type</th>
+            </tr>
+          </thead>
 
-        {dailyData.length === 0 ? (
-          <p>No attendance recorded for this date.</p>
-        ) : (
+          <tbody>
+            {attendance.map((row, index) => {
 
-          <table>
-            <thead>
-              <tr>
-                <th>Service</th>
-                <th>Attendance</th>
-              </tr>
-            </thead>
+              const statusClass =
+                row.status === "Present"
+                  ? "status present"
+                  : row.status === "Absent"
+                  ? "status absent"
+                  : "";
 
-            <tbody>
-              {dailyData.map((row, index) => (
-                <tr key={index}>
-                  <td>{row.service}</td>
-                  <td>{row.count}</td>
+              if (attendance.length === index + 1) {
+                return (
+                  <tr ref={lastRowRef} key={row.id}>
+                    <td>{row.first_name} {row.last_name}</td>
+                    <td>{row.member_code}</td>
+                    <td>{row.service_date?.split("T")[0]}</td>
+                    <td>{row.service_type}</td>
+                    <td className={statusClass}>{row.status}</td>
+                    <td>{row.type}</td>
+                  </tr>
+                );
+              }
+
+              return (
+                <tr key={row.id}>
+                  <td>{row.first_name} {row.last_name}</td>
+                  <td>{row.member_code}</td>
+                  <td>{row.service_date?.split("T")[0]}</td>
+                  <td>{row.service_type}</td>
+                  <td className={statusClass}>{row.status}</td>
+                  <td>{row.type}</td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              );
+            })}
+          </tbody>
+        </table>
 
+        {loadingMore && (
+          <p className="loading-more">Loading more...</p>
         )}
-
-      </div>
-
-      {/* CHARTS */}
-      <div className="attendance-charts">
-
-        {/* LINE */}
-        <div className="chart-box">
-
-          <h3>Weekly Attendance Trend</h3>
-
-          <ResponsiveContainer width="100%" height={280}>
-
-            <LineChart data={weeklyData}>
-
-              <CartesianGrid strokeDasharray="3 3" />
-
-              <XAxis dataKey="week" />
-
-              <YAxis />
-
-              <Tooltip />
-
-              <Line
-                dataKey="count"
-                stroke="#4d4dea"
-                strokeWidth={3}
-              />
-
-            </LineChart>
-
-          </ResponsiveContainer>
-
-        </div>
-
-        {/* BAR */}
-        <div className="chart-box">
-
-          <h3>Attendance by Service</h3>
-
-          <ResponsiveContainer width="100%" height={280}>
-
-            <BarChart data={barData}>
-
-              <CartesianGrid strokeDasharray="3 3" />
-
-              <XAxis dataKey="service" />
-
-              <YAxis />
-
-              <Tooltip />
-
-              <Bar dataKey="count" fill="#2f2fd6" />
-
-            </BarChart>
-
-          </ResponsiveContainer>
-
-        </div>
 
       </div>
 

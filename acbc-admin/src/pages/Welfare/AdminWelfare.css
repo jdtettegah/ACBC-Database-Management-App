@@ -1,142 +1,292 @@
-.finance-page {
-    padding: 20px;
-  }
-  
-  /* HEADER */
-  .finance-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .actions {
-    display: flex;
-    gap: 10px;
-  }
-  
-  /* CONTROLS */
-  .finance-controls {
-    margin: 20px 0;
-    display: flex;
-    gap: 10px;
-  }
-  
-  .finance-controls input,
-  .finance-controls select {
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-  }
-  
-  /* STATS */
-  .finance-stats {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-  }
-  
-  .stats-card {
-    flex: 1;
-    background: #f9fafb;
-    padding: 15px;
-    border-radius: 10px;
-  }
-  
-  .stats-card.green {
-    background: #ecfdf5;
-  }
-  
-  .stats-card.red {
-    background: #fef2f2;
-  }
-  
-  /* PROGRESS */
-  .progress-container {
-    margin-bottom: 20px;
-  }
-  
-  .progress-label {
-    font-size: 14px;
-    margin-bottom: 5px;
-  }
-  
-  .progress-bar {
-    height: 10px;
-    background: #e5e7eb;
-    border-radius: 10px;
-  }
-  
-  .progress-fill {
-    height: 100%;
-    background: #22c55e;
-    border-radius: 10px;
-  }
-  
-  /* TABLE */
-  .finance-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .finance-table th,
-  .finance-table td {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-  }
-  
-  /* COLORS */
-  .green-text {
-    color: #16a34a;
-  }
-  
-  .red-text {
-    color: #dc2626;
-  }
-  
-  /* STATUS */
-  .status {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-  
-  .status.paid {
-    background: #dcfce7;
-    color: #16a34a;
-  }
-  
-  .status.partial {
-    background: #fef3c7;
-    color: #d97706;
-  }
-  
-  .status.pending {
-    background: #fee2e2;
-    color: #dc2626;
-  }
-  
-  /* BUTTON */
-  .pay-btn {
-    background: #2563eb;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .pay-btn:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
+/* ========================================
+   PAGE LAYOUT
+======================================== */
+.welfare-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  animation: fadeIn 0.4s ease;
+}
+
+.add-welfare-button {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ========================================
+   HEADER
+======================================== */
+.welfare-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.welfare-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ICON STYLE */
+.welfare-title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e7edff;
+  color: #4A6FD3;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+/* TEXT STYLE */
+.welfare-title-text {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2f2fd6;
+  letter-spacing: -0.3px;
+}
+
+/* ========================================
+   ACTION BUTTONS
+======================================== */
+.welfare-buttons-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-self: flex-end;
+}
+
+.welfare-button {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* ========================================
+   CONTROLS
+======================================== */
+.welfare-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+
+.welfare-controls input,
+.welfare-controls select {
+  padding: 11px 14px;
+  border: 1px solid #dbe3f0;
+  border-radius: 10px;
+  background: white;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.welfare-controls input:focus,
+.welfare-controls select:focus {
+  border-color: #2f2fd6;
+  box-shadow: 0 0 0 3px rgba(47, 47, 214, 0.08);
+}
+
+.wide-select {
+  min-width: 320px;
+}
+
+.wide-search {
+  min-width: 300px;
+}
+
+/* ========================================
+   EXPORT BUTTON
+======================================== */
+.welfare-export-btn {
+  background: #22C55E;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.welfare-export-btn:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   STATS
+======================================== */
+.welfare-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.welfare-stats-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 18px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border-left: 5px solid #2f2fd6;
+  transition: 0.25s ease;
+}
+
+.welfare-stats-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.welfare-stats-card h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  margin: 0;
+}
+
+.welfare-stats-card p {
+  margin-top: 10px;
+  font-size: 25px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+/* ========================================
+   TABLE
+======================================== */
+.welfare-table-wrapper {
+  background: white;
+  border-radius: 16px;
+  overflow-x: auto;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.welfare-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+.welfare-table th,
+.welfare-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #edf2f7;
+  font-size: 14px;
+}
+
+.welfare-table th {
+  background: #f5f7fb;
+  color: #2f2fd6;
+  font-weight: 700;
+}
+
+.welfare-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+/* ========================================
+   TEXT COLORS
+======================================== */
+.green-text {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.red-text {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* ========================================
+   STATUS
+======================================== */
+.status {
+  display: inline-flex;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status.paid {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status.partial {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status.pending {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* ========================================
+   PAY BUTTON
+======================================== */
+.pay-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.pay-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.pay-btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 768px) {
+  .welfare-stats {
+    grid-template-columns: 1fr;
   }
 
-  .wide-select {
-    width: 320px;
-    padding: 10px;
+  .welfare-controls {
+    flex-direction: column;
+    align-items: stretch;
   }
-  
-  .wide-search {
-    width: 320px;
-    padding: 10px;
+
+  .welfare-buttons-grid {
+    flex-direction: column;
   }
+
+  .wide-select,
+  .wide-search,
+  .welfare-export-btn {
+    width: 100%;
+  }
+}

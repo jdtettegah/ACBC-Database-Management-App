@@ -3,6 +3,7 @@ import { getMembers } from "../services/api";
 import { saveBulkTithe } from "../services/api";
 import "./AddTithe.css";
 import { getLoggedInUser } from "../services/api";
+import { HandCoins } from "lucide-react";
 
 function AddTithe({ onSaved }) {
   const [members, setMembers] = useState([]);
@@ -113,22 +114,37 @@ function AddTithe({ onSaved }) {
     setLoading(false);
   };
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+  
+    if (open) {
+      window.addEventListener("keydown", handleEsc);
+    }
+  
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [open]);
+
   return (
     <>
       {/* OPEN BUTTON */}
       <button
-        className="add-attendance-button"
+        className="add-tithe-button"
         onClick={() => setOpen(true)}
       >
-        💰 Record Tithe
+        <HandCoins size={18} />
+        Record Tithe
       </button>
 
       {open && (
-        <div className="modal-overlay">
-          <div className="transaction-page tithe-container">
+        <div className="add-tithe-modal-overlay" onClick={() => setOpen(false)}>
+          <div className="transaction-page tithe-container" onClick={(e) => e.stopPropagation()}>
 
             {/* HEADER */}
-            <div className="transaction-header">
+            <div className="add-tithe-header">
               <h2>Record Tithe</h2>
               <p>Enter weekly or daily tithe contributions</p>
             </div>
@@ -139,7 +155,7 @@ function AddTithe({ onSaved }) {
               onSubmit={handleSave}
             >
               {/* DATE */}
-              <div className="form-group full-width">
+              <div className="add-tithe-form-group full-width">
                 <label>Date</label>
                 <input
                   type="date"
@@ -204,10 +220,10 @@ function AddTithe({ onSaved }) {
               </div>
 
               {/* ACTION BUTTONS */}
-              <div className="transaction-actions">
+              <div className="add-tithe-actions">
                 <button
                   type="button"
-                  className="cancel-btn"
+                  className="add-tithe-cancel-btn"
                   onClick={() => setOpen(false)}
                 >
                   Cancel
@@ -215,7 +231,7 @@ function AddTithe({ onSaved }) {
 
                 <button
                   type="submit"
-                  className="save-btn"
+                  className="add-tithe-save-btn"
                   disabled={loading}
                 >
                   {loading ? "Saving..." : "Save"}

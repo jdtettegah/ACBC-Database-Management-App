@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { getEvents, createEvent, deleteEvent } from "../services/api";
 import "./UpcomingEvents.css";
+import {
+  CalendarPlus,
+  CalendarCheck,
+  Trash2
+} from "lucide-react";
 
 const UpcomingEvents = () => {
   const [events, setEvents] = useState([]);
@@ -14,22 +19,18 @@ const UpcomingEvents = () => {
     event_time: ""
   });
 
-  // Get current month range
   const getNext30Days = () => {
     const now = new Date();
-  
     const start = new Date(now);
     const end = new Date(now);
-  
-    end.setDate(end.getDate() + 30); // add 30 days
-  
+    end.setDate(end.getDate() + 30);
+
     return {
       start: start.toISOString().split("T")[0],
       end: end.toISOString().split("T")[0]
     };
   };
 
-  // Fetch events from backend
   const fetchEvents = async () => {
     try {
       const { start, end } = getNext30Days();
@@ -44,7 +45,6 @@ const UpcomingEvents = () => {
     fetchEvents();
   }, []);
 
-  // Handle form input changes
   const handleChange = (e) => {
     setNewEvent({
       ...newEvent,
@@ -52,7 +52,6 @@ const UpcomingEvents = () => {
     });
   };
 
-  // Add new event
   const handleAddEvent = async () => {
     try {
       if (!newEvent.title || !newEvent.event_date) {
@@ -62,7 +61,7 @@ const UpcomingEvents = () => {
 
       const payload = {
         ...newEvent,
-        event_time: newEvent.event_time || null // ✅ Fix for SQL TIME validation
+        event_time: newEvent.event_time || null
       };
 
       await createEvent(payload);
@@ -77,13 +76,11 @@ const UpcomingEvents = () => {
 
       setShowForm(false);
       fetchEvents();
-
     } catch (err) {
       console.error("Error adding event:", err);
     }
   };
 
-  // Delete event
   const handleDelete = async (id) => {
     try {
       await deleteEvent(id);
@@ -93,7 +90,6 @@ const UpcomingEvents = () => {
     }
   };
 
-  // Add to Google Calendar
   const addToCalendar = (event) => {
     const time = event.event_time ? event.event_time.slice(0, 5) : "00:00";
 
@@ -112,60 +108,43 @@ const UpcomingEvents = () => {
   return (
     <div className="events-container">
 
-      {/* Header */}
+      {/* HEADER */}
       <div className="events-header">
-        <div className="dashboard-header">Upcoming Events</div>
-        <button onClick={() => setShowForm(!showForm)}>
-          {showForm ? "Cancel" : "+ Add Event"}
+        <div className="events-dashbaord-header">
+          <span className="events-title-icon">
+            <CalendarPlus size={21} />
+          </span>
+          <span className="events-title-text">
+            Upcoming Events
+          </span>
+        </div>
+
+        <button
+          className="add-event-btn"
+          onClick={() => setShowForm(!showForm)}
+        >
+          <CalendarPlus size={16} />
+          {showForm ? "Cancel" : "Add Event"}
         </button>
       </div>
 
-      {/* Form */}
+      {/* FORM */}
       {showForm && (
         <div className="event-form">
-          <input
-            type="text"
-            name="title"
-            placeholder="Event Title"
-            value={newEvent.title}
-            onChange={handleChange}
-          />
+          <input type="text" name="title" placeholder="Event Title" value={newEvent.title} onChange={handleChange} />
+          <input type="text" name="description" placeholder="Description" value={newEvent.description} onChange={handleChange} />
+          <input type="text" name="location" placeholder="Location" value={newEvent.location} onChange={handleChange} />
+          <input type="date" name="event_date" value={newEvent.event_date} onChange={handleChange} />
+          <input type="time" name="event_time" value={newEvent.event_time} onChange={handleChange} />
 
-          <input
-            type="text"
-            name="description"
-            placeholder="Description"
-            value={newEvent.description}
-            onChange={handleChange}
-          />
-
-          <input
-            type="text"
-            name="location"
-            placeholder="Location"
-            value={newEvent.location}
-            onChange={handleChange}
-          />
-
-          <input
-            type="date"
-            name="event_date"
-            value={newEvent.event_date}
-            onChange={handleChange}
-          />
-
-          <input
-            type="time"
-            name="event_time"
-            value={newEvent.event_time}
-            onChange={handleChange}
-          />
-
-          <button onClick={handleAddEvent}>Save Event</button>
+          <button className="save-event-btn" onClick={handleAddEvent}>
+            <CalendarPlus size={16} />
+            Save Event
+          </button>
         </div>
       )}
 
-      {/* Events List */}
+      {/* EVENTS LIST */}
       <div className="events-list">
         {events.length === 0 ? (
           <p className="no-events">No upcoming events</p>
@@ -184,15 +163,23 @@ const UpcomingEvents = () => {
               </div>
 
               <div className="event-actions">
-                <button className="addToCalender-btn" onClick={() => addToCalendar(event)}>
+
+                <button
+                  className="addToCalender-btn"
+                  onClick={() => addToCalendar(event)}
+                >
+                  <CalendarCheck size={16} />
                   Add to Calendar
                 </button>
+
                 <button
                   className="delete-btn"
                   onClick={() => handleDelete(event.id)}
                 >
+                  <Trash2 size={16} />
                   Delete
                 </button>
+
               </div>
 
             </div>

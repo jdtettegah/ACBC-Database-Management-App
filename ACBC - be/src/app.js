@@ -17,6 +17,7 @@ const eventRoutes = require("./routes/events.routes");
 const activityRoutes = require("./routes/activity.routes");
 const dashboardRoutes = require("./routes/dashboard.routes")
 const welfareRoutes = require('./routes/welfare.routes');
+const welfareExpenseRoutes = require('./routes/welfareExpense.routes');
 
 const app = express();
 
@@ -38,7 +39,7 @@ app.use("/api/events", authMiddleware, eventRoutes);
 app.use("/api/activity", authMiddleware, activityRoutes);
 app.use("/api/dashboard", authMiddleware, dashboardRoutes);
 app.use('/api/welfare', authMiddleware, welfareRoutes);
-
+app.use('/api/welfare/expenses', authMiddleware, welfareExpenseRoutes);
 app.get('/', (req, res) => {
     res.send('ACBC API is running');
 });

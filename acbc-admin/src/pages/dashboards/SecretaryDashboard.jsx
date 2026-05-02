@@ -15,6 +15,7 @@ import {
   getAllTithes,
   getTodaySummary
 } from "../../services/api";
+import SecretaryQuickActions from "../../components/SecretaryQuickActions";
 
 function AdminDashboard() {
 
@@ -96,7 +97,7 @@ function AdminDashboard() {
     <>
       <DashboardCards cards={cards} />
 
-      <QuickActions />
+      <SecretaryQuickActions />
 
       <TodaySummary data={todaySummary}/>
 

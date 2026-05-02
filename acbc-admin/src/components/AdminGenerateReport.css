@@ -1,221 +1,254 @@
-/* Generate Report Button */
-.add-attendance-button {
-    color: #fff;
-    padding: 10px 18px;
-    border: none;
-    border-radius: 6px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: 0.3s;
-    margin: 10px;
-}
+/* ===============================
+   OPEN BUTTON
+================================= */
 
-.modal-overlay {
+.generate-report-button {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .generate-report-button:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+  }
+  
+  
+  /* ===============================
+     MODAL OVERLAY
+  ================================= */
+  
+  .generate-report-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    color: black
-}
-
-
-/* Main Reports Page (Modal) */
-.generate-reports-page {
-    background: #fff;
+  }
+  
+  
+  /* ===============================
+     MAIN MODAL
+  ================================= */
+  
+  .generate-reports-page {
+    background: #ffffff;
     width: 90%;
-    max-width: 850px;
-    border-radius: 12px;
-    padding: 25px 30px;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.25);
-    margin: 40px auto;
-    animation: fadeIn 0.3s ease-in-out;
-}
-/* Animation */
-@keyframes fadeIn {
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+  
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  
+    animation: slideUp 0.35s ease;
+  }
+  
+  
+  /* ===============================
+     ANIMATION
+  ================================= */
+  
+  @keyframes slideUp {
     from {
-        opacity: 0;
-        transform: translateY(-20px);
+      opacity: 0;
+      transform: translateY(25px) scale(0.98);
     }
     to {
-        opacity: 1;
-        transform: translateY(0);
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
-}
-
-/* Header */
-.generate-reports-header {
-    text-align: center;
-    margin-bottom: 25px;
+  }
+  
+  
+  /* ===============================
+     HEADER
+  ================================= */
+  
+  .generate-reports-header {
     display: flex;
-    flex-direction: row;
-}
-
-.generate-reports-header h2 {
-    color: #333;
-    margin-bottom: 6px;
-}
-
-.generate-reports-header p {
-    color: #777;
-    font-size: 14px;
-}
-
-/* Filters Section */
-.generate-reports-filters {
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 20px;
+  }
+  
+  .generate-reports-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  
+  .generate-report-close-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
+  }
+  
+  .generate-report-close-btn:hover {
+    background: #dc2626;
+  }
+  
+  
+  /* ===============================
+     FILTERS SECTION
+  ================================= */
+  
+  .generate-reports-filters {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-    background: #f7f7f7;
-    padding: 18px;
-    border-radius: 8px;
-    margin-bottom: 25px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  
+    background: #f8fafc;
+    border: 1px solid #edf2f7;
+    border-radius: 14px;
+    padding: 20px;
     align-items: end;
-}
-
-/* Filter Group */
-.filter-group {
+  }
+  
+  
+  /* ===============================
+     FILTER GROUP
+  ================================= */
+  
+  .generate-report-filter-group {
     display: flex;
     flex-direction: column;
-}
-
-.filter-group label {
+  }
+  
+  .generate-report-filter-group label {
     font-size: 13px;
-    color: #555;
-    margin-bottom: 5px;
-}
-
-/* Inputs */
-.filter-group select,
-.filter-group input {
-    padding: 8px 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+  }
+  
+  
+  /* ===============================
+     INPUTS
+  ================================= */
+  
+  .generate-report-filter-group select,
+  .generate-report-filter-group input {
+    padding: 11px 14px;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
     font-size: 14px;
-    transition: 0.2s;
-}
-
-.filter-group select:focus,
-.filter-group input:focus {
-    border-color: #9c27b0;
+    background: #ffffff;
     outline: none;
-    box-shadow: 0 0 3px rgba(156,39,176,0.4);
-}
-
-/* Generate Button */
-.generate-btn {
-    background: #9c27b0;
+    transition: all 0.2s ease;
+  }
+  
+  .generate-report-filter-group select:focus,
+  .generate-report-filter-group input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+  
+  
+  /* ===============================
+     GENERATE BUTTON
+  ================================= */
+  
+  .generate-btn {
+    background: #2563eb;
     color: white;
-    padding: 9px 15px;
     border: none;
-    border-radius: 6px;
+    border-radius: 10px;
+    padding: 11px 18px;
     font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
-    transition: 0.3s;
-    height: 38px;
-}
-
-.generate-btn:hover {
-    background: #7b1fa2;
-}
-
-/* Preview Section */
-.reports-previews {
-    margin-top: 10px;
-    text-align: left;
-}
-
-/* Preview Title */
-.reports-previews h3 {
-    margin-bottom: 12px;
-    color: #333;
-}
-
-/* Preview Card */
-.preview-card {
-    background: #fafafa;
-    border-left: 5px solid #9c27b0;
-    padding: 18px;
-    border-radius: 8px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-.preview-card p {
-    margin: 6px 0;
-    color: #444;
+    transition: 0.25s ease;
+    height: fit-content;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+  }
+  
+  .generate-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+  }
+  
+  
+  /* ===============================
+     DOWNLOAD BUTTON
+  ================================= */
+  
+  .generate-report-download-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 18px;
     font-size: 14px;
-}
-
-/* Note */
-.preview-note {
-    margin-top: 10px;
-    font-style: italic;
-    color: #777;
-    font-size: 13px;
-}
-
-/* Action Buttons */
-.report-actions {
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
     display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-/* Download Button */
-.dnload-btn {
-    background: #1868a9;
-    color: #fff;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.dnload-btn:hover {
-    background: #1976d2;
-}
-
-/* Export Button */
-.export-btn {
-    background: #4caf50;
-    color: #fff;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.export-btn:hover {
-    background: #43a047;
-}
-
-/* Mobile Responsive */
-@media (max-width: 750px) {
-
-    .reports-filters {
-        grid-template-columns: 1fr;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .generate-report-download-btn:hover {
+    background: #059669;
+    transform: translateY(-2px);
+  }
+  
+  
+  /* ===============================
+     SCROLLBAR
+  ================================= */
+  
+  .generate-reports-page::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .generate-reports-page::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+  
+  
+  /* ===============================
+     RESPONSIVE
+  ================================= */
+  
+  @media (max-width: 768px) {
+    .generate-reports-header {
+      flex-direction: column;
+      align-items: flex-start;
     }
-
-    .generate-btn {
-        width: 100%;
+  
+    .generate-reports-filters {
+      grid-template-columns: 1fr;
     }
-
-    .report-actions {
-        justify-content: center;
+  
+    .generate-btn,
+    .generate-report-download-btn,
+    .generate-report-close-btn {
+      width: 100%;
     }
-
-    .reports-page {
-        padding: 20px;
-    }
-}
+  }

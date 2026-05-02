@@ -16,7 +16,7 @@ import acbcLogo from "../assets/acbc-logo.png";
 import { CalendarCheck, Download } from "lucide-react";
 import { createPortal } from "react-dom";
 
-function SecretaryGenerateReport({ existingReport, onClose, refreshReports }) {
+function FinanceGenerateReport({ existingReport, onClose, refreshReports }) {
 
   const [reportType, setReportType] = useState("Tithe");
   const [startDate, setStartDate] = useState("");
@@ -374,8 +374,7 @@ function SecretaryGenerateReport({ existingReport, onClose, refreshReports }) {
                   onChange={(e) => setReportType(e.target.value)}
                 >
                   <option value="Tithe">Tithe</option>
-                  <option value="Attendance">Attendance</option>
-                  <option value="Visitors">Visitors</option>
+                  <option value="Financial">Financial</option>
                   <option value="Welfare">Welfare</option>
                 </select>
               </div>
@@ -430,4 +429,4 @@ function SecretaryGenerateReport({ existingReport, onClose, refreshReports }) {
   );
 }
 
-export default SecretaryGenerateReport;
+export default FinanceGenerateReport;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   createWelfareEvent,
   assignMembersToWelfareEvent,
@@ -7,6 +7,7 @@ import {
 } from "../services/api";
 
 import "./CreateWelfareEvent.css";
+import { CalendarPlus } from "lucide-react";
 
 function CreateWelfareEvent({ onCreated }) {
   const [open, setOpen] = useState(false);
@@ -94,25 +95,40 @@ function CreateWelfareEvent({ onCreated }) {
     setLoading(false);
   };
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+  
+    if (open) {
+      window.addEventListener("keydown", handleEsc);
+    }
+  
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [open]);
+
   return (
     <>
       <button
-        className="add-attendance-button"
+        className="add-welfareEvent-button"
         onClick={() => setOpen(true)}
       >
-        ➕ Create Welfare Event
+        <CalendarPlus size={18} />
+        Create Welfare Event
       </button>
 
       {open && (
-        <div className="modal-overlay">
-          <div className="event-modal">
+        <div className="add-welfareEvent-modal-overlay" onClick={() => setOpen(false)}>
+          <div className="add-welfareEvent-modal" onClick={(e) => e.stopPropagation()}>
 
             <h2>Create Welfare Event</h2>
 
             <form onSubmit={handleCreate}>
 
               {/* TYPE */}
-              <div className="form-group">
+              <div className="add-welfareEvent-form-group">
                 <label>Type</label>
                 <select
                   value={type}
@@ -125,7 +141,7 @@ function CreateWelfareEvent({ onCreated }) {
 
               {/* NAME */}
               {type === "SPECIAL" && (
-                <div className="form-group">
+                <div className="add-welfareEvent-form-group">
                   <label>Event Name</label>
                   <input
                     type="text"
@@ -137,7 +153,7 @@ function CreateWelfareEvent({ onCreated }) {
               )}
 
               {/* AMOUNT */}
-              <div className="form-group">
+              <div className="add-welfareEvent-form-group">
                 <label>Amount (GHS)</label>
                 <input
                   type="number"
@@ -155,10 +171,10 @@ function CreateWelfareEvent({ onCreated }) {
               )}
 
               {/* ACTIONS */}
-              <div className="modal-actions">
+              <div className="add-welfareEvent-modal-actions">
                 <button
                   type="button"
-                  className="btn-cancel"
+                  className="add-welfareEvent-cancel-btn"
                   onClick={() => setOpen(false)}
                 >
                   Cancel
@@ -166,7 +182,7 @@ function CreateWelfareEvent({ onCreated }) {
 
                 <button
                   type="submit"
-                  className="btn-primary"
+                  className="add-welfareEvent-submit-btn"
                   disabled={loading}
                 >
                   {loading ? "Creating..." : "Create Event"}

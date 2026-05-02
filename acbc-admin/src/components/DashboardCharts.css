@@ -14,3 +14,36 @@
     flex-direction: column;
   }
   
+  /* ================= CHART HEADER ================= */
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.chart-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0;
+}
+
+.chart-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: #EEF2FF;
+  color: #4A6FD3;
+  border-radius: 10px;
+}
+
+/* optional hover */
+.chart-icon:hover {
+  background: #E0E7FF;
+  transform: scale(1.05);
+  transition: 0.2s ease;
+}

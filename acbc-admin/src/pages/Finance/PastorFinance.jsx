@@ -1,133 +1,200 @@
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    PieChart, Pie, Cell
-  } from "recharts";
-  import "./PastorFinance.css";
-  
-  const summary = {
-    income: 125000,
-    expense: 83000,
+import { useEffect, useState } from "react";
+import AddTransaction from "../../components/AddTransaction";
+import IncomeExpenseChart from "../../components/IncomeExpenseChart";
+import IncomeCategoryChart from "../../components/IncomeCategoryChart";
+import { getIncome, getExpenses } from "../../services/api";
+import { Wallet } from "lucide-react";
+
+import "./FinancialSecretaryFinance.css";
+import ExpenseCategoryChart from "../../components/ExpenseCategoryChart";
+
+function PastorFinance() {
+
+  const [income, setIncome] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [dateFilter, setDateFilter] = useState("");
+
+  useEffect(() => {
+    loadFinance();
+  }, []);
+
+  const loadFinance = async () => {
+    try {
+      const incomeData = await getIncome();
+      const expenseData = await getExpenses();
+
+      setIncome(incomeData);
+      setExpenses(expenseData);
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load finance data");
+    }
+
+    setLoading(false);
   };
-  
-  const monthlyFinance = [
-    { month: "Jan", income: 20000, expense: 14000 },
-    { month: "Feb", income: 18000, expense: 12000 },
-    { month: "Mar", income: 23000, expense: 15000 },
-    { month: "Apr", income: 21000, expense: 16000 },
-  ];
-  
-  const givingBreakdown = [
-    { name: "Tithe", value: 55 },
-    { name: "Offering", value: 30 },
-    { name: "Donations", value: 15 },
-  ];
-  
-  const recentTransactions = [
-    { date: "2026-01-18", type: "Offering", amount: 3200 },
-    { date: "2026-01-17", type: "Tithe", amount: 5400 },
-    { date: "2026-01-16", type: "Utility Bills", amount: -1800 },
-  ];
-  
-  const COLORS = ["#4d4dea", "#2f2fd6", "#8884d8"];
-  
-  function PastorFinance() {
-    const balance = summary.income - summary.expense;
-  
-    return (
-      <div className="pastor-finance">
-  
-        <h2>Church Financial Overview</h2>
-  
-        {/* SUMMARY */}
-        <div className="finance-summary">
-          <div className="finance-card">
-            <h4>Total Income</h4>
-            <p className="positive">GH₵ {summary.income.toLocaleString()}</p>
-          </div>
-  
-          <div className="finance-card">
-            <h4>Total Expenses</h4>
-            <p className="negative">GH₵ {summary.expense.toLocaleString()}</p>
-          </div>
-  
-          <div className="finance-card">
-            <h4>Balance</h4>
-            <p className={balance >= 0 ? "positive" : "negative"}>
-              GH₵ {balance.toLocaleString()}
-            </p>
-          </div>
+
+  /* Merge Transactions */
+  const transactions = [
+    ...income.map((i) => ({
+      id: `INC-${i.id}`,
+      date: i.date_received,
+      type: "Income",
+      description: i.source_description || i.income_type,
+      amount: i.amount,
+      status: "Completed",
+    })),
+    ...expenses.map((e) => ({
+      id: `EXP-${e.id}`,
+      date: e.date_spent,
+      type: "Expense",
+      description: e.description || e.category,
+      amount: e.amount,
+      status: "Completed",
+    })),
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  /* Filters */
+  const filteredTransactions = transactions.filter((tx) => {
+    const searchLower = search.toLowerCase();
+
+    const matchesSearch =
+      tx.description?.toLowerCase().includes(searchLower) ||
+      tx.type.toLowerCase().includes(searchLower) ||
+      tx.id.toLowerCase().includes(searchLower);
+
+    const matchesType =
+      typeFilter === "All" || tx.type === typeFilter;
+
+    const matchesDate = dateFilter
+      ? new Date(tx.date).toISOString().split("T")[0] === dateFilter
+      : true;
+
+    return matchesSearch && matchesType && matchesDate;
+  });
+
+  const totalIncome = income.reduce((sum, i) => sum + Number(i.amount), 0);
+  const totalExpense = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  const balance = totalIncome - totalExpense;
+
+  if (loading) return <p style={{ padding: 20 }}>Loading finance...</p>;
+
+  return (
+    <div className="finance-page">
+
+      {/* HEADER */}
+      <div className="finance-header">
+        <div className="finance-title">
+          <span className="finance-title-icon"><Wallet /></span>
+          <span className="finance-title-text">Financial Management</span>
         </div>
-  
-        {/* CHARTS */}
-        <div className="finance-charts">
-  
-          {/* BAR CHART */}
-          <div className="chart-box">
-            <h3>Income vs Expense</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyFinance}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="income" fill="#4d4dea" />
-                <Bar dataKey="expense" fill="#ff6b6b" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-  
-          {/* PIE CHART */}
-          <div className="chart-box">
-            <h3>Giving Breakdown</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={givingBreakdown}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius={100}
-                  label
-                >
-                  {givingBreakdown.map((_, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-  
+
+        <div className="finance-action-btn">
+          <AddTransaction onSuccess={loadFinance} />
         </div>
-  
-        {/* TRANSACTIONS */}
-        <div className="finance-table">
-          <h3>Recent Transactions</h3>
-  
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Amount (GH₵)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentTransactions.map((tx, index) => (
-                <tr key={index}>
-                  <td>{tx.date}</td>
-                  <td>{tx.type}</td>
-                  <td className={tx.amount >= 0 ? "positive" : "negative"}>
-                    {tx.amount.toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-  
       </div>
-    );
-  }
-  
-  export default PastorFinance;
-  
+
+      {/* STATS */}
+      <div className="finance-stats">
+        <div className="finance-stats-card">
+          <h3>Total Income</h3>
+          <p>GH₵ {totalIncome.toFixed(2)}</p>
+        </div>
+
+        <div className="finance-stats-card">
+          <h3>Total Expense</h3>
+          <p>GH₵ {totalExpense.toFixed(2)}</p>
+        </div>
+
+        <div className="finance-stats-card">
+          <h3>Balance</h3>
+          <p>GH₵ {balance.toFixed(2)}</p>
+        </div>
+      </div>
+
+      {/* CHARTS */}
+
+      <div>
+        <IncomeExpenseChart income={income} expenses={expenses} />
+      </div>
+
+      <div className="finance-charts">
+        <IncomeCategoryChart income={income} />
+        <ExpenseCategoryChart expenses={expenses} />
+      </div>
+
+      
+
+      {/* FILTERS */}
+      <div className="finance-controls">
+        <input
+          type="text"
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+        >
+          <option value="All">All</option>
+          <option value="Income">Income</option>
+          <option value="Expense">Expense</option>
+        </select>
+
+        <input
+          type="date"
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+        />
+      </div>
+
+      {/* TABLE */}
+      <div className="finance-table-wrapper">
+        <table className="finance-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {filteredTransactions.length === 0 ? (
+              <tr>
+                <td colSpan="6" style={{ textAlign: "center" }}>
+                  No records
+                </td>
+              </tr>
+            ) : (
+              filteredTransactions.map((tx) => (
+                <tr key={tx.id}>
+                  <td>{tx.id}</td>
+                  <td>{new Date(tx.date).toLocaleDateString()}</td>
+                  <td className={tx.type === "Income" ? "type income" : "type expense"}>
+                    {tx.type}
+                  </td>
+                  <td>{tx.description}</td>
+                  <td>GH₵ {Number(tx.amount).toFixed(2)}</td>
+                  <td className="status completed">{tx.status}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  );
+}
+
+export default PastorFinance;

@@ -1,6 +1,8 @@
 import { apiRequest } from "../services/api";
 import "./AddAttendance.css";
 import { useEffect, useState } from "react";
+import { ClipboardCheck } from "lucide-react";
+import { createPortal } from "react-dom";
 
 function AddAttendance({ refresh }) {
 
@@ -38,6 +40,20 @@ function AddAttendance({ refresh }) {
 
   useEffect(() => {
     if (open) fetchMembers();
+  }, [open]);
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+  
+    if (open) {
+      window.addEventListener("keydown", handleEsc);
+    }
+  
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
   }, [open]);
 
   // ======================
@@ -147,19 +163,20 @@ function AddAttendance({ refresh }) {
 
   return (
     <>
-      <button className="add-attendance-button" onClick={() => setOpen(true)}>
-        📝 Record Attendance
+      <button className="record-attendance-button" onClick={() => setOpen(true)}>
+        <ClipboardCheck size={18} />
+        Record Attendance
       </button>
 
-      {open && (
-        <div className="modal-overlay">
-          <div className="attendance-page">
+      {open && createPortal(
+        <div className="add-attendance-modal-overlay" onClick={() => setOpen(false)}>
+          <div className="add-attendance-page" onClick={(e) => e.stopPropagation()}>
 
-            <div className="attendance-header">
+            <div className="add-attendance-header">
 
               <h2>Record Attendance</h2>
 
-              <div className="attendance-controls">
+              <div className="add-attendance-controls">
 
                 <input
                   type="date"
@@ -181,11 +198,60 @@ function AddAttendance({ refresh }) {
 
             </div>
 
+            <div className="add-attendance-visitor-section">
+
+              <h3>Add Visitor</h3>
+
+              <div className="add-attendance-visitor-form">
+
+                <input
+                  name="first_name"
+                  placeholder="First Name"
+                  value={visitorForm.first_name}
+                  onChange={handleVisitorChange}
+                />
+
+                <input
+                  name="last_name"
+                  placeholder="Last Name"
+                  value={visitorForm.last_name}
+                  onChange={handleVisitorChange}
+                />
+
+                <input
+                  name="phone"
+                  placeholder="Phone"
+                  value={visitorForm.phone}
+                  onChange={handleVisitorChange}
+                />
+
+                <input
+                  name="invited_by"
+                  placeholder="Invited By"
+                  value={visitorForm.invited_by}
+                  onChange={handleVisitorChange}
+                />
+
+                <input
+                  name="remarks"
+                  placeholder="Remarks"
+                  value={visitorForm.remarks}
+                  onChange={handleVisitorChange}
+                />
+
+                <button className="add-visitor-attendance" onClick={handleAddVisitor}>
+                  Add Visitor
+                </button>
+
+              </div>
+
+            </div>
+
             {/* MEMBERS TABLE */}
 
-            <div className="attendance-table-wrapper">
+            <div className="add-attendance-table-wrapper">
 
-              <table className="attendance-table">
+              <table className="add-attendance-table">
 
                 <thead>
                   <tr>
@@ -230,69 +296,23 @@ function AddAttendance({ refresh }) {
 
             {/* VISITOR FORM */}
 
-            <div className="visitor-section">
+           
 
-              <h3>Add Visitor</h3>
+            <div className="add-attendance-actions">
 
-              <div className="visitor-form">
-
-                <input
-                  name="first_name"
-                  placeholder="First Name"
-                  value={visitorForm.first_name}
-                  onChange={handleVisitorChange}
-                />
-
-                <input
-                  name="last_name"
-                  placeholder="Last Name"
-                  value={visitorForm.last_name}
-                  onChange={handleVisitorChange}
-                />
-
-                <input
-                  name="phone"
-                  placeholder="Phone"
-                  value={visitorForm.phone}
-                  onChange={handleVisitorChange}
-                />
-
-                <input
-                  name="invited_by"
-                  placeholder="Invited By"
-                  value={visitorForm.invited_by}
-                  onChange={handleVisitorChange}
-                />
-
-                <input
-                  name="remarks"
-                  placeholder="Remarks"
-                  value={visitorForm.remarks}
-                  onChange={handleVisitorChange}
-                />
-
-                <button onClick={handleAddVisitor}>
-                  Add Visitor
-                </button>
-
-              </div>
-
-            </div>
-
-            <div className="attendance-actions">
-
-              <button className="cancel-btn" onClick={() => setOpen(false)}>
+              <button className="add-attendance-cancel-btn" onClick={() => setOpen(false)}>
                 Cancel
               </button>
 
-              <button className="save-btn" onClick={handleSubmit}>
+              <button className="add-attendance-save-btn" onClick={handleSubmit}>
                 {loading ? "Saving..." : "Save Attendance"}
               </button>
 
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

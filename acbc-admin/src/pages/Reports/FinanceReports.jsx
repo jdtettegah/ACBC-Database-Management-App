@@ -1,43 +1,185 @@
-import FinanceReportCards from "../../components/FinanceReportCards";
-import FinanceTrendChart from "../../components/FinanceTrendChart";
-import ExpenseCategoryChart from "../../components/ExpenseCategoryChart";
-import FinanceReportsTable from "../../components/FinanceReportsTable";
-import "./FinanceReports.css";
-import GenerateReport from "./GenerateReport";
+import { useEffect, useState } from "react";
+import AdminGenerateReport from "../../components/AdminGenerateReport";
+import "./AdminReports.css";
+
+import { getAllReports } from "../../services/api";
+import FinanceGenerateReport from "../../components/FinanceGenerateReport";
+import { FileText } from "lucide-react";
 
 function FinanceReports() {
-  return (
-    <div className="finance-reports-page">
-      {/* HEADER */}
-      <div className="finance-reports-header">
-        <h2>Finance Reports</h2>
 
-        <div className="finance-report-filters">
-          <input type="date" />
-          <input type="date" />
-          <select>
-            <option>All Categories</option>
-            <option>Tithes</option>
-            <option>Offerings</option>
-            <option>Utilities</option>
-          </select>
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedReport, setSelectedReport] = useState(null);
+
+  const loadReports = async () => {
+
+    try {
+
+      const data = await getAllReports();
+      setReports(data);
+
+    } catch (err) {
+
+      console.error(err);
+      alert("Failed to load reports");
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+  useEffect(() => {
+    loadReports();
+  }, []);
+
+  return (
+
+    <div className="report-page">
+
+      <div className="report-header">
+
+        <div className="report-title">
+          <span className="report-title-icon"><FileText /></span>
+          <span className="report-title-text">Reports</span>
         </div>
 
-        <GenerateReport />
+        <div className="report-action-btn">
+          <FinanceGenerateReport refreshReports={loadReports} />
+        </div>
+
       </div>
 
-      {/* SUMMARY */}
-      <FinanceReportCards />
 
-      {/* CHARTS */}
-      <div className="finance-reports-charts">
-        <FinanceTrendChart />
-        <ExpenseCategoryChart />
+      <div className="report-stats">
+
+        <div className="report-stats-card">
+          <h3>Total Reports</h3>
+          <p>{reports.length}</p>
+        </div>
+
+        <div className="report-stats-card">
+          <h3>This Month</h3>
+          <p>
+            {reports.filter(r => {
+
+              const today = new Date();
+              const reportDate = new Date(r.created_at);
+
+              return (
+                reportDate.getMonth() === today.getMonth() &&
+                reportDate.getFullYear() === today.getFullYear()
+              );
+
+            }).length}
+          </p>
+        </div>
+
+        <div className="report-stats-card">
+          <h3>Pending</h3>
+          <p>{reports.filter(r => r.status === "Pending").length}</p>
+        </div>
+
       </div>
 
-      {/* TABLE */}
-      <FinanceReportsTable />
+
+      <div className="report-table-wrapper">
+
+        {loading ? (
+
+          <p>Loading reports...</p>
+
+        ) : (
+
+          <table className="report-table">
+
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Period</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {reports.length === 0 ? (
+
+                <tr>
+                  <td colSpan="6">No reports found</td>
+                </tr>
+
+              ) : (
+
+                reports.map(report => (
+
+                  <tr key={report.id}>
+
+                    <td>{report.id}</td>
+                    <td>{report.title}</td>
+                    <td>{report.category}</td>
+                    <td>{report.period}</td>
+
+                    <td
+                      className={
+                        report.status === "Generated"
+                          ? "status generated"
+                          : "status pending"
+                      }
+                    >
+                      {report.status}
+                    </td>
+
+                    <td>
+
+                      <button
+                        className="report-view-btn"
+                        onClick={() => setSelectedReport(report)}
+                      >
+                        View
+                      </button>
+
+                      <button
+                        className="report-download-btn"
+                        onClick={() => setSelectedReport(report)}
+                      >
+                        Download
+                      </button>
+
+                    </td>
+
+                  </tr>
+
+                ))
+
+              )}
+
+            </tbody>
+
+          </table>
+
+        )}
+
+      </div>
+
+
+      {selectedReport && (
+
+        <AdminGenerateReport
+          existingReport={selectedReport}
+          onClose={() => setSelectedReport(null)}
+        />
+
+      )}
+
     </div>
+
   );
 }
 

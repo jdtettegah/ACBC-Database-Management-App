@@ -10,6 +10,7 @@ import {
 
 import DepartmentChart from "../../components/DepartmentChart";
 import "./AdminDepartment.css";
+import { Building2, CalendarPlus } from "lucide-react";
 
 function AdminDepartments() {
 
@@ -182,50 +183,46 @@ function AdminDepartments() {
 
       {/* HEADER */}
       <div className="departments-header">
-        <h2>Departments</h2>
+        <div className="department-title">
+          <span className="department-title-icon"><Building2 /></span>
+          <span className="department-title-text">Departments</span>
+        </div>
 
-        <button
-          className="add-btn"
-          onClick={() => setShowForm(true)}
-        >
-          + Add Department
-        </button>
+        <div className="department-action-btn">
+          <button className="add-department-button"
+            
+            onClick={() => setShowForm(true)}
+          >
+            <Building2 size={18} />
+            Add Department
+          </button>
+          </div>
       </div>
 
       {error && <p className="error">{error}</p>}
 
 
       {/* STATS */}
-      <div className="stats-cards">
+      <div className="department-stats-cards">
 
-        <div className="card">
-          <h4>Total Departments</h4>
+        <div className="department-stats-card">
+          <h3>Total Departments</h3>
           <p>{totalDepartments}</p>
         </div>
 
-        <div className="card">
-          <h4>Total Members</h4>
+        <div className="department-stats-card">
+          <h3>Total Members</h3>
           <p>{totalAssigned}</p>
         </div>
 
-        <div className="card">
-          <h4>Unassigned</h4>
-          <p>{unassignedCount}</p>
-        </div>
 
-        <div className="card">
-          <h4>Largest Dept</h4>
+        <div className="department-stats-card">
+          <h3>Largest Dept</h3>
           <p>{largestDept?.name || "-"}</p>
         </div>
 
       </div>
 
-
-      {/* CHART */}
-      <DepartmentChart departments={departments} />
-
-
-      {/* FORM */}
       {showForm && (
         <div className="dept-form">
 
@@ -244,18 +241,26 @@ function AdminDepartments() {
             onChange={(e) => setDeptDesc(e.target.value)}
           />
 
-          <div className="form-actions">
-            <button className="save-btn" onClick={handleCreateDepartment}>
+          <div className="department-form-actions">
+            <button className="department-save-btn" onClick={handleCreateDepartment}>
               Save
             </button>
 
-            <button className="cancel-btn" onClick={() => setShowForm(false)}>
+            <button className="department-cancel-btn" onClick={() => setShowForm(false)}>
               Cancel
             </button>
           </div>
 
         </div>
       )}
+
+
+      {/* CHART */}
+      <DepartmentChart departments={departments} />
+
+
+      {/* FORM */}
+      
 
 
       {/* MAIN */}
@@ -291,7 +296,7 @@ function AdminDepartments() {
               <h3>{selectedDept.name}</h3>
 
               {/* ASSIGN */}
-              <div className="assign-box">
+              <div className="department-assign-box">
 
                 <select
                   value={selectedMember?.member_code || ""}
@@ -342,7 +347,7 @@ function AdminDepartments() {
 
                       <td>
                         <button
-                          className="delete-btn"
+                          className="department-delete-btn"
                           onClick={() => handleRemove(m.memberDepartmentId)}
                         >
                           {removing ? "Removing..." : "Remove"}

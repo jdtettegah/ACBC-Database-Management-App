@@ -1,25 +1,24 @@
 import { useEffect, useState } from "react";
-
 import AddTransaction from "../../components/AddTransaction";
-import TithePage from "./TithePage";
-import ViewTithe from "./ViewTithe";
-
+import IncomeExpenseChart from "../../components/IncomeExpenseChart";
+import IncomeCategoryChart from "../../components/IncomeCategoryChart";
 import { getIncome, getExpenses } from "../../services/api";
 
-import "./AdminFinance.css";
+import "./FinancialSecretaryFinance.css";
+import "./AdminFinance.css"
+import ExpenseCategoryChart from "../../components/ExpenseCategoryChart";
+import { Wallet } from "lucide-react";
 
 function AdminFinance() {
+
   const [income, setIncome] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [search, setSearch] = useState(""); // Search term
-  const [typeFilter, setTypeFilter] = useState("All"); // Dropdown filter
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("");
 
-  const [viewTitheOpen, setViewTitheOpen] = useState(false);
-
-  /* Load Finance Data */
   useEffect(() => {
     loadFinance();
   }, []);
@@ -31,9 +30,10 @@ function AdminFinance() {
 
       setIncome(incomeData);
       setExpenses(expenseData);
+
     } catch (err) {
-      alert("Failed to load finance data");
       console.error(err);
+      alert("Failed to load finance data");
     }
 
     setLoading(false);
@@ -49,103 +49,92 @@ function AdminFinance() {
       amount: i.amount,
       status: "Completed",
     })),
-
     ...expenses.map((e) => ({
       id: `EXP-${e.id}`,
       date: e.date_spent,
       type: "Expense",
-      description: e.description,
+      description: e.description || e.category,
       amount: e.amount,
       status: "Completed",
     })),
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  /* Filtered Transactions */
+  /* Filters */
   const filteredTransactions = transactions.filter((tx) => {
-
     const searchLower = search.toLowerCase();
-  
+
     const matchesSearch =
       tx.description?.toLowerCase().includes(searchLower) ||
       tx.type.toLowerCase().includes(searchLower) ||
       tx.id.toLowerCase().includes(searchLower);
-  
+
     const matchesType =
       typeFilter === "All" || tx.type === typeFilter;
-  
+
     const matchesDate = dateFilter
       ? new Date(tx.date).toISOString().split("T")[0] === dateFilter
       : true;
-  
+
     return matchesSearch && matchesType && matchesDate;
-  
   });
 
-  /* Totals */
   const totalIncome = income.reduce((sum, i) => sum + Number(i.amount), 0);
   const totalExpense = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
-  const netBalance = totalIncome - totalExpense;
+  const balance = totalIncome - totalExpense;
 
-  if (loading) {
-    return <p style={{ padding: 20 }}>Loading finance...</p>;
-  }
+  if (loading) return <p style={{ padding: 20 }}>Loading finance...</p>;
 
   return (
     <div className="finance-page">
+
       {/* HEADER */}
       <div className="finance-header">
-        <h2>Finance</h2>
-
-        <div className="action-btns">
-          <div className="action-btn">
-            <AddTransaction onSaved={loadFinance} />
-          </div>
-
-          <div className="action-btn">
-            <TithePage />
-          </div>
-
-          <div className="action-btn">
-            <button
-              className="add-attendance-button"
-              onClick={() => setViewTitheOpen(true)}
-            >
-              View Tithes
-            </button>
-          </div>
-
+        <div className="finance-title">
+          <span className="finance-title-icon"><Wallet /></span>
+          <span className="finance-title-text">Financial Management</span>
         </div>
 
-        
+        <div className="finance-action-btn">
+          <AddTransaction onSuccess={loadFinance} />
+        </div>
       </div>
-
-      {/* View Tithe Modal */}
-      <ViewTithe open={viewTitheOpen} onClose={() => setViewTitheOpen(false)} />
 
       {/* STATS */}
       <div className="finance-stats">
-        <div className="stats-card">
+        <div className="finance-stats-card">
           <h3>Total Income</h3>
           <p>GH₵ {totalIncome.toFixed(2)}</p>
         </div>
 
-        <div className="stats-card">
+        <div className="finance-stats-card">
           <h3>Total Expense</h3>
           <p>GH₵ {totalExpense.toFixed(2)}</p>
         </div>
 
-        <div className="stats-card">
-          <h3>Net Balance</h3>
-          <p>GH₵ {netBalance.toFixed(2)}</p>
+        <div className="finance-stats-card">
+          <h3>Balance</h3>
+          <p>GH₵ {balance.toFixed(2)}</p>
         </div>
       </div>
 
+      {/* CHARTS */}
+
+      <div>
+        <IncomeExpenseChart income={income} expenses={expenses} />
+      </div>
+
+      <div className="finance-charts">
+        <IncomeCategoryChart income={income} />
+        <ExpenseCategoryChart expenses={expenses} />
+      </div>
+
+      
+
       {/* FILTERS */}
       <div className="finance-controls">
-
         <input
           type="text"
-          placeholder="Search by ID, type, or description..."
+          placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -164,7 +153,6 @@ function AdminFinance() {
           value={dateFilter}
           onChange={(e) => setDateFilter(e.target.value)}
         />
-
       </div>
 
       {/* TABLE */}
@@ -205,6 +193,7 @@ function AdminFinance() {
           </tbody>
         </table>
       </div>
+
     </div>
   );
 }

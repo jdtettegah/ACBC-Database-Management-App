@@ -3,6 +3,7 @@ import AdminGenerateReport from "../../components/AdminGenerateReport";
 import "./AdminReports.css";
 
 import { getAllReports } from "../../services/api";
+import { FileText } from "lucide-react";
 
 function AdminReports() {
 
@@ -40,9 +41,12 @@ function AdminReports() {
 
       <div className="report-header">
 
-        <h2>Reports</h2>
+        <div className="report-title">
+          <span className="report-title-icon"><FileText /></span>
+          <span className="report-title-text">Reports</span>
+        </div>
 
-        <div className="action-btn">
+        <div className="report-action-btn">
           <AdminGenerateReport refreshReports={loadReports} />
         </div>
 
@@ -51,12 +55,12 @@ function AdminReports() {
 
       <div className="report-stats">
 
-        <div className="stats-card">
+        <div className="report-stats-card">
           <h3>Total Reports</h3>
           <p>{reports.length}</p>
         </div>
 
-        <div className="stats-card">
+        <div className="report-stats-card">
           <h3>This Month</h3>
           <p>
             {reports.filter(r => {
@@ -73,7 +77,7 @@ function AdminReports() {
           </p>
         </div>
 
-        <div className="stats-card">
+        <div className="report-stats-card">
           <h3>Pending</h3>
           <p>{reports.filter(r => r.status === "Pending").length}</p>
         </div>
@@ -134,14 +138,14 @@ function AdminReports() {
                     <td>
 
                       <button
-                        className="view-btn"
+                        className="report-view-btn"
                         onClick={() => setSelectedReport(report)}
                       >
                         View
                       </button>
 
                       <button
-                        className="download-btn"
+                        className="report-download-btn"
                         onClick={() => setSelectedReport(report)}
                       >
                         Download

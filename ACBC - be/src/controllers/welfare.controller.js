@@ -38,10 +38,6 @@ const createEvent = async (req, res) => {
   try {
     const { event_name, event_type, default_amount, created_by } = req.body;
 
-    if (!event_type || !default_amount) {
-      return res.status(400).json({ message: "Missing fields" });
-    }
-
     await transaction.begin();
 
     if (event_type === "DUES") {
@@ -59,15 +55,11 @@ const createEvent = async (req, res) => {
 
         const result = await new sql.Request(transaction)
           .input("event_code", sql.VarChar, code)
-          .input(
-            "event_name",
-            sql.VarChar,
-            `Welfare Dues - ${date.toLocaleString('default', {
-              month: 'long'
-            })} ${year}`
+          .input("event_name", sql.VarChar,
+            `Welfare Dues - ${date.toLocaleString('default', { month: 'long' })} ${year}`
           )
           .input("event_type", sql.VarChar, "DUES")
-          .input("default_amount", sql.Decimal(18, 2), default_amount)
+          .input("default_amount", sql.Decimal(18,2), default_amount)
           .input("created_by", sql.Int, created_by)
           .query(`
             INSERT INTO WelfareEvents 
@@ -76,31 +68,22 @@ const createEvent = async (req, res) => {
             VALUES (@event_code,@event_name,@event_type,@default_amount,@created_by)
           `);
 
-        const eventId = result.recordset[0].id;
-
-        await new sql.Request(transaction)
-          .input("event_id", sql.Int, eventId)
-          .input("amount", sql.Decimal(18, 2), default_amount)
-          .query(`
-            INSERT INTO WelfareEventMembers (event_id, member_id, expected_amount)
-            SELECT @event_id, m.id, @amount
-            FROM Members m
-            WHERE m.is_deleted = 0
-          `);
+        // ❌ REMOVED MEMBER INSERT LOGIC
+        // This is what was causing your bug
       }
 
       await transaction.commit();
       return res.json({ success: true, message: "Yearly dues created" });
     }
 
-    // SPECIAL EVENT
+    // SPECIAL stays same
     const code = generateEventCode("SPECIAL");
 
     const result = await new sql.Request(transaction)
       .input("event_code", sql.VarChar, code)
       .input("event_name", sql.VarChar, event_name)
       .input("event_type", sql.VarChar, "SPECIAL")
-      .input("default_amount", sql.Decimal(18, 2), default_amount)
+      .input("default_amount", sql.Decimal(18,2), default_amount)
       .input("created_by", sql.Int, created_by)
       .query(`
         INSERT INTO WelfareEvents 
@@ -110,16 +93,6 @@ const createEvent = async (req, res) => {
       `);
 
     const eventId = result.recordset[0].id;
-
-    await new sql.Request(transaction)
-      .input("event_id", sql.Int, eventId)
-      .input("amount", sql.Decimal(18, 2), default_amount)
-      .query(`
-        INSERT INTO WelfareEventMembers (event_id, member_id, expected_amount)
-        SELECT @event_id, m.id, @amount
-        FROM Members m
-        WHERE m.is_deleted = 0
-      `);
 
     await transaction.commit();
 

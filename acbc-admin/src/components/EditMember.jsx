@@ -55,9 +55,23 @@ function EditMember({ member, onClose, onSuccess }) {
     }
   };
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+  
+    if (open) {
+      window.addEventListener("keydown", handleEsc);
+    }
+  
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [open]);
+
   return (
-    <div className="modal-overlay">
-      <div className="add-member-page">
+    <div className="modal-overlay" onClick={() => setOpen(false)}>
+      <div className="add-member-page" onClick={(e) => e.stopPropagation()}>
 
         <div className="add-member-header">
           <h2>Edit Member</h2>

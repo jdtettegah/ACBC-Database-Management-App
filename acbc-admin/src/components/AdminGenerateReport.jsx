@@ -8,10 +8,13 @@ import {
   getTitheSummary,
   getAttendanceSummary,
   getVisitorsReport,
-  saveReport
+  saveReport,
+  getWelfareReport,
 } from "../services/api";
 
 import acbcLogo from "../assets/acbc-logo.png";
+import { CalendarCheck, Download } from "lucide-react";
+import { createPortal } from "react-dom";
 
 function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
 
@@ -78,6 +81,10 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
         data = await getVisitorsReport(start, end);
       }
 
+      if (type === "Welfare") {
+        data = await getWelfareReport(start, end);
+      }
+
       setResult(data);
 
       // SAVE REPORT
@@ -112,11 +119,26 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
   const downloadPDF = () => {
 
     if (!result) return;
-
+  
     const doc = new jsPDF();
-
+  
+    // ✅ FORMATTERS
+    const formatDate = (date) => {
+      return new Date(date).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    };
+  
+    const formatCurrency = (amount) => {
+      return Number(amount).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+      });
+    };
+  
     doc.addImage(acbcLogo, "PNG", 80, 10, 50, 25);
-
+  
     doc.setFontSize(18);
     doc.text(
       "ACTS CHARISMATIC BAPTIST CHURCH - KWAMO",
@@ -124,121 +146,168 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
       40,
       { align: "center" }
     );
-
+  
     doc.setFontSize(14);
     doc.text(`${reportType} Report`, 105, 50, { align: "center" });
-
+  
     doc.setFontSize(10);
-    doc.text(`Period: ${startDate} - ${endDate}`, 14, 60);
-
+    doc.text(
+      `Period: ${formatDate(startDate)} - ${formatDate(endDate)}`,
+      14,
+      60
+    );
+  
     let startY = 70;
-
-    // TITHE
+  
+    /* ================= TITHE ================= */
     if (reportType === "Tithe") {
-
+  
       doc.text(`Total Members Paid: ${result.totalMembers}`, 14, startY);
-      doc.text(`Total Tithes: ${result.totalTithes}`, 14, startY + 6);
-
+      doc.text(`Total Tithes (GH₵): ${formatCurrency(result.totalTithes)}`, 14, startY + 6);
+  
       const rows = result.members?.map(m => [
         m.member_id,
         `${m.first_name} ${m.last_name || ""}`,
-        m.amount_paid,
-        new Date(m.date_paid).toLocaleDateString()
+        formatCurrency(m.amount_paid),
+        formatDate(m.date_paid)
       ]);
-
+  
       if (rows?.length) {
-
         autoTable(doc, {
           startY: startY + 15,
-          head: [["Member ID", "Name", "Amount", "Date"]],
+          head: [["Member ID", "Name", "Amount (GH₵)", "Date"]],
           body: rows
         });
-
       }
-
     }
-
-    // FINANCE
+  
+    /* ================= FINANCIAL ================= */
     if (reportType === "Financial") {
-
+  
       autoTable(doc, {
         startY,
-        head: [["Description", "Amount"]],
-        body: [["Opening Balance", result.openingBalance]]
+        head: [["Description", "Amount (GH₵)"]],
+        body: [["Opening Balance", formatCurrency(result.openingBalance)]]
       });
-
+  
       startY = doc.lastAutoTable.finalY + 5;
-
+  
       autoTable(doc, {
         startY,
-        head: [["Income", "Amount"]],
-        body: result.income.map(i => [i.income_type, i.total])
+        head: [["Income", "Amount (GH₵)"]],
+        body: result.income.map(i => [
+          i.income_type,
+          formatCurrency(i.total)
+        ])
       });
-
+  
       startY = doc.lastAutoTable.finalY + 5;
-
+  
       autoTable(doc, {
         startY,
-        head: [["Expenses", "Amount"]],
-        body: result.expenses.map(e => [e.category, e.total])
+        head: [["Expenses", "Amount (GH₵)"]],
+        body: result.expenses.map(e => [
+          e.category,
+          formatCurrency(e.total)
+        ])
       });
-
+  
+      startY = doc.lastAutoTable.finalY + 10;
+  
+      doc.setFontSize(12);
+      doc.text(
+        `Closing Balance (GH₵): ${formatCurrency(result.closingBalance)}`,
+        14,
+        startY
+      );
     }
-
-    // ATTENDANCE
+  
+    /* ================= ATTENDANCE ================= */
     if (reportType === "Attendance") {
-
+  
       doc.text(`Members: ${result.totalMembers}`, 14, startY);
       doc.text(`Visitors: ${result.totalVisitors}`, 14, startY + 6);
       doc.text(`Total Attendance: ${result.totalAttendance}`, 14, startY + 12);
-
+  
       const rows = result.services?.map(s => [
-        new Date(s.service_date).toLocaleDateString(),
+        formatDate(s.service_date),
         s.service_type,
         s.members,
         s.visitors,
         s.total
       ]);
-
+  
       if (rows?.length) {
-
         autoTable(doc, {
           startY: startY + 20,
           head: [["Date", "Service", "Members", "Visitors", "Total"]],
           body: rows
         });
-
       }
-
     }
-
-    // VISITORS
+  
+    /* ================= VISITORS ================= */
     if (reportType === "Visitors") {
-
+  
       doc.text(`Total Visitors: ${result.total}`, 14, startY);
-
+  
       const rows = result.visitors?.map(v => [
         `${v.first_name} ${v.last_name || ""}`,
-        new Date(v.visit_date).toLocaleDateString(),
+        formatDate(v.visit_date),
         v.service_type
       ]);
-
+  
       if (rows?.length) {
-
         autoTable(doc, {
           startY: startY + 15,
           head: [["Name", "Visit Date", "Service"]],
           body: rows
         });
-
       }
-
     }
-
+  
+    /* ================= WELFARE ================= */
+    if (reportType === "Welfare") {
+  
+      autoTable(doc, {
+        startY,
+        head: [["Description", "Amount (GH₵)"]],
+        body: [["Opening Balance", formatCurrency(result.openingBalance)]]
+      });
+  
+      startY = doc.lastAutoTable.finalY + 5;
+  
+      autoTable(doc, {
+        startY,
+        head: [["Income Type", "Amount (GH₵)"]],
+        body: result.income.map(i => [
+          i.event_type,
+          formatCurrency(i.total)
+        ])
+      });
+  
+      startY = doc.lastAutoTable.finalY + 5;
+  
+      autoTable(doc, {
+        startY,
+        head: [["Expense Category", "Amount (GH₵)"]],
+        body: result.expenses.map(e => [
+          e.category,
+          formatCurrency(e.total)
+        ])
+      });
+  
+      startY = doc.lastAutoTable.finalY + 10;
+  
+      doc.text(
+        `Closing Balance (GH₵): ${formatCurrency(result.closingBalance)}`,
+        14,
+        startY
+      );
+    }
+  
     doc.save(`${reportType}-report.pdf`);
-
   };
-
 
   const closeModal = () => {
 
@@ -248,33 +317,48 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
 
   };
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+  
+    if (open) {
+      window.addEventListener("keydown", handleEsc);
+    }
+  
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [open]);
+
 
   return (
     <>
       {!existingReport && (
         <button
-          className="add-attendance-button"
+          className="generate-report-button"
           onClick={() => setOpen(true)}
         >
-          📝 Generate Report
+          <CalendarCheck size={18} />
+          Generate Report
         </button>
       )}
 
-      {open && (
+      {open && createPortal(
 
-        <div className="modal-overlay">
+        <div className="generate-report-modal-overlay" onClick={() => setOpen(false)}>
 
-          <div className="generate-reports-page">
+          <div className="generate-reports-page" onClick={(e) => e.stopPropagation()}>
 
             <div className="generate-reports-header">
 
               <h2>Generate Report</h2>
 
               <button
-                className="close-btn"
+                className="generate-report-close-btn"
                 onClick={closeModal}
               >
-                ❌
+                CLOSE ❌
               </button>
 
             </div>
@@ -282,7 +366,7 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
 
             <div className="generate-reports-filters">
 
-              <div className="filter-group">
+              <div className="generate-report-filter-group">
                 <label>Type</label>
 
                 <select
@@ -293,10 +377,11 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
                   <option value="Financial">Financial</option>
                   <option value="Attendance">Attendance</option>
                   <option value="Visitors">Visitors</option>
+                  <option value="Welfare">Welfare</option>
                 </select>
               </div>
 
-              <div className="filter-group">
+              <div className="generate-report-filter-group">
                 <label>Start Date</label>
 
                 <input
@@ -306,7 +391,7 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
                 />
               </div>
 
-              <div className="filter-group">
+              <div className="generate-report-filter-group">
                 <label>End Date</label>
 
                 <input
@@ -326,9 +411,10 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
 
               {result && (
                 <button
-                  className="download-btn"
+                  className="generate-report-download-btn"
                   onClick={downloadPDF}
                 >
+                  <Download size={18} />
                   Download PDF
                 </button>
               )}
@@ -337,7 +423,8 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
 
           </div>
 
-        </div>
+        </div>,
+        document.body
 
       )}
     </>

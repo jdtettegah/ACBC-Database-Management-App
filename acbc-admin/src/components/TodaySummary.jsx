@@ -1,4 +1,5 @@
 import "./TodaySummary.css";
+import { CalendarDays } from "lucide-react";
 
 function TodaySummary({ data }) {
 
@@ -8,7 +9,12 @@ function TodaySummary({ data }) {
 
   return (
     <div className="today-summary">
-      <div className="dashboard-header">📅 Today Summary</div>
+      <div className="today-summary-dashboard-header">
+        <span className="today-header-icon">
+          <CalendarDays size={20} />
+        </span>
+        <span>Today Summary</span>
+      </div>
 
       <div className="todaySummary-grid">
 

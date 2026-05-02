@@ -2,6 +2,7 @@ import { useState } from "react";
 import {useNavigate} from "react-router-dom";
 import acbcLogo from "../assets/acbc-logo.png"; // put logo here
 import "../styles/pages.css"
+import { Eye, EyeOff } from "lucide-react";
 
 
 
@@ -38,7 +39,11 @@ function Login() {
 
       localStorage.setItem("user", JSON.stringify({
         id: data.id,
-        role: data.role
+        role: data.role,
+        email: data.email,
+        username: data.username,
+        first_name: data.first_name,
+        last_name: data.last_name
       }));
 
 
@@ -55,50 +60,50 @@ function Login() {
     <div className="auth-container">
       <div className="auth-brand-form">
         {/* LEFT BRAND SECTION */}
-      <div className="auth-brand">
-        <img src={acbcLogo} alt="ACBC Logo" id='acbc-logo'/>
-        <h1>Acts Charismatic<br />Baptist Church</h1>
-        <p>
-          Building lives through the Word, faith, and the power of the Holy Spirit.
-        </p>
-      </div>
+        <div className="auth-brand">
+          <img src={acbcLogo} alt="ACBC Logo" id='acbc-logo'/>
+          <h1>Acts Charismatic<br />Baptist Church</h1>
+          <p>
+            Building lives through the Word, faith, and the power of the Holy Spirit.
+          </p>
+        </div>
 
       {/* RIGHT LOGIN SECTION */}
-      <div className="auth-form">
-        <form onSubmit={handleSubmit}>
-          <h2>Sign In</h2>
+        <div className="auth-form">
+          <form onSubmit={handleSubmit}>
+            <h2>Sign In</h2>
 
-          {error && <div className="error-box">{error}</div>}
+            {error && <div className="error-box">{error}</div>}
 
-          <label>Email Address</label>
-          <input
-            type="email"
-            value={email}
-            required
-            onChange={(e) => setEmail(e.target.value)}
-          />
-
-          <label>Password</label>
-          <div className="password-wrapper">
+            <label>Email Address</label>
             <input
-              type={showPassword ? "text" : "password"}
-              value={password}
+              type="email"
+              value={email}
               required
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
             />
-            <span
-              className="toggle-password"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? "🙈" : "👁️"}
-            </span>
-          </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? "Signing in..." : "Log In"}
-          </button>
-        </form>
-      </div>
+            <label>Password</label>
+            <div className="password-wrapper">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                required
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <span
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </span>
+            </div>
+
+            <button type="submit" disabled={loading}>
+              {loading ? "Signing in..." : "Log In"}
+            </button>
+          </form>
+        </div>
       </div>
       
 

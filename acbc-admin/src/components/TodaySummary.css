@@ -1,89 +1,152 @@
+/* ========================================
+   TODAY SUMMARY WRAPPER
+======================================== */
 .today-summary {
-    margin-top: 20px;
-    padding: 20px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-top: 24px;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  animation: fadeIn 0.4s ease;
+}
+
+/* ========================================
+   GRID
+======================================== */
+.todaySummary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-top: 30px;
+}
+
+/* ========================================
+   BASE CARD
+======================================== */
+.todaySummary-card {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  border-left: 5px solid #2f2fd6;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+  transition: 0.25s ease;
+}
+
+.todaySummary-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+
+/* ========================================
+   INDIVIDUAL COLORS
+======================================== */
+.todaySummary-card.income {
+  border-left-color: #16a34a;
+  border-right: 0.5px solid #16a34a ;
+  border-top: 0.5px solid #16a34a ;
+  border-bottom: 0.5px solid #16a34a ;
+}
+
+.todaySummary-card.expense {
+  border-left-color: #dc2626;
+  border-right: 0.5px solid #dc2626 ;
+  border-top: 0.5px solid #dc2626 ;
+  border-bottom: 0.5px solid #dc2626;
+}
+
+.todaySummary-card.tithe {
+  border-left-color: #7c3aed;
+  border-right: 0.5px solid #7c3aed ;
+  border-top: 0.5px solid #7c3aed ;
+  border-bottom: 0.5px solid #7c3aed; 
+}
+
+.todaySummary-card.attendance {
+  border-left-color: #2563eb;
+  border-right: 0.5px solid #2563eb ;
+  border-top: 0.5px solid #2563eb;
+  border-bottom: 0.5px solid #2563eb;
+}
+
+.todaySummary-card.visitors {
+  border-left-color: #f59e0b;
+  border-right: 0.5px solid #f59e0b ;
+  border-top: 0.5px solid #f59e0b ;
+  border-bottom: 0.5px solid #f59e0b; 
+}
+
+/* ========================================
+   TEXT
+======================================== */
+.todaySummary-card p {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+/* ================= TODAY HEADER ================= */
+
+.today-summary-dashboard-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1E293B;
+  margin-bottom: 10px;
+  letter-spacing: -0.3px;
+}
+
+.today-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #EEF2FF;
+  color: #4A6FD3;
+  border-radius: 10px;
+}
+
+/* optional hover polish */
+.today-header-icon:hover {
+  background: #E0E7FF;
+  transform: scale(1.05);
+  transition: 0.2s ease;
+}
+
+.todaySummary-card h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0;
+}
+
+/* ========================================
+   FADE IN
+======================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
-  
-  .today-summary h3 {
-    margin-bottom: 15px;
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  /* GRID */
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 768px) {
   .todaySummary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 15px;
+    grid-template-columns: 1fr;
   }
-  
-  /* BASE CARD */
-  .todaySummary-card {
+
+  .today-summary {
     padding: 18px;
-    border-radius: 12px;
-    color: #fff;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
   }
-  
-  /* hover effect */
-  .todaySummary-card:hover {
-    transform: translateY(-4px);
-    cursor: pointer;
-  }
-  
-  /* ICON STYLE (optional future enhancement) */
-  .todaySummary-card::after {
-    content: "";
-    position: absolute;
-    top: -20px;
-    right: -20px;
-    width: 80px;
-    height: 80px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 50%;
-  }
-  
-  /* THEMES (SOFT DASHBOARD STYLE) */
-  
-  /* Income */
-  .todaySummary-card.income {
-    background: linear-gradient(135deg, #4d4dea, #6a6aff);
-  }
-  
-  /* Expenses */
-  .todaySummary-card.expense {
-    background: linear-gradient(135deg, #4a6fd3, #ff4d4d);
-  }
-  
-  /* Tithe */
-  .todaySummary-card.tithe {
-    background: linear-gradient(135deg, #4a6fd3, #8e44ad);
-  }
-  
-  /* Attendance */
-  .todaySummary-card.attendance {
-    background: linear-gradient(135deg, #4a6fd3, #5dade2);
-  }
-  
-  /* Visitors */
-  .todaySummary-card.visitors {
-    background: linear-gradient(135deg, #4a6fd3, #f5b041);
-  }
-  
-  /* TEXT */
-  .todaySummary-card p {
-    font-size: 13px;
-    opacity: 0.9;
-    margin-bottom: 5px;
-    color: white;
-  }
-  
-  .todaySummary-card h2 {
-    font-size: 24px;
-    font-weight: bold;
-  }
+}

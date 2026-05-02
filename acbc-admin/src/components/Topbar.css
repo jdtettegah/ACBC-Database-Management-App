@@ -1,15 +1,19 @@
 .topbar {
   width: 100%;
   background: #ffffff;
+  padding: 18px 28px;
+  border-bottom: 1px solid #E2E8F0;
   display: flex;
   flex-direction: column;
-  padding: 12px 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  z-index: 5;
-  border-radius: 20px;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
 }
 
-/* ===== First Row ===== */
+/* ================= FIRST ROW ================= */
+
 .topbarFirstLine {
   display: flex;
   align-items: center;
@@ -17,77 +21,144 @@
   gap: 20px;
 }
 
-/* Welcome text */
+/* ================= LEFT ================= */
+
+.topbarAddress {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .topbarAddress p {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
+  font-size: 15px;
+  font-weight: 500;
+  color: #475569;
+  margin: 0;
 }
 
-/* Search bar */
-.topbar input {
+.topbarAddress strong {
+  color: #1E293B;
+  font-weight: 700;
+}
+
+.hamburger {
+  display: none;
+  border: none;
+  background: transparent;
+  color: #4A6FD3;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+
+.hamburger:hover {
+  background: #F8FAFC;
+}
+
+/* ================= SEARCH ================= */
+
+.topbar-search {
   flex: 1;
-  max-width: 400px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  outline: none;
+  max-width: 460px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 0 14px;
+  transition: 0.25s ease;
+}
+
+.topbar-search:focus-within {
+  border-color: #4A6FD3;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(74, 111, 211, 0.08);
+}
+
+.search-icon {
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+.topbar-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 13px 0;
   font-size: 14px;
-  transition: all 0.2s ease;
+  color: #1E293B;
+  outline: none;
 }
 
-.topbar input:focus {
-  border-color: #4d4dea;
-  box-shadow: 0 0 0 2px rgba(77, 77, 234, 0.15);
+.topbar-search input::placeholder {
+  color: #94A3B8;
 }
 
-/* Right-side icons */
+/* ================= RIGHT ================= */
+
 .topbar-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
 }
 
-.topbar-actions span {
-  font-size: 18px;
+/* ================= NOTIFICATION ================= */
+
+.notification {
+  position: relative;
   cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  transition: background 0.2s ease;
+  padding: 10px;
+  border-radius: 12px;
+  transition: 0.2s;
+  color: #475569;
 }
 
-.topbar-actions span:hover {
-  background: #f2f3f5;
+.notification:hover {
+  background: #F8FAFC;
 }
 
-/* ===== Second Row ===== */
-.topbarSecondLine {
-  margin-top: 10px;
-}
-
-.topbarSecondLine p {
-  font-size: 30px;
+.notification .badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #EF4444;
+  color: white;
+  font-size: 11px;
   font-weight: 600;
-  color: #4d4dea;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-@media (max-width: 900px) {
-  .topbar {
-    width: 90%;
-    background: #ffffff;
-    display: flex;
-    flex-direction: column;
-    padding: 12px 24px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    z-index: 10;
-    border-radius: 20px;
-    margin: auto;
-  }
-  
+/* ================= AVATAR ================= */
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4A6FD3, #6C8EF5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(74, 111, 211, 0.15);
+  transition: 0.2s;
 }
 
-/* ===== Settings Dropdown ===== */
+.avatar:hover {
+  transform: scale(1.03);
+}
+
+/* ================= SETTINGS ================= */
 
 .settings-wrapper {
   position: relative;
@@ -96,35 +167,85 @@
 .settings-menu {
   position: absolute;
   right: 0;
-  top: 45px;
-  width: 180px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.12);
-  padding: 8px 0;
-  z-index: 100;
+  top: 54px;
+  width: 240px;
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  padding: 10px 0;
+  z-index: 1000;
 }
 
 .settings-menu p {
-  padding: 10px 16px;
   margin: 0;
+  padding: 13px 18px;
   font-size: 14px;
+  color: #475569;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .settings-menu p:hover {
-  background: #f2f3f5;
+  background: #F8FAFC;
+  color: #1E293B;
 }
 
 .settings-menu hr {
   border: none;
-  border-top: 1px solid #eee;
-  margin: 6px 0;
+  border-top: 1px solid #F1F5F9;
+  margin: 8px 0;
 }
 
-/* Logout style */
-.logout {
-  color: #e63946;
+.settings-menu .logout {
+  color: #EF4444;
   font-weight: 600;
+}
+
+.settings-menu .logout:hover {
+  background: rgba(239, 68, 68, 0.06);
+}
+
+/* ================= SECOND ROW ================= */
+
+.topbarSecondLine {
+  display: flex;
+  align-items: center;
+}
+
+.topbarSecondLine p {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1E293B;
+  letter-spacing: -0.5px;
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 900px) {
+  .hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .topbar {
+    padding: 16px 18px;
+  }
+
+  .topbar-search {
+    display: none;
+  }
+
+  .topbarSecondLine p {
+    font-size: 22px;
+  }
+
+  .topbarAddress p {
+    font-size: 14px;
+  }
 }

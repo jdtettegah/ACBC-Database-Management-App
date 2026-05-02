@@ -1,6 +1,7 @@
 import DashboardLayout from "../layouts/DashboardLayout";
 import AdminWelfare from "./Welfare/AdminWelfare";
 import FinanceWelfare from "./Welfare/FinanceWelfare";
+import PastorWelfare from "./Welfare/PastorWelfare";
 
 function Welfare() {
   // Correct way to read role

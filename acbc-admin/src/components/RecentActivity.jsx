@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getActivities } from "../services/api";
 import "./RecentActivity.css"
+import { Activity } from "lucide-react";
 
 const RecentActivity = () => {
   const [activities, setActivities] = useState([]);
@@ -31,7 +32,12 @@ const RecentActivity = () => {
 
   return (
     <div className="recent-activity">
-      <div className="dashboard-header">Recent Activity</div>
+      <div className="recent-activity-dashboard-header">
+        <span className="recent-activity-icon">
+          <Activity size={20} />
+        </span>
+        <span>Recent Activity</span>
+      </div>
   
       {activities.length === 0 ? (
         <p>No recent activity</p>

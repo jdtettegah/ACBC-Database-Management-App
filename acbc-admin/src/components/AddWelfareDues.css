@@ -1,0 +1,303 @@
+/* ========================================
+   PRIMARY BUTTON
+======================================== */
+
+.add-welfareDues-button {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .add-welfareDues-button:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+  }
+  
+  
+  /* ========================================
+     MODAL OVERLAY
+  ======================================== */
+  
+  .welfareDues-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
+  
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  
+    z-index: 1000;
+  }
+  
+  
+  /* ========================================
+     MAIN CONTAINER
+  ======================================== */
+  
+  .welfareDues-page {
+    width: 95%;
+    max-width: 1200px;
+    max-height: 90vh;
+    overflow-y: auto;
+  
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 30px;
+  
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  
+    animation: slideUp 0.35s ease;
+  }
+  
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(25px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  
+  /* ========================================
+     HEADER
+  ======================================== */
+  
+  .welfareDues-header {
+    margin-bottom: 24px;
+  }
+  
+  .welfareDues-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 6px;
+  }
+  
+  .welfareDues-header p {
+    font-size: 14px;
+    color: #64748b;
+  }
+  
+  
+  /* ========================================
+     FORM GROUP
+  ======================================== */
+  
+  .welfareDues-form-group {
+    margin-bottom: 18px;
+  }
+  
+  .welfareDues-form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 8px;
+  }
+  
+  .welfareDues-form-group input,
+  .welfareDues-form-group select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+    font-size: 14px;
+    background: #ffffff;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  
+  .welfareDues-form-group input:focus,
+  .welfareDues-form-group select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+  
+  
+  /* ========================================
+     TABLE WRAPPER
+  ======================================== */
+  
+  .welfareDues-table-wrapper {
+    margin-top: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+    max-height: 450px;
+    overflow-y: auto;
+  }
+  
+  
+  /* ========================================
+     TABLE
+  ======================================== */
+  
+  .welfareDues-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .welfareDues-table thead {
+    background: #f8fafc;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  
+  .welfareDues-table th {
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    text-align: left;
+    border-bottom: 1px solid #edf2f7;
+  }
+  
+  .welfareDues-table td {
+    padding: 14px;
+    font-size: 14px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  
+  .welfareDues-table tbody tr {
+    transition: 0.2s ease;
+  }
+  
+  .welfareDues-table tbody tr:hover {
+    background: #f8fafc;
+  }
+  
+  
+  /* ========================================
+     TABLE INPUTS
+  ======================================== */
+  
+  .welfareDues-table input,
+  .welfareDues-table select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dbe2ea;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    background: #ffffff;
+    transition: all 0.2s ease;
+  }
+  
+  .welfareDues-table input:focus,
+  .welfareDues-table select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+  }
+  
+  
+  /* ========================================
+     ACTION BUTTONS
+  ======================================== */
+  
+  .welfareDues-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  
+  .welfareDues-actions button {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  
+  /* Cancel Button */
+  .welfareDues-actions button:first-child {
+    background: #e2e8f0;
+    color: #1e293b;
+  }
+  
+  .welfareDues-actions button:first-child:hover {
+    background: #cbd5e1;
+  }
+  
+  /* Save Button */
+  .welfareDues-actions button:last-child {
+    background: #16a34a;
+    color: white;
+    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.15);
+  }
+  
+  .welfareDues-actions button:last-child:hover {
+    background: #15803d;
+    transform: translateY(-2px);
+  }
+  
+  .welfareDues-actions button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  
+  /* ========================================
+     SCROLLBAR
+  ======================================== */
+  
+  .welfareDues-page::-webkit-scrollbar,
+  .welfareDues-table-wrapper::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .welfareDues-page::-webkit-scrollbar-thumb,
+  .welfareDues-table-wrapper::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+  
+  
+  /* ========================================
+     RESPONSIVE
+  ======================================== */
+  
+  @media (max-width: 768px) {
+    .welfareDues-page {
+      padding: 22px;
+    }
+  
+    .welfareDues-actions {
+      justify-content: center;
+      flex-direction: column;
+    }
+  
+    .welfareDues-actions button {
+      width: 100%;
+    }
+  
+    .welfareDues-table {
+      min-width: 900px;
+    }
+  }

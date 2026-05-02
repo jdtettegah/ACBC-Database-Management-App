@@ -3,6 +3,7 @@ import AddAttendance from "../../components/AddAttendance";
 import "./AdminAttendance.css";
 import { apiRequest } from "../../services/api";
 import SecretaryDashboardCharts from "../../components/SecretaryDashboardCharts";
+import { ClipboardCheck, FileSpreadsheet } from "lucide-react";
 
 function AdminAttendance() {
 
@@ -16,10 +17,12 @@ function AdminAttendance() {
   const [filterDate, setFilterDate] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [serviceFilter, setServiceFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All"); // ✅ NEW
+  const [statusFilter, setStatusFilter] = useState("All");
 
-  const [loading, setLoading] = useState(true);
+  // ✅ NEW STATES (DO NOT REMOVE YOUR OLD LOGIC)
+  const [initialLoading, setInitialLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const [error, setError] = useState("");
 
   const observer = useRef();
@@ -40,8 +43,13 @@ function AdminAttendance() {
   // ======================
   const fetchData = async (pageNumber = 1, append = false) => {
 
-    if (pageNumber === 1) setLoading(true);
-    else setLoadingMore(true);
+    if (initialLoading) {
+      setUpdating(false);
+    } else if (pageNumber === 1) {
+      setUpdating(true); // ✅ smooth update instead of full reload
+    } else {
+      setLoadingMore(true);
+    }
 
     try {
       const query = new URLSearchParams({
@@ -51,7 +59,7 @@ function AdminAttendance() {
         type: typeFilter,
         service: serviceFilter,
         date: filterDate,
-        status: statusFilter, // ✅ NEW
+        status: statusFilter,
       });
 
       const res = await apiRequest(`/attendance?${query}`);
@@ -69,7 +77,8 @@ function AdminAttendance() {
       setError("Failed to load records");
     }
 
-    setLoading(false);
+    setInitialLoading(false);
+    setUpdating(false);
     setLoadingMore(false);
   };
 
@@ -82,7 +91,7 @@ function AdminAttendance() {
   }, [debouncedSearch, filterDate, typeFilter, serviceFilter, statusFilter]);
 
   // ======================
-  // INFINITE SCROLL (FIXED)
+  // INFINITE SCROLL (UNCHANGED)
   // ======================
   const lastRowRef = useCallback(node => {
 
@@ -97,7 +106,7 @@ function AdminAttendance() {
       ) {
         const nextPage = page + 1;
 
-        setPage(prev => prev + 1); // ✅ FIXED
+        setPage(prev => prev + 1);
         fetchData(nextPage, true);
       }
     });
@@ -107,7 +116,7 @@ function AdminAttendance() {
   }, [loadingMore, page, pagination]);
 
   // ======================
-  // STATS
+  // STATS (UNCHANGED 🔥)
   // ======================
   const today = new Date().toISOString().split("T")[0];
   const currentMonth = new Date().getMonth();
@@ -160,7 +169,7 @@ function AdminAttendance() {
       : 0;
 
   // ======================
-  // EXPORT FILTERED DATA (FROM BACKEND)
+  // EXPORT (UNCHANGED)
   // ======================
   const exportToCSV = async () => {
     try {
@@ -170,7 +179,7 @@ function AdminAttendance() {
         service: serviceFilter,
         date: filterDate,
         status: statusFilter,
-        export: "true", // 👈 tell backend to return ALL filtered data
+        export: "true",
       });
 
       const res = await apiRequest(`/attendance?${query}`);
@@ -207,10 +216,21 @@ function AdminAttendance() {
   };
 
   // ======================
-  // UI STATES
+  // INITIAL LOADING (SKELETON)
   // ======================
-  if (loading) return <p className="loading">Loading attendance...</p>;
+  if (initialLoading) {
+    return (
+      <div className="skeleton-container">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="skeleton-row"></div>
+        ))}
+      </div>
+    );
+  }
 
+  // ======================
+  // ERROR
+  // ======================
   if (error) {
     return (
       <div className="error-box">
@@ -221,37 +241,39 @@ function AdminAttendance() {
   }
 
   return (
-    <div className="m-attendance-page">
+    <div className="m-attendance-page fade-in">
 
       {/* HEADER */}
       <div className="attendance-header">
-        <div className="attendance-table-header">Attendance</div>
+        <div className="attendance-table-header">
+          <span className="attendance-title-icon"><ClipboardCheck size={25}/></span>
+          <span className="attendance-title-text">Attendance</span>
+        </div>
 
-        <div className="action-btn">
+        <div className="attendance-action-btn">
           <AddAttendance refresh={() => fetchData(1)} />
-          
         </div>
       </div>
 
-      {/* STATS */}
-      <div className="members-stats">
+      {/* STATS (UNCHANGED ✅) */}
+      <div className="attendance-members-stats">
 
-        <div className="stats-card">
+        <div className="attendance-stats-card">
           <h3>Present Today</h3>
           <p>{presentToday}</p>
         </div>
 
-        <div className="stats-card">
+        <div className="attendance-stats-card">
           <h3>Visitors Today</h3>
           <p>{visitorsToday}</p>
         </div>
 
-        <div className="stats-card">
+        <div className="attendance-stats-card">
           <h3>Visitors This Month</h3>
           <p>{visitorsThisMonth}</p>
         </div>
 
-        <div className="stats-card">
+        <div className="attendance-stats-card">
           <h3>Avg Attendance</h3>
           <p>{averageAttendance}</p>
         </div>
@@ -259,12 +281,14 @@ function AdminAttendance() {
       </div>
 
       <div>
-        < SecretaryDashboardCharts />
+        <SecretaryDashboardCharts />
       </div>
+
       <div className="attendance-table-header">Attendance Table</div>
+
       {/* FILTERS */}
       <div className="attendance-controls">
-        
+
         <input
           type="text"
           placeholder="Search name..."
@@ -278,29 +302,19 @@ function AdminAttendance() {
           onChange={(e) => setFilterDate(e.target.value)}
         />
 
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-        >
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
           <option>All</option>
           <option>Member</option>
           <option>Visitor</option>
         </select>
 
-        <select
-          value={serviceFilter}
-          onChange={(e) => setServiceFilter(e.target.value)}
-        >
+        <select value={serviceFilter} onChange={(e) => setServiceFilter(e.target.value)}>
           <option>All</option>
           <option>Sunday Service</option>
           <option>Midweek Service</option>
         </select>
 
-        {/* ✅ NEW STATUS FILTER */}
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option>All</option>
           <option>Present</option>
           <option>Absent</option>
@@ -308,12 +322,16 @@ function AdminAttendance() {
 
       </div>
 
-      <button className="export-btn" onClick={exportToCSV}>
-            Export To Excel
+      <button className="attendance-export-btn" onClick={exportToCSV}>
+      <FileSpreadsheet size={18} />
+      Export
       </button>
 
+      {/* ✅ SMOOTH UPDATE INDICATOR */}
+      {updating && <p className="updating">Updating...</p>}
+
       {/* TABLE */}
-      <div className="attendance-table-wrapper">
+      <div className="attendance-table-wrapper fade-in">
 
         <table className="attendance-table">
           <thead>
@@ -330,6 +348,13 @@ function AdminAttendance() {
           <tbody>
             {attendance.map((row, index) => {
 
+              const statusClass =
+                row.status === "Present"
+                  ? "status present"
+                  : row.status === "Absent"
+                  ? "status absent"
+                  : "";
+
               if (attendance.length === index + 1) {
                 return (
                   <tr ref={lastRowRef} key={row.id}>
@@ -337,7 +362,7 @@ function AdminAttendance() {
                     <td>{row.member_code}</td>
                     <td>{row.service_date?.split("T")[0]}</td>
                     <td>{row.service_type}</td>
-                    <td>{row.status}</td>
+                    <td className={statusClass}>{row.status}</td>
                     <td>{row.type}</td>
                   </tr>
                 );
@@ -349,7 +374,7 @@ function AdminAttendance() {
                   <td>{row.member_code}</td>
                   <td>{row.service_date?.split("T")[0]}</td>
                   <td>{row.service_type}</td>
-                  <td>{row.status}</td>
+                  <td className={statusClass}>{row.status}</td>
                   <td>{row.type}</td>
                 </tr>
               );
@@ -362,8 +387,6 @@ function AdminAttendance() {
         )}
 
       </div>
-
-      
 
     </div>
   );

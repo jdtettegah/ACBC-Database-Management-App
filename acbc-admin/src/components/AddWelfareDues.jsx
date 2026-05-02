@@ -6,7 +6,8 @@ import {
   getLoggedInUser
 } from "../services/api";
 
-import "./AddTithe.css";
+import "./AddWelfareDues.css";
+import { Wallet } from "lucide-react";
 
 function AddWelfareDues({ onSaved }) {
   const [events, setEvents] = useState([]);
@@ -147,28 +148,43 @@ function AddWelfareDues({ onSaved }) {
     setLoading(false);
   };
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+  
+    if (open) {
+      window.addEventListener("keydown", handleEsc);
+    }
+  
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [open]);
+
   return (
     <>
       {/* OPEN BUTTON */}
       <button
-        className="add-attendance-button"
+        className="add-welfareDues-button"
         onClick={() => setOpen(true)}
       >
-        💰 Record Monthly Dues
+        <Wallet size={18} />
+         Record Monthly Dues
       </button>
 
       {open && (
-        <div className="modal-overlay">
-          <div className="transaction-page tithe-container">
+        <div className="welfareDues-modal-overlay" onClick={() => setOpen(false)}>
+          <div className="welfareDues-page tithe-container" onClick={(e) => e.stopPropagation()}>
 
             {/* HEADER */}
-            <div className="transaction-header">
+            <div className="welfareDues-header">
               <h2>Monthly Welfare Dues</h2>
               <p>Select month and record contributions</p>
             </div>
 
             {/* EVENT SELECT */}
-            <div className="form-group full-width">
+            <div className="welfareDues-form-group full-width">
               <label>Select Month</label>
               <select
                 value={selectedEvent}
@@ -185,7 +201,7 @@ function AddWelfareDues({ onSaved }) {
             </div>
 
             {/* DATE */}
-            <div className="form-group full-width">
+            <div className="welfareDues-form-group full-width">
               <label>Date Paid</label>
               <input
                 type="date"
@@ -197,8 +213,8 @@ function AddWelfareDues({ onSaved }) {
 
             {/* TABLE */}
             <form onSubmit={handleSave}>
-              <div className="tithe-table-wrapper full-width">
-                <table className="tithe-table">
+              <div className="welfareDues-table-wrapper full-width">
+                <table className="welfareDues-table">
                   <thead>
                     <tr>
                       <th>#</th>
@@ -297,7 +313,7 @@ function AddWelfareDues({ onSaved }) {
               </div>
 
               {/* ACTIONS */}
-              <div className="transaction-actions">
+              <div className="welfareDues-actions">
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
