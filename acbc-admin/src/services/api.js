@@ -214,6 +214,14 @@ export function markAttendanceBulk(data) {
   });
 }
 
+// Update attendance
+export function updateAttendance(attendanceCode, data) {
+  return apiRequest(`/attendance/${attendanceCode}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
 export function getTodaySummary() {
   return apiRequest("/dashboard/today-summary");
 }
@@ -366,4 +374,11 @@ export function getWelfareReport(start, end) {
 
 export function getRoles() {
   return apiRequest("/role");
+}
+
+export function addDayBornSplit(data) {
+  return apiRequest("/welfare/dayborn-split", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }

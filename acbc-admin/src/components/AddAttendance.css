@@ -254,3 +254,13 @@
     transform: translateY(0) scale(1);
   }
 }
+
+.attendance-warning {
+  background: #fff3cd;
+  color: #856404;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  border: 1px solid #ffeeba;
+}

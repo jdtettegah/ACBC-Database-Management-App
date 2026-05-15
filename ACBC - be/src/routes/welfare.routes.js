@@ -7,7 +7,8 @@ const {
   getEvents,
   getEventMembersFull,
   recordSinglePayment,
-  getMemberFullHistory
+  getMemberFullHistory,
+  addDayBornSplit
 } = require('../controllers/welfare.controller');
 
 /* EVENTS */
@@ -19,5 +20,8 @@ router.get('/events/:eventId/members/full', getEventMembersFull);
 router.post('/bulk', recordBulkPayment); // ✅ FIXED
 router.post('/pay', recordSinglePayment);
 router.get('/history/:event_member_id', getMemberFullHistory);
+
+/* DAY BORN SPLIT */
+router.post('/dayborn-split', addDayBornSplit);
 
 module.exports = router;

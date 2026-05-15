@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import {
   addIncome,
   addExpenditure,
-  getApprovers
+  getApprovers,
+  addDayBornSplit
 } from "../services/api";
 
 import { getLoggedInUser } from "../services/api";
@@ -33,6 +34,26 @@ function AddTransaction({ onSaved }) {
   const [loadingApprovers, setLoadingApprovers] = useState(false);
 
   const user = getLoggedInUser();
+
+  const INCOME_CATEGORIES = [
+  "Main Offering",
+  "Second Offering",
+  "Day Born Offering",
+  "Seed Offering",
+  "Givings from Ministrations",
+  "Mid-Year Harvest",
+  "Annual Harvest",
+  "Other Contributions"
+  ];
+
+  const EXPENSE_CATEGORIES = [
+    "Honorarium",
+    "Transportation",
+    "Association Dues",
+    "Convention Dues",
+    "Miscellaneous",
+    "Other Expenses"
+  ];
 
 
 
@@ -72,85 +93,93 @@ function AddTransaction({ onSaved }) {
   /* ================= SUBMIT ================= */
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
-
-    /* Basic validation */
+  
     if (!amount || !date) {
       return alert("Amount and date are required");
     }
-
+  
     if (type === "Expense" && !approvedBy) {
       return alert("Please select who approved this expense");
     }
-
+  
     try {
-
       setLoading(true);
-
-
-      /* ====== INCOME ====== */
+  
+      /* ================= INCOME ================= */
       if (type === "Income") {
-
-        await addIncome({
-          income_type: category,
-          amount,
-          source_description: description,
-          date_received: date,
-          recorded_by: user.id
-        });
-
+  
+        // ✅ SPECIAL CASE: DAY BORN
+        if (category === "Day Born Offering") {
+  
+          if (!welfareAmount) {
+            return alert("Enter amount given to welfare");
+          }
+  
+          if (Number(welfareAmount) > Number(amount)) {
+            return alert("Welfare amount cannot exceed total amount");
+          }
+  
+          await addDayBornSplit({
+            total_amount: amount,
+            welfare_amount: welfareAmount,
+            description,
+            recorded_by: user.id,
+            date_received: date
+          });
+  
+        } else {
+  
+          // ✅ NORMAL INCOME
+          await addIncome({
+            income_type: category,
+            amount,
+            source_description: description,
+            date_received: date,
+            recorded_by: user.id
+          });
+  
+        }
+  
       }
-
-
-      /* ====== EXPENSE ====== */
+  
+      /* ================= EXPENSE ================= */
       else {
-
+  
         await addExpenditure({
           category,
           amount,
           description,
-
-          // Send user_id
           approved_by: approvedBy,
-
           recorded_by: user.id,
           date_spent: date,
         });
-
+  
       }
-
+  
       alert("Transaction saved successfully ✅");
-
-
-      /* Close modal */
+  
       setOpen(false);
-
       if (onSaved) onSaved();
-
-
-      /* Reset form */
+  
+      // reset
       setType("Income");
       setCategory("");
       setAmount("");
       setDate("");
       setDescription("");
       setApprovedBy("");
-
-
+      setWelfareAmount(""); // ✅ ADD THIS
+  
     } catch (err) {
-
-      console.error("Save error:", err);
-
+      console.error(err);
       alert(err.message || "Failed to save transaction");
-
     } finally {
-
       setLoading(false);
-
     }
   };
 
+  
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") setOpen(false);
@@ -164,6 +193,9 @@ function AddTransaction({ onSaved }) {
       window.removeEventListener("keydown", handleEsc);
     };
   }, [open]);
+
+
+  const [welfareAmount, setWelfareAmount] = useState("");
 
 
 
@@ -219,13 +251,21 @@ function AddTransaction({ onSaved }) {
               <div className="add-transaction-form-group">
                 <label>Category</label>
 
-                <input
-                  type="text"
+                <select
                   value={category}
                   onChange={e => setCategory(e.target.value)}
-                  placeholder="e.g. Offering, Fuel, Maintenance"
                   required
-                />
+                >
+                  <option value="">-- Select Category --</option>
+
+                  {(type === "Income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES)
+                    .map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                  ))}
+
+                </select>
               </div>
 
 
@@ -242,6 +282,24 @@ function AddTransaction({ onSaved }) {
                   required
                 />
               </div>
+
+              {type === "Income" && category === "Day Born Offering" && (
+
+                <div className="add-transaction-form-group">
+                  <label>Amount Given to Welfare</label>
+
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={welfareAmount}
+                    onChange={(e) => setWelfareAmount(e.target.value)}
+                    placeholder="Enter welfare portion"
+                  />
+
+                </div>
+
+              )}
 
 
               {/* DATE */}

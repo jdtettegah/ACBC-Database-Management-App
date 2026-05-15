@@ -371,42 +371,44 @@ exports.updateAttendance = async (req, res) => {
 exports.markAttendanceBulk = async (req, res) => {
   const { service_date, service_type, recorded_by, records } = req.body;
 
-  if (!service_date || !service_type || !records || records.length === 0) {
-    return res.status(400).json({
-      message: "Invalid data"
-    });
+  if (!service_date || !service_type) {
+    return res.status(400).json({ message: "Invalid data" });
   }
 
-  // ✅ Validate service type
   if (!VALID_SERVICES.includes(service_type)) {
-    return res.status(400).json({
-      message: "Invalid service type"
-    });
+    return res.status(400).json({ message: "Invalid service type" });
   }
 
   try {
     const pool = await poolPromise;
 
-    for (const record of records) {
-      const { member_id, status } = record;
+    // 1️⃣ Get ALL members
+    const membersResult = await pool.request().query(`
+      SELECT id, member_code
+      FROM Members
+      WHERE is_deleted = 0
+    `);
 
-      const memberCheck = await pool.request()
-        .input('member_id', sql.Int, member_id)
-        .query(`
-          SELECT member_code
-          FROM Members
-          WHERE id = @member_id AND is_deleted = 0
-        `);
+    const allMembers = membersResult.recordset;
 
-      if (memberCheck.recordset.length === 0) continue;
+    const presentMap = new Map(
+      records.map(r => [r.member_id, true])
+    );
 
-      const memberCode = memberCheck.recordset[0].member_code;
-      const attendance_code = `${service_date}-${service_type}-${memberCode}`;
+    let presentCount = 0;
+    let absentCount = 0;
 
-      const duplicateCheck = await pool.request()
-        .input('member_id', sql.Int, member_id)
-        .input('service_date', sql.Date, service_date)
-        .input('service_type', sql.NVarChar, service_type)
+    for (const member of allMembers) {
+
+      const isPresent = presentMap.has(member.id);
+      const status = isPresent ? "Present" : "Absent";
+
+      const attendance_code = `${service_date}-${service_type}-${member.member_code}`;
+
+      const exists = await pool.request()
+        .input("member_id", sql.Int, member.id)
+        .input("service_date", sql.Date, service_date)
+        .input("service_type", sql.NVarChar, service_type)
         .query(`
           SELECT id FROM Attendance
           WHERE member_id = @member_id
@@ -414,39 +416,34 @@ exports.markAttendanceBulk = async (req, res) => {
           AND service_type = @service_type
         `);
 
-      if (duplicateCheck.recordset.length > 0) continue;
+      if (exists.recordset.length > 0) continue;
 
       await pool.request()
-        .input('attendance_code', sql.NVarChar, attendance_code)
-        .input('member_id', sql.Int, member_id)
-        .input('service_date', sql.Date, service_date)
-        .input('service_type', sql.NVarChar, service_type)
-        .input('status', sql.NVarChar, status)
-        .input('recorded_by', sql.Int, recorded_by || null)
+        .input("attendance_code", sql.NVarChar, attendance_code)
+        .input("member_id", sql.Int, member.id)
+        .input("service_date", sql.Date, service_date)
+        .input("service_type", sql.NVarChar, service_type)
+        .input("status", sql.NVarChar, status)
+        .input("recorded_by", sql.Int, recorded_by || null)
         .query(`
           INSERT INTO Attendance
           (attendance_code, member_id, service_date, service_type, status, recorded_by)
           VALUES
           (@attendance_code, @member_id, @service_date, @service_type, @status, @recorded_by)
         `);
+
+      if (isPresent) presentCount++;
+      else absentCount++;
     }
 
-    const presentCount = records.filter(r => r.status === "Present").length;
-    const absentCount = records.length - presentCount;
-
     res.json({
-      message: "Attendance recorded successfully"
+      message: "Attendance finalized",
+      presentCount,
+      absentCount
     });
-
-    await logActivity(
-      "attendance",
-      `Attendance recorded (${service_type}) - Present: ${presentCount}, Absent: ${absentCount}`
-    );
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      message: "Failed to record attendance"
-    });
+    res.status(500).json({ message: "Failed to record attendance" });
   }
 };

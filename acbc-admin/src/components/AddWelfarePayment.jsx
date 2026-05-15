@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { recordWelfarePayment, getLoggedInUser } from "../services/api";
+import "./AddWelfarePayment.css"
 
 function AddWelfarePayment({ member, onClose, onSaved }) {
   const [amount, setAmount] = useState("");
@@ -33,9 +34,23 @@ function AddWelfarePayment({ member, onClose, onSaved }) {
     }
   };
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+  
+    window.addEventListener("keydown", handleEsc);
+  
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [onClose]);
+
   return (
-    <div className="modal-overlay">
-      <div className="event-modal">
+    <div className="welfarePayment-modal-overlay" onClick={onClose}>
+      <div className="welfarePayment-modal"  onClick={(e) => e.stopPropagation()}>
 
         <h3>Pay for {member.first_name}</h3>
 
@@ -74,11 +89,11 @@ function AddWelfarePayment({ member, onClose, onSaved }) {
             onChange={(e) => setDate(e.target.value)}
           />
 
-          <div className="modal-actions">
-            <button type="button" onClick={onClose}>
+          <div className="welfarePayment-modal-actions">
+            <button type="button" onClick={onClose} className="welfarePayment-close-btn">
               Cancel
             </button>
-            <button type="submit">Pay</button>
+            <button type="submit" className="welfarePayment-pay-btn">Pay</button>
           </div>
 
         </form>

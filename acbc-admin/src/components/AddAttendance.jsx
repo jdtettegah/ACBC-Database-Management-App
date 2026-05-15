@@ -4,16 +4,21 @@ import { useEffect, useState } from "react";
 import { ClipboardCheck } from "lucide-react";
 import { createPortal } from "react-dom";
 
+// 🔥 STORAGE KEY
+const STORAGE_KEY = "attendance_draft";
+
 function AddAttendance({ refresh }) {
 
   const [open, setOpen] = useState(false);
-
   const [members, setMembers] = useState([]);
 
   const [date, setDate] = useState("");
   const [service, setService] = useState("Sunday Service");
 
   const [attendance, setAttendance] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  const [memberSearch, setMemberSearch] = useState("");
 
   const [visitorForm, setVisitorForm] = useState({
     first_name: "",
@@ -23,7 +28,21 @@ function AddAttendance({ refresh }) {
     remarks: "",
   });
 
-  const [loading, setLoading] = useState(false);
+  // ======================
+  // 🔥 LOCAL STORAGE HELPERS
+  // ======================
+  const saveDraft = (data) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  };
+
+  const loadDraft = () => {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : {};
+  };
+
+  const clearDraft = () => {
+    localStorage.removeItem(STORAGE_KEY);
+  };
 
   // ======================
   // Fetch Members
@@ -38,36 +57,84 @@ function AddAttendance({ refresh }) {
     }
   };
 
+  const filteredMembers = members.filter((m) => {
+    const fullName = `${m.first_name} ${m.last_name}`.toLowerCase();
+    const code = m.member_code?.toLowerCase() || "";
+    const search = memberSearch.toLowerCase();
+  
+    return (
+      fullName.includes(search) ||
+      code.includes(search)
+    );
+  });
+
+  // ======================
+  // OPEN MODAL → LOAD DRAFT
+  // ======================
   useEffect(() => {
-    if (open) fetchMembers();
+    if (open) {
+      fetchMembers();
+
+      const draft = loadDraft();
+      setAttendance(draft);
+    }
   }, [open]);
 
+  // ======================
+  // ESC CLOSE
+  // ======================
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") setOpen(false);
     };
-  
+
     if (open) {
       window.addEventListener("keydown", handleEsc);
     }
-  
+
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
   }, [open]);
 
   // ======================
-  // Toggle attendance
+  // 🔥 WARN BEFORE LEAVING
+  // ======================
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      const draft = localStorage.getItem(STORAGE_KEY);
+  
+      if (draft && draft !== "{}") {
+        e.preventDefault();
+        e.returnValue = ""; // required for browser trigger
+      }
+    };
+  
+    window.addEventListener("beforeunload", handleBeforeUnload);
+  
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+  // ======================
+  // Toggle attendance (SAVE TO STORAGE)
   // ======================
   const handleCheck = (id) => {
-    setAttendance((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setAttendance((prev) => {
+      const updated = {
+        ...prev,
+        [id]: !prev[id],
+      };
+
+      saveDraft(updated); // 🔥 persist
+
+      return updated;
+    });
   };
 
   // ======================
-  // Save Member Attendance
+  // 🔥 FINAL SAVE (ONLY PRESENT)
   // ======================
   const handleSubmit = async () => {
 
@@ -80,33 +147,34 @@ function AddAttendance({ refresh }) {
 
     try {
 
-      const records = members.map(member => ({
-        member_id: member.id,
-        status: attendance[member.id] ? "Present" : "Absent"
-      }));
-      
+      const presentMembers = Object.keys(attendance)
+        .filter(id => attendance[id])
+        .map(id => ({
+          member_id: Number(id),
+          status: "Present"
+        }));
+
       await apiRequest("/attendance/bulk", {
         method: "POST",
         body: JSON.stringify({
           service_date: date,
           service_type: service,
           recorded_by: 1,
-          records
+          records: presentMembers // ✅ ONLY PRESENT
         }),
       });
 
+      alert("Attendance finalized");
 
-      alert("Attendance saved");
-
+      clearDraft(); // 🔥 clear draft
       setAttendance({});
       setOpen(false);
+
       refresh && refresh();
 
     } catch (err) {
-
       console.error(err);
       alert("Failed to save attendance");
-
     }
 
     setLoading(false);
@@ -154,10 +222,8 @@ function AddAttendance({ refresh }) {
       });
 
     } catch (err) {
-
       console.error(err);
       alert("Failed to add visitor");
-
     }
   };
 
@@ -172,8 +238,8 @@ function AddAttendance({ refresh }) {
         <div className="add-attendance-modal-overlay" onClick={() => setOpen(false)}>
           <div className="add-attendance-page" onClick={(e) => e.stopPropagation()}>
 
+            {/* HEADER */}
             <div className="add-attendance-header">
-
               <h2>Record Attendance</h2>
 
               <div className="add-attendance-controls">
@@ -190,67 +256,42 @@ function AddAttendance({ refresh }) {
                 >
                   <option>Sunday Service</option>
                   <option>Midweek Service</option>
-                  <option>Youth Service</option>
-                  <option>Prayer Meeting</option>
                 </select>
 
               </div>
-
             </div>
 
+            {/* VISITORS */}
             <div className="add-attendance-visitor-section">
 
               <h3>Add Visitor</h3>
 
               <div className="add-attendance-visitor-form">
 
-                <input
-                  name="first_name"
-                  placeholder="First Name"
-                  value={visitorForm.first_name}
-                  onChange={handleVisitorChange}
-                />
-
-                <input
-                  name="last_name"
-                  placeholder="Last Name"
-                  value={visitorForm.last_name}
-                  onChange={handleVisitorChange}
-                />
-
-                <input
-                  name="phone"
-                  placeholder="Phone"
-                  value={visitorForm.phone}
-                  onChange={handleVisitorChange}
-                />
-
-                <input
-                  name="invited_by"
-                  placeholder="Invited By"
-                  value={visitorForm.invited_by}
-                  onChange={handleVisitorChange}
-                />
-
-                <input
-                  name="remarks"
-                  placeholder="Remarks"
-                  value={visitorForm.remarks}
-                  onChange={handleVisitorChange}
-                />
+                <input name="first_name" placeholder="First Name" value={visitorForm.first_name} onChange={handleVisitorChange} />
+                <input name="last_name" placeholder="Last Name" value={visitorForm.last_name} onChange={handleVisitorChange} />
+                <input name="phone" placeholder="Phone" value={visitorForm.phone} onChange={handleVisitorChange} />
+                <input name="invited_by" placeholder="Invited By" value={visitorForm.invited_by} onChange={handleVisitorChange} />
+                <input name="remarks" placeholder="Remarks" value={visitorForm.remarks} onChange={handleVisitorChange} />
 
                 <button className="add-visitor-attendance" onClick={handleAddVisitor}>
                   Add Visitor
                 </button>
 
               </div>
+            </div>
 
+            <div className="attendance-member-search">
+              <input
+                type="text"
+                placeholder="Search member name or code..."
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+              />
             </div>
 
             {/* MEMBERS TABLE */}
-
             <div className="add-attendance-table-wrapper">
-
               <table className="add-attendance-table">
 
                 <thead>
@@ -263,19 +304,11 @@ function AddAttendance({ refresh }) {
                 </thead>
 
                 <tbody>
-
-                  {members.map((member) => (
-
+                  {filteredMembers.map((member) => (
                     <tr key={member.id}>
-
                       <td>{member.member_code}</td>
-
-                      <td>
-                        {member.first_name} {member.last_name}
-                      </td>
-
+                      <td>{member.first_name} {member.last_name}</td>
                       <td>{member.Auxiliary_Group}</td>
-
                       <td>
                         <input
                           type="checkbox"
@@ -283,28 +316,33 @@ function AddAttendance({ refresh }) {
                           onChange={() => handleCheck(member.id)}
                         />
                       </td>
-
                     </tr>
-
                   ))}
-
                 </tbody>
 
               </table>
-
             </div>
 
-            {/* VISITOR FORM */}
+            {/* ACTIONS */}
 
-           
-
+            {Object.values(attendance).some(Boolean) && (
+              <div className="attendance-warning">
+                ⚠️ You have unsaved attendance. Please click "Save Attendance" before leaving.
+              </div>
+            )}
             <div className="add-attendance-actions">
 
-              <button className="add-attendance-cancel-btn" onClick={() => setOpen(false)}>
+              <button
+                className="add-attendance-cancel-btn"
+                onClick={() => setOpen(false)}
+              >
                 Cancel
               </button>
 
-              <button className="add-attendance-save-btn" onClick={handleSubmit}>
+              <button
+                className="add-attendance-save-btn"
+                onClick={handleSubmit}
+              >
                 {loading ? "Saving..." : "Save Attendance"}
               </button>
 

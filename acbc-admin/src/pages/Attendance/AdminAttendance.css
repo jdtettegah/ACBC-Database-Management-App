@@ -334,3 +334,20 @@
     font-size: 24px;
   }
 }
+
+.attendance-edit-btn{
+  border:none;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:600;
+  background:#2d513b;
+  color:white;
+  transition:0.2s ease;
+}
+
+.attendance-edit-btn:hover{
+  opacity:0.85;
+  transform:scale(1.03);
+}

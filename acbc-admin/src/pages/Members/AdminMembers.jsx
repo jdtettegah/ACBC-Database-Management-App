@@ -253,6 +253,22 @@ function AdminMembers() {
 
   const inactive = total - active;
 
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        setViewingMember(null);
+        setEditingMember(null);
+        setDeletingMember(null);
+      }
+    };
+  
+    window.addEventListener("keydown", handleEsc);
+  
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, []);
+
   /* ================= UI ================= */
 
   return (
@@ -449,9 +465,9 @@ function AdminMembers() {
 
       {viewingMember && (
 
-        <div className="member-modal-overlay">
+        <div className="member-modal-overlay" onClick={() => setViewingMember(null)}>
 
-          <div className="member-view-box">
+          <div className="member-view-box" onClick={(e) => e.stopPropagation()}>
 
             <h3>Member Profile</h3>
 
@@ -522,9 +538,9 @@ function AdminMembers() {
 
       {editingMember && (
 
-        <div className="member-modal-overlay">
+        <div className="member-modal-overlay" onClick={() => setEditingMember(null)}>
 
-          <div className="member-form-box">
+          <div className="member-form-box" onClick={(e) => e.stopPropagation()}>
 
             <h3>Edit Member</h3>
 
@@ -673,9 +689,9 @@ function AdminMembers() {
 
       {deletingMember && (
 
-        <div className="member-modal-overlay">
+        <div className="member-modal-overlay"  onClick={() => setDeletingMember(null)}>
 
-          <div className="member-confirm-box">
+          <div className="member-confirm-box" onClick={(e) => e.stopPropagation()}>
 
             <h3>Delete Member</h3>
 

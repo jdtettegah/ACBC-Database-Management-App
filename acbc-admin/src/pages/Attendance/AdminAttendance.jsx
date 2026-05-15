@@ -1,9 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import AddAttendance from "../../components/AddAttendance";
 import "./AdminAttendance.css";
-import { apiRequest } from "../../services/api";
+import { apiRequest, updateAttendance } from "../../services/api";
 import SecretaryDashboardCharts from "../../components/SecretaryDashboardCharts";
 import { ClipboardCheck, FileSpreadsheet } from "lucide-react";
+
+// 🔥 SAME KEY AS AddAttendance
+const STORAGE_KEY = "attendance_draft";
 
 function AdminAttendance() {
 
@@ -19,13 +22,40 @@ function AdminAttendance() {
   const [serviceFilter, setServiceFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
 
-  // ✅ NEW STATES (DO NOT REMOVE YOUR OLD LOGIC)
+  // 🔥 NEW: LIVE DRAFT STATE
+  const [liveDraft, setLiveDraft] = useState({});
+
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState("");
 
   const observer = useRef();
+
+  // ======================
+  // 🔥 LOAD DRAFT (AND WATCH FOR CHANGES)
+  // ======================
+  useEffect(() => {
+
+    const loadDraft = () => {
+      const draft = localStorage.getItem(STORAGE_KEY);
+      setLiveDraft(draft ? JSON.parse(draft) : {});
+    };
+
+    loadDraft();
+
+    // 🔥 listen for changes across tabs/components
+    window.addEventListener("storage", loadDraft);
+
+    // 🔥 polling fallback (important for same-tab updates)
+    const interval = setInterval(loadDraft, 1000);
+
+    return () => {
+      window.removeEventListener("storage", loadDraft);
+      clearInterval(interval);
+    };
+
+  }, []);
 
   // ======================
   // DEBOUNCE SEARCH
@@ -46,7 +76,7 @@ function AdminAttendance() {
     if (initialLoading) {
       setUpdating(false);
     } else if (pageNumber === 1) {
-      setUpdating(true); // ✅ smooth update instead of full reload
+      setUpdating(true);
     } else {
       setLoadingMore(true);
     }
@@ -82,16 +112,13 @@ function AdminAttendance() {
     setLoadingMore(false);
   };
 
-  // ======================
-  // REFETCH ON FILTER CHANGE
-  // ======================
   useEffect(() => {
     setPage(1);
     fetchData(1);
   }, [debouncedSearch, filterDate, typeFilter, serviceFilter, statusFilter]);
 
   // ======================
-  // INFINITE SCROLL (UNCHANGED)
+  // INFINITE SCROLL
   // ======================
   const lastRowRef = useCallback(node => {
 
@@ -116,17 +143,26 @@ function AdminAttendance() {
   }, [loadingMore, page, pagination]);
 
   // ======================
-  // STATS (UNCHANGED 🔥)
+  // 🔥 STATS (UPDATED)
   // ======================
   const today = new Date().toISOString().split("T")[0];
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
-  const presentToday = attendance.filter(
+  // 🔥 LIVE PRESENT COUNT
+  const livePresentCount = Object.values(liveDraft).filter(Boolean).length;
+
+  // 🔥 DB COUNT (fallback)
+  const dbPresentToday = attendance.filter(
     (a) =>
       a.service_date?.split("T")[0] === today &&
       a.status === "Present"
   ).length;
+
+  // 🔥 FINAL VALUE (priority: LIVE > DB)
+  const presentToday = livePresentCount > 0
+    ? livePresentCount
+    : dbPresentToday;
 
   const visitorsToday = attendance.filter(
     (a) =>
@@ -215,9 +251,6 @@ function AdminAttendance() {
     }
   };
 
-  // ======================
-  // INITIAL LOADING (SKELETON)
-  // ======================
   if (initialLoading) {
     return (
       <div className="skeleton-container">
@@ -228,9 +261,6 @@ function AdminAttendance() {
     );
   }
 
-  // ======================
-  // ERROR
-  // ======================
   if (error) {
     return (
       <div className="error-box">
@@ -239,6 +269,39 @@ function AdminAttendance() {
       </div>
     );
   }
+
+  // ======================
+// UPDATE ATTENDANCE
+// ======================
+  const handleUpdateAttendance = async (row) => {
+
+    const newStatus =
+      row.status === "Present"
+        ? "Absent"
+        : "Present";
+
+    try {
+
+      await updateAttendance(row.attendance_code, {
+        service_date: row.service_date?.split("T")[0],
+        service_type: row.service_type,
+        status: newStatus,
+      });
+
+      // instant UI update
+      setAttendance(prev =>
+        prev.map(item =>
+          item.attendance_code === row.attendance_code
+            ? { ...item, status: newStatus }
+            : item
+        )
+      );
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update attendance");
+    }
+  };
 
   return (
     <div className="m-attendance-page fade-in">
@@ -255,11 +318,11 @@ function AdminAttendance() {
         </div>
       </div>
 
-      {/* STATS (UNCHANGED ✅) */}
+      {/* 🔥 UPDATED STATS */}
       <div className="attendance-members-stats">
 
         <div className="attendance-stats-card">
-          <h3>Present Today</h3>
+          <h3>Present Today {livePresentCount > 0 && "(Live)"}</h3>
           <p>{presentToday}</p>
         </div>
 
@@ -280,9 +343,9 @@ function AdminAttendance() {
 
       </div>
 
-      <div>
-        <SecretaryDashboardCharts />
-      </div>
+      <SecretaryDashboardCharts />
+
+      {/* TABLE + rest unchanged */}
 
       <div className="attendance-table-header">Attendance Table</div>
 
@@ -342,6 +405,7 @@ function AdminAttendance() {
               <th>Service</th>
               <th>Status</th>
               <th>Type</th>
+              <th>Action</th>
             </tr>
           </thead>
 
@@ -362,8 +426,23 @@ function AdminAttendance() {
                     <td>{row.member_code}</td>
                     <td>{row.service_date?.split("T")[0]}</td>
                     <td>{row.service_type}</td>
-                    <td className={statusClass}>{row.status}</td>
+
+                    <td className={statusClass}>
+                      {row.status}
+                    </td>
+
                     <td>{row.type}</td>
+
+                    <td>
+                      {row.type === "Member" && (
+                        <button
+                          className="attendance-edit-btn"
+                          onClick={() => handleUpdateAttendance(row)}
+                        >
+                          Mark {row.status === "Present" ? "Absent" : "Present"}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 );
               }
@@ -374,8 +453,23 @@ function AdminAttendance() {
                   <td>{row.member_code}</td>
                   <td>{row.service_date?.split("T")[0]}</td>
                   <td>{row.service_type}</td>
-                  <td className={statusClass}>{row.status}</td>
+
+                  <td className={statusClass}>
+                    {row.status}
+                  </td>
+
                   <td>{row.type}</td>
+
+                  <td>
+                    {row.type === "Member" && (
+                      <button
+                        className="attendance-edit-btn"
+                        onClick={() => handleUpdateAttendance(row)}
+                      >
+                        Mark {row.status === "Present" ? "Absent" : "Present"}
+                      </button>
+                    )}
+                  </td>
                 </tr>
               );
             })}

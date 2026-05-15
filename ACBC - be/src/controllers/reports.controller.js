@@ -537,6 +537,7 @@ const weeklyFinanceChart = async (req, res) => {
  */
 const welfareReport = async (req, res) => {
   try {
+
     const { start, end } = req.query;
 
     if (!start || !end) {
@@ -547,10 +548,12 @@ const welfareReport = async (req, res) => {
 
     const pool = await poolPromise;
 
-    // ===============================
-    // OPENING BALANCE
-    // ===============================
-    const openingIncome = await pool.request()
+    /* ===============================
+       OPENING BALANCE
+    =============================== */
+
+    // EVENT INCOME BEFORE PERIOD
+    const openingEventIncome = await pool.request()
       .input("start", sql.Date, start)
       .query(`
         SELECT ISNULL(SUM(amount),0) as total
@@ -558,6 +561,16 @@ const welfareReport = async (req, res) => {
         WHERE date_paid < @start
       `);
 
+    // DIRECT INCOME BEFORE PERIOD
+    const openingDirectIncome = await pool.request()
+      .input("start", sql.Date, start)
+      .query(`
+        SELECT ISNULL(SUM(amount),0) as total
+        FROM WelfareDirectIncome
+        WHERE date_received < @start
+      `);
+
+    // EXPENSE BEFORE PERIOD
     const openingExpense = await pool.request()
       .input("start", sql.Date, start)
       .query(`
@@ -567,30 +580,63 @@ const welfareReport = async (req, res) => {
         AND status = 'APPROVED'
       `);
 
-    const openingBalance =
-      openingIncome.recordset[0].total -
-      openingExpense.recordset[0].total;
+    const openingIncome =
+      Number(openingEventIncome.recordset[0].total) +
+      Number(openingDirectIncome.recordset[0].total);
 
-    // ===============================
-    // INCOME
-    // ===============================
-    const incomeResult = await pool.request()
+    const openingBalance =
+      openingIncome -
+      Number(openingExpense.recordset[0].total);
+
+    /* ===============================
+       EVENT INCOME
+    =============================== */
+
+    const eventIncomeResult = await pool.request()
       .input("start", sql.Date, start)
       .input("end", sql.Date, end)
       .query(`
         SELECT 
-          we.event_type,
+          we.event_type AS source,
           SUM(wf.amount) as total
         FROM WelfareFunds wf
-        JOIN WelfareEventMembers wem ON wf.event_member_id = wem.id
-        JOIN WelfareEvents we ON wem.event_id = we.id
+        JOIN WelfareEventMembers wem 
+          ON wf.event_member_id = wem.id
+        JOIN WelfareEvents we 
+          ON wem.event_id = we.id
         WHERE wf.date_paid BETWEEN @start AND @end
         GROUP BY we.event_type
       `);
 
-    // ===============================
-    // EXPENSES
-    // ===============================
+    /* ===============================
+       DIRECT INCOME
+    =============================== */
+
+    const directIncomeResult = await pool.request()
+      .input("start", sql.Date, start)
+      .input("end", sql.Date, end)
+      .query(`
+        SELECT 
+          source,
+          SUM(amount) as total
+        FROM WelfareDirectIncome
+        WHERE date_received BETWEEN @start AND @end
+        GROUP BY source
+      `);
+
+    /* ===============================
+       MERGE INCOME
+    =============================== */
+
+    const income = [
+      ...eventIncomeResult.recordset,
+      ...directIncomeResult.recordset
+    ];
+
+    /* ===============================
+       EXPENSES
+    =============================== */
+
     const expenseResult = await pool.request()
       .input("start", sql.Date, start)
       .input("end", sql.Date, end)
@@ -599,37 +645,61 @@ const welfareReport = async (req, res) => {
           et.name as category,
           SUM(we.amount) as total
         FROM WelfareExpenses we
-        JOIN WelfareExpenseTypes et ON we.expense_type_id = et.id
+        JOIN WelfareExpenseTypes et 
+          ON we.expense_type_id = et.id
         WHERE we.date_spent BETWEEN @start AND @end
         AND we.status = 'APPROVED'
         GROUP BY et.name
       `);
 
-    const income = incomeResult.recordset;
     const expenses = expenseResult.recordset;
 
-    const totalIncome = income.reduce((sum, i) => sum + Number(i.total), 0);
-    const totalExpense = expenses.reduce((sum, e) => sum + Number(e.total), 0);
+    /* ===============================
+       TOTALS
+    =============================== */
+
+    const totalIncome = income.reduce(
+      (sum, i) => sum + Number(i.total),
+      0
+    );
+
+    const totalExpense = expenses.reduce(
+      (sum, e) => sum + Number(e.total),
+      0
+    );
 
     const closingBalance =
-      openingBalance + totalIncome - totalExpense;
+      openingBalance +
+      totalIncome -
+      totalExpense;
+
+    /* ===============================
+       RESPONSE
+    =============================== */
 
     res.json({
       start,
       end,
+
       openingBalance,
+
       income,
       expenses,
+
       totalIncome,
       totalExpense,
+
       closingBalance
     });
 
   } catch (err) {
+
     console.error("Welfare Report Error:", err);
+
     res.status(500).json({
       message: "Failed to generate welfare report"
     });
+
   }
 };
 

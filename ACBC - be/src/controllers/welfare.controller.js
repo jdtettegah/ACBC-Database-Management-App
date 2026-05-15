@@ -76,23 +76,39 @@ const createEvent = async (req, res) => {
       return res.json({ success: true, message: "Yearly dues created" });
     }
 
-    // SPECIAL stays same
+    // ✅ SPECIAL EVENT
     const code = generateEventCode("SPECIAL");
 
     const result = await new sql.Request(transaction)
       .input("event_code", sql.VarChar, code)
       .input("event_name", sql.VarChar, event_name)
       .input("event_type", sql.VarChar, "SPECIAL")
-      .input("default_amount", sql.Decimal(18,2), default_amount)
+      .input("default_amount", sql.Decimal(18, 2), default_amount)
       .input("created_by", sql.Int, created_by)
       .query(`
         INSERT INTO WelfareEvents 
-        (event_code,event_name,event_type,default_amount,created_by)
+        (event_code, event_name, event_type, default_amount, created_by)
         OUTPUT INSERTED.id
-        VALUES (@event_code,@event_name,@event_type,@default_amount,@created_by)
+        VALUES (
+          @event_code,
+          @event_name,
+          @event_type,
+          @default_amount,
+          @created_by
+        )
       `);
 
     const eventId = result.recordset[0].id;
+
+    await new sql.Request(transaction)
+      .input("event_id", sql.Int, eventId)
+      .input("amount", sql.Decimal(18,2), default_amount)
+      .query(`
+        INSERT INTO WelfareEventMembers (event_id, member_id, expected_amount)
+        SELECT @event_id, m.id, @amount
+        FROM Members m
+        WHERE m.is_deleted = 0
+      `);
 
     await transaction.commit();
 
@@ -104,6 +120,7 @@ const createEvent = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 /* ================= BULK PAYMENT ================= */
 
@@ -331,11 +348,105 @@ const getMemberFullHistory = async (req, res) => {
   }
 };
 
+
+
+const addDayBornSplit = async (req, res) => {
+
+  const transaction = new sql.Transaction(await poolPromise);
+
+  try {
+
+    const {
+      total_amount,
+      welfare_amount,
+      description,
+      approved_by,
+      recorded_by,
+      date_received
+    } = req.body;
+
+    if (!total_amount || !welfare_amount || !date_received) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    if (welfare_amount > total_amount) {
+      return res.status(400).json({ message: "Welfare amount cannot exceed total" });
+    }
+
+    await transaction.begin();
+
+    const request = new sql.Request(transaction);
+
+    /* ======================
+       1. FULL INCOME
+    ====================== */
+    await request
+      .input("type", sql.NVarChar, "Day Born Offering")
+      .input("amount", sql.Decimal(10,2), total_amount)
+      .input("desc", sql.NVarChar, description || null)
+      .input("user", sql.Int, recorded_by)
+      .input("date", sql.Date, date_received)
+      .query(`
+        INSERT INTO Income
+        (income_type, amount, source_description, recorded_by, date_received)
+        VALUES (@type, @amount, @desc, @user, @date)
+      `);
+
+
+    /* ======================
+       2. EXPENSE (TO WELFARE)
+    ====================== */
+    await request
+      .input("cat", sql.NVarChar, "Welfare Transfer")
+      .input("amt", sql.Decimal(10,2), welfare_amount)
+      .input("desc2", sql.NVarChar, "Transfer from Day Born Offering")
+      .input('approved_by', sql.Int, approved_by)
+      .input("user2", sql.Int, recorded_by)
+      .input("date2", sql.Date, date_received)
+      .query(`
+        INSERT INTO Expenditure
+        (category, amount, description, approved_by, recorded_by, date_spent)
+        VALUES (@cat, @amt, @desc2, @user2, @user2, @date2)
+      `);
+
+
+    /* ======================
+       3. WELFARE INCOME
+    ====================== */
+    await request
+      .input("source", sql.NVarChar, "Day Born Offering")
+      .input("amt2", sql.Decimal(18,2), welfare_amount)
+      .input("desc3", sql.NVarChar, description || null)
+      .input("user3", sql.Int, recorded_by)
+      .input("date3", sql.Date, date_received)
+      .query(`
+        INSERT INTO WelfareDirectIncome
+        (source, amount, description, recorded_by, date_received)
+        VALUES (@source, @amt2, @desc3, @user3, @date3)
+      `);
+
+    await transaction.commit();
+
+    res.json({
+      success: true,
+      message: "Day Born Offering split successfully"
+    });
+
+  } catch (err) {
+
+    await transaction.rollback();
+    console.error(err);
+    res.status(500).json({ message: "Transaction failed" });
+
+  }
+};
+
 module.exports = {
   createEvent,
   recordBulkPayment,
   getEvents,
   getEventMembersFull,
   recordSinglePayment,
-  getMemberFullHistory
+  getMemberFullHistory,
+  addDayBornSplit
 };

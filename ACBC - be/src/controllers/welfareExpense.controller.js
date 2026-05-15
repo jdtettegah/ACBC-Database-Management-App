@@ -160,34 +160,87 @@ const getSingleExpense = async (req, res) => {
 
 const getWelfareSummary = async (req, res) => {
   try {
+
     const pool = await poolPromise;
 
-    const result = await pool.request().query(`
-      SELECT 
-        (SELECT ISNULL(SUM(amount),0) FROM WelfareFunds) AS total_income,
+    /* =========================
+       1️⃣ EVENT INCOME
+    ========================= */
 
-        (SELECT ISNULL(SUM(amount),0) 
-         FROM WelfareExpenses 
-         WHERE status = 'APPROVED') AS total_expense,
-
-        (SELECT ISNULL(SUM(amount),0) 
-         FROM WelfareExpenses 
-         WHERE status = 'APPROVED'
-         AND CAST(date_spent AS DATE) = CAST(GETDATE() AS DATE)
-        ) AS today_expense
+    const welfareFundsResult = await pool.request().query(`
+      SELECT ISNULL(SUM(amount), 0) AS total
+      FROM WelfareFunds
     `);
 
-    const data = result.recordset[0];
+    const welfareFunds =
+      welfareFundsResult.recordset[0].total || 0;
+
+    /* =========================
+       2️⃣ DIRECT WELFARE INCOME
+    ========================= */
+
+    const directIncomeResult = await pool.request().query(`
+      SELECT ISNULL(SUM(amount), 0) AS total
+      FROM WelfareDirectIncome
+    `);
+
+    const directIncome =
+      directIncomeResult.recordset[0].total || 0;
+
+    /* =========================
+       3️⃣ TOTAL INCOME
+    ========================= */
+
+    const totalIncome =
+      Number(welfareFunds) + Number(directIncome);
+
+    /* =========================
+       4️⃣ EXPENSES
+    ========================= */
+
+    const expenseResult = await pool.request().query(`
+      SELECT ISNULL(SUM(amount), 0) AS total
+      FROM WelfareExpenses
+    `);
+
+    const totalExpense =
+      expenseResult.recordset[0].total || 0;
+
+    /* =========================
+       5️⃣ TODAY EXPENSE
+    ========================= */
+
+    const todayExpenseResult = await pool.request().query(`
+      SELECT ISNULL(SUM(amount), 0) AS total
+      FROM WelfareExpenses
+      WHERE CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)
+    `);
+
+    const todayExpense =
+      todayExpenseResult.recordset[0].total || 0;
+
+    /* =========================
+       6️⃣ BALANCE
+    ========================= */
+
+    const balance =
+      Number(totalIncome) - Number(totalExpense);
 
     res.json({
-      total_income: data.total_income,
-      total_expense: data.total_expense,
-      today_expense: data.today_expense,
-      balance: data.total_income - data.total_expense
+      total_income: totalIncome,
+      total_expense: totalExpense,
+      today_expense: todayExpense,
+      balance
     });
 
   } catch (err) {
-    res.status(500).json({ message: "Failed to fetch summary" });
+
+    console.error(err);
+
+    res.status(500).json({
+      message: "Failed to fetch welfare summary"
+    });
+
   }
 };
 
