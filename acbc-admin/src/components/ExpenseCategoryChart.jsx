@@ -26,6 +26,13 @@ const ExpenseCategoryChart = ({ expenses = [] }) => {
     amount: grouped[key],
   }));
 
+  const formatCategory = (name) => {
+    if (name.length > 15) {
+      return name.slice(0, 12) + "...";
+    }
+    return name;
+  };
+
   return (
     <div className="chart-card">
       <h3>Expenses by Category</h3>
@@ -33,7 +40,7 @@ const ExpenseCategoryChart = ({ expenses = [] }) => {
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="category" />
+          <XAxis dataKey="category"  tickFormatter={formatCategory}/>
           <YAxis />
           <Tooltip />
           <Bar dataKey="amount" fill="#ff6b6b" />

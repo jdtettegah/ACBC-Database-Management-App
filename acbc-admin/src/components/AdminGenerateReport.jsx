@@ -122,24 +122,44 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
   
     const doc = new jsPDF();
   
-    // ✅ FORMATTERS
+    // SAFER FONT
+    doc.setFont("helvetica", "normal");
+  
+    /* =========================
+        FORMATTERS
+    ========================= */
+  
     const formatDate = (date) => {
+  
+      if (!date) return "-";
+  
       return new Date(date).toLocaleDateString("en-GB", {
-        day: "numeric",
+        day: "2-digit",
         month: "short",
         year: "numeric",
       });
+  
     };
   
     const formatCurrency = (amount) => {
-      return Number(amount).toLocaleString(undefined, {
+  
+      return new Intl.NumberFormat("en-GH", {
         minimumFractionDigits: 2,
-      });
+        maximumFractionDigits: 2,
+      }).format(Number(amount));
+  
     };
+  
+    const money = (amount) => `GHS ${formatCurrency(amount)}`;
+  
+    /* =========================
+        HEADER
+    ========================= */
   
     doc.addImage(acbcLogo, "PNG", 80, 10, 50, 25);
   
     doc.setFontSize(18);
+  
     doc.text(
       "ACTS CHARISMATIC BAPTIST CHURCH - KWAMO",
       105,
@@ -148,9 +168,16 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
     );
   
     doc.setFontSize(14);
-    doc.text(`${reportType} Report`, 105, 50, { align: "center" });
+  
+    doc.text(
+      `${reportType} Report`,
+      105,
+      50,
+      { align: "center" }
+    );
   
     doc.setFontSize(10);
+  
     doc.text(
       `Period: ${formatDate(startDate)} - ${formatDate(endDate)}`,
       14,
@@ -159,154 +186,347 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
   
     let startY = 70;
   
-    /* ================= TITHE ================= */
+    /* =========================
+        COMMON TABLE STYLE
+    ========================= */
+  
+    const tableStyles = {
+      theme: "grid",
+  
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+        overflow: "linebreak",
+      },
+  
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: 255,
+        fontStyle: "bold",
+      },
+  
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+    };
+  
+    /* =========================
+        TITHE REPORT
+    ========================= */
+  
     if (reportType === "Tithe") {
   
-      doc.text(`Total Members Paid: ${result.totalMembers}`, 14, startY);
-      doc.text(`Total Tithes (GH₵): ${formatCurrency(result.totalTithes)}`, 14, startY + 6);
+      doc.setFontSize(12);
   
-      const rows = result.members?.map(m => [
+      doc.text(
+        `Total Members Paid: ${result.totalMembers}`,
+        14,
+        startY
+      );
+  
+      doc.text(
+        `Total Tithes: ${money(result.totalTithes)}`,
+        14,
+        startY + 7
+      );
+  
+      const rows = result.members?.map((m) => [
         m.member_id,
         `${m.first_name} ${m.last_name || ""}`,
-        formatCurrency(m.amount_paid),
-        formatDate(m.date_paid)
+        money(m.amount_paid),
+        formatDate(m.date_paid),
       ]);
   
       if (rows?.length) {
+  
         autoTable(doc, {
-          startY: startY + 15,
-          head: [["Member ID", "Name", "Amount (GH₵)", "Date"]],
-          body: rows
+          startY: startY + 18,
+  
+          head: [[
+            "Member ID",
+            "Name",
+            "Amount",
+            "Date",
+          ]],
+  
+          body: rows,
+  
+          ...tableStyles,
         });
+  
       }
+  
     }
   
-    /* ================= FINANCIAL ================= */
+    /* =========================
+        FINANCIAL REPORT
+    ========================= */
+  
     if (reportType === "Financial") {
   
       autoTable(doc, {
         startY,
-        head: [["Description", "Amount (GH₵)"]],
-        body: [["Opening Balance", formatCurrency(result.openingBalance)]]
+  
+        head: [["Description", "Amount"]],
+  
+        body: [
+          ["Opening Balance", money(result.openingBalance)],
+        ],
+  
+        ...tableStyles,
       });
   
-      startY = doc.lastAutoTable.finalY + 5;
+      startY = doc.lastAutoTable.finalY + 8;
   
       autoTable(doc, {
         startY,
-        head: [["Income", "Amount (GH₵)"]],
-        body: result.income.map(i => [
+  
+        head: [["Income Type", "Amount"]],
+  
+        body: result.income.map((i) => [
           i.income_type,
-          formatCurrency(i.total)
-        ])
+          money(i.total),
+        ]),
+  
+        ...tableStyles,
       });
   
-      startY = doc.lastAutoTable.finalY + 5;
+      startY = doc.lastAutoTable.finalY + 8;
   
       autoTable(doc, {
         startY,
-        head: [["Expenses", "Amount (GH₵)"]],
-        body: result.expenses.map(e => [
+  
+        head: [["Expense Category", "Amount"]],
+  
+        body: result.expenses.map((e) => [
           e.category,
-          formatCurrency(e.total)
-        ])
+          money(e.total),
+        ]),
+  
+        ...tableStyles,
       });
   
-      startY = doc.lastAutoTable.finalY + 10;
+      startY = doc.lastAutoTable.finalY + 12;
   
       doc.setFontSize(12);
+  
       doc.text(
-        `Closing Balance (GH₵): ${formatCurrency(result.closingBalance)}`,
+        `Total Income: ${money(result.totalIncome)}`,
         14,
         startY
       );
+  
+      doc.text(
+        `Total Expense: ${money(result.totalExpense)}`,
+        14,
+        startY + 7
+      );
+  
+      doc.text(
+        `Closing Balance: ${money(result.closingBalance)}`,
+        14,
+        startY + 14
+      );
+  
     }
   
-    /* ================= ATTENDANCE ================= */
+    /* =========================
+        ATTENDANCE REPORT
+    ========================= */
+  
     if (reportType === "Attendance") {
   
-      doc.text(`Members: ${result.totalMembers}`, 14, startY);
-      doc.text(`Visitors: ${result.totalVisitors}`, 14, startY + 6);
-      doc.text(`Total Attendance: ${result.totalAttendance}`, 14, startY + 12);
+      doc.setFontSize(12);
   
-      const rows = result.services?.map(s => [
+      doc.text(
+        `Unique Members: ${result.totalMembers}`,
+        14,
+        startY
+      );
+  
+      doc.text(
+        `Member Attendance: ${result.totalMemberAttendance}`,
+        14,
+        startY + 7
+      );
+  
+      doc.text(
+        `Visitors: ${result.totalVisitors}`,
+        14,
+        startY + 14
+      );
+  
+      doc.text(
+        `Total Attendance: ${result.totalAttendance}`,
+        14,
+        startY + 21
+      );
+  
+      const rows = result.services?.map((s) => [
         formatDate(s.service_date),
         s.service_type,
         s.members,
         s.visitors,
-        s.total
+        s.total,
       ]);
   
       if (rows?.length) {
+  
         autoTable(doc, {
-          startY: startY + 20,
-          head: [["Date", "Service", "Members", "Visitors", "Total"]],
-          body: rows
+          startY: startY + 32,
+  
+          head: [[
+            "Date",
+            "Service",
+            "Members",
+            "Visitors",
+            "Total",
+          ]],
+  
+          body: rows,
+  
+          ...tableStyles,
         });
+  
       }
+  
     }
   
-    /* ================= VISITORS ================= */
+    /* =========================
+        VISITORS REPORT
+    ========================= */
+  
     if (reportType === "Visitors") {
   
-      doc.text(`Total Visitors: ${result.total}`, 14, startY);
+      doc.setFontSize(12);
   
-      const rows = result.visitors?.map(v => [
+      doc.text(
+        `Total Visitors: ${result.total}`,
+        14,
+        startY
+      );
+  
+      const rows = result.visitors?.map((v) => [
         `${v.first_name} ${v.last_name || ""}`,
         formatDate(v.visit_date),
-        v.service_type
+        v.service_type,
       ]);
   
       if (rows?.length) {
+  
         autoTable(doc, {
           startY: startY + 15,
-          head: [["Name", "Visit Date", "Service"]],
-          body: rows
+  
+          head: [[
+            "Name",
+            "Visit Date",
+            "Service",
+          ]],
+  
+          body: rows,
+  
+          ...tableStyles,
         });
+  
       }
+  
     }
   
-    /* ================= WELFARE ================= */
+    /* =========================
+        WELFARE REPORT
+    ========================= */
+  
     if (reportType === "Welfare") {
   
       autoTable(doc, {
         startY,
-        head: [["Description", "Amount (GH₵)"]],
-        body: [["Opening Balance", formatCurrency(result.openingBalance)]]
+  
+        head: [["Description", "Amount"]],
+  
+        body: [
+          ["Opening Balance", money(result.openingBalance)],
+        ],
+  
+        ...tableStyles,
       });
   
-      startY = doc.lastAutoTable.finalY + 5;
+      startY = doc.lastAutoTable.finalY + 8;
   
       autoTable(doc, {
         startY,
-        head: [["Income Type", "Amount (GH₵)"]],
-        body: result.income.map(i => [
-          i.event_type,
-          formatCurrency(i.total)
-        ])
+  
+        head: [["Income Source", "Amount"]],
+  
+        body: result.income.map((i) => [
+          i.source,
+          money(i.total),
+        ]),
+  
+        ...tableStyles,
       });
   
-      startY = doc.lastAutoTable.finalY + 5;
+      startY = doc.lastAutoTable.finalY + 8;
   
       autoTable(doc, {
         startY,
-        head: [["Expense Category", "Amount (GH₵)"]],
-        body: result.expenses.map(e => [
+  
+        head: [["Expense Category", "Amount"]],
+  
+        body: result.expenses.map((e) => [
           e.category,
-          formatCurrency(e.total)
-        ])
+          money(e.total),
+        ]),
+  
+        ...tableStyles,
       });
   
-      startY = doc.lastAutoTable.finalY + 10;
+      startY = doc.lastAutoTable.finalY + 12;
+  
+      doc.setFontSize(12);
   
       doc.text(
-        `Closing Balance (GH₵): ${formatCurrency(result.closingBalance)}`,
+        `Total Income: ${money(result.totalIncome)}`,
         14,
         startY
       );
-    }
   
-    doc.save(`${reportType}-report.pdf`);
+      doc.text(
+        `Total Expense: ${money(result.totalExpense)}`,
+        14,
+        startY + 7
+      );
+  
+      doc.text(
+        `Closing Balance: ${money(result.closingBalance)}`,
+        14,
+        startY + 14
+      );
+  
+    }
+  /* =========================
+    FOOTER
+    ========================= */
+
+    const pageHeight = doc.internal.pageSize.height;
+    const pageWidth = doc.internal.pageSize.width;
+
+    doc.setFontSize(9);
+
+    doc.text(
+      `Generated on ${formatDate(new Date())}`,
+      pageWidth - 14,
+      pageHeight - 10,
+      { align: "right" }
+    );
+  
+    /* =========================
+        SAVE
+    ========================= */
+  
+    doc.save(
+      `${reportType}-report-${startDate}-to-${endDate}.pdf`
+    );
+  
   };
 
   const closeModal = () => {

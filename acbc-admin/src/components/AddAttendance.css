@@ -264,3 +264,11 @@
   font-size: 14px;
   border: 1px solid #ffeeba;
 }
+
+.attendance-member-search{
+  margin-bottom: 5px;
+}
+
+.attendance-member-search input{
+  width: 300px;
+}

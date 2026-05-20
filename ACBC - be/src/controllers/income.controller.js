@@ -103,11 +103,6 @@ exports.getIncomeByDateRange = async (req, res) => {
                 ORDER BY date_received DESC
             `);
 
-            await logActivity(
-                "finance",
-                `Income recorded: ${income_type} - GHS ${amount}`
-              );
-
         res.json(result.recordset);
 
     } catch (error) {
