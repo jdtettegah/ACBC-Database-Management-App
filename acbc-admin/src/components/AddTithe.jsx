@@ -13,6 +13,7 @@ function AddTithe({ onSaved }) {
   const [paymentReference, setPaymentReference] = useState({});
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [memberSearch, setMemberSearch] = useState("");
 
   const user = getLoggedInUser();
 
@@ -164,6 +165,15 @@ function AddTithe({ onSaved }) {
                   required
                 />
               </div>
+
+              <div className="tithe-member-search">
+              <input
+                type="text"
+                placeholder="Search member name or code..."
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+              />
+            </div>
 
               {/* MEMBERS TABLE */}
               <div className="tithe-table-wrapper full-width">

@@ -1,16 +1,17 @@
 import pool from '../services/db.js';
-import logActivity from "./activity.controller.js";
+import { logActivity } from "./activity.controller.js";
 
 /**
  * ➕ ASSIGN MEMBER TO DEPARTMENT
  */
 const assignMemberToDepartment = async (req, res) => {
-
   const {
     member_id,
-    member_code,
     department_id,
-    date_joined
+    date_joined,
+    is_active,
+    created_at,
+    member_code
   } = req.body;
 
   if (!member_id || !department_id) {
@@ -20,7 +21,6 @@ const assignMemberToDepartment = async (req, res) => {
   }
 
   try {
-
     // Prevent duplicates
     const check = await pool.query(
       `
@@ -44,18 +44,20 @@ const assignMemberToDepartment = async (req, res) => {
       `
       INSERT INTO member_departments (
         member_id,
-        member_code,
         department_id,
         date_joined,
-        is_active
+        is_active,
+        created_at,
+        member_code
       )
-      VALUES ($1, $2, $3, $4, true)
+      VALUES ($1, $2, $3, true, $4, $5)
       `,
       [
         member_id,
-        member_code,
         department_id,
-        date_joined || new Date()
+        date_joined || new Date(),
+        created_at || new Date(), // ✅ FIXED
+        member_code               // ✅ FIXED
       ]
     );
 
@@ -76,7 +78,6 @@ const assignMemberToDepartment = async (req, res) => {
     });
   }
 };
-
 
 /**
  * 📥 GET MEMBERS BY DEPARTMENT

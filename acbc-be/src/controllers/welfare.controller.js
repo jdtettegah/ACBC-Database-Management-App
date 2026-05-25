@@ -40,18 +40,20 @@ const createEvent = async (req, res) => {
       for (let m = 0; m < 12; m++) {
         const date = new Date(year, m, 1);
         const code = generateEventCode("DUES", date);
-
+      
         const check = await client.query(
           `SELECT id FROM welfare_events WHERE event_code = $1`,
           [code]
         );
-
+      
         if (check.rows.length > 0) continue;
-
-        await client.query(
+      
+        // ✅ Create event + get ID
+        const result = await client.query(
           `INSERT INTO welfare_events
            (event_code, event_name, event_type, default_amount, created_by)
-           VALUES ($1, $2, $3, $4, $5)`,
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING id`,
           [
             code,
             `Welfare Dues - ${date.toLocaleString('default', { month: 'long' })} ${year}`,
@@ -59,6 +61,15 @@ const createEvent = async (req, res) => {
             default_amount,
             created_by
           ]
+        );
+      
+        const eventId = result.rows[0].id;
+      
+        // ✅ Assign members
+        await client.query(
+          `INSERT INTO welfare_event_members (event_id, member_id, expected_amount)
+           SELECT $1, id, $2 FROM members WHERE is_deleted = false`,
+          [eventId, default_amount]
         );
       }
 
@@ -322,48 +333,66 @@ const addDayBornSplit = async (req, res) => {
       total_amount,
       welfare_amount,
       description,
-      approved_by,
+      approved_by = 1,
       recorded_by,
       date_received
     } = req.body;
 
-    if (!total_amount || !welfare_amount || !date_received) {
+    if (
+      total_amount === undefined ||
+      welfare_amount === undefined ||
+      !date_received
+    ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    if (welfare_amount > total_amount) {
+    const total = Number(total_amount);
+    const welfare = Number(welfare_amount);
+
+    if (welfare > total) {
       return res.status(400).json({ message: "Invalid split" });
     }
 
-    await client.query('BEGIN');
+    await client.query("BEGIN");
 
+    // 1. Income
     await client.query(
       `INSERT INTO income
        (income_type, amount, source_description, recorded_by, date_received)
        VALUES ('Day Born Offering', $1, $2, $3, $4)`,
-      [total_amount, description, recorded_by, date_received]
+      [total, description, recorded_by, date_received]
     );
 
+    // 2. Expenditure
     await client.query(
       `INSERT INTO expenditure
        (category, amount, description, approved_by, recorded_by, date_spent)
-       VALUES ('Welfare Transfer', $1, $2, $3, $3, $4)`,
-      [welfare_amount, "Transfer from Day Born Offering", approved_by, date_received]
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        "Welfare Transfer",
+        welfare,
+        "Transfer from Day Born Offering",
+        approved_by,
+        recorded_by,
+        date_received
+      ]
     );
 
+    // 3. Welfare income
     await client.query(
       `INSERT INTO welfare_direct_income
        (source, amount, description, recorded_by, date_received)
        VALUES ('Day Born Offering', $1, $2, $3, $4)`,
-      [welfare_amount, description, recorded_by, date_received]
+      [welfare, description, recorded_by, date_received]
     );
 
-    await client.query('COMMIT');
+    await client.query("COMMIT");
 
     res.json({ success: true, message: "Split successful" });
 
   } catch (err) {
-    await client.query('ROLLBACK');
+    await client.query("ROLLBACK");
+    console.error("Day Born Split Error:", err);
     res.status(500).json({ message: "Transaction failed" });
   } finally {
     client.release();

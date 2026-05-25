@@ -1,5 +1,5 @@
 import pool from '../services/db.js';
-import logActivity from "./activity.controller.js";
+import {logActivity} from "./activity.controller.js";
 
 /**
  * ➕ Create Event

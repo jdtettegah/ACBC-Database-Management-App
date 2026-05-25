@@ -48,7 +48,7 @@ const getActivities = async (req, res) => {
   }
 };
 
-export default {
+export {
   logActivity,
   getActivities
 };

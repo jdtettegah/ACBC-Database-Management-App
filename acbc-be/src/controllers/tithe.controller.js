@@ -1,5 +1,5 @@
 import pool from '../services/db.js';
-import logActivity from "./activity.controller.js";
+import { logActivity } from "./activity.controller.js";
 
 /**
  * Generate unique tithe code
@@ -36,7 +36,8 @@ const addTithe = async (req, res) => {
       payment_method,
       payment_reference,
       date_paid,
-      recorded_by
+      recorded_by,
+      member_code
     } = req.body;
 
     if (!member_id || !amount || !date_paid) {
@@ -60,7 +61,7 @@ const addTithe = async (req, res) => {
     }
 
     // Generate code
-    const titheCode = await generateTitheCode(member_id, date_paid);
+    const titheCode = await generateTitheCode(member_code, date_paid);
 
     await pool.query(
       `
@@ -72,9 +73,10 @@ const addTithe = async (req, res) => {
         payment_reference,
         date_paid,
         recorded_by,
-        created_at
+        created_at,
+        member_code
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
+      VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),$8)
       `,
       [
         titheCode,
@@ -83,7 +85,8 @@ const addTithe = async (req, res) => {
         payment_method || null,
         payment_reference || null,
         date_paid,
-        recorded_by || null
+        recorded_by || null,
+        member_code
       ]
     );
 
@@ -169,7 +172,7 @@ const addBulkTithes = async (req, res) => {
     for (const t of tithes) {
       if (!t.member_id || !t.amount || t.amount <= 0) continue;
 
-      const titheCode = await generateTitheCode(t.member_id, date_paid);
+      const titheCode = await generateTitheCode(t.member_code, date_paid);
 
       await pool.query(
         `
@@ -181,9 +184,10 @@ const addBulkTithes = async (req, res) => {
           recorded_by,
           payment_method,
           payment_reference,
-          created_at
+          created_at,
+          member_code
         )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
+        VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),$8)
         `,
         [
           titheCode,
@@ -192,7 +196,8 @@ const addBulkTithes = async (req, res) => {
           date_paid,
           recorded_by || null,
           t.payment_method || "Cash",
-          t.payment_reference || null
+          t.payment_reference || null,
+          t.member_code
         ]
       );
 
@@ -204,7 +209,7 @@ const addBulkTithes = async (req, res) => {
     if (totalAmount > 0) {
       await pool.query(
         `
-        INSERT INTO Income (
+        INSERT INTO income (
           income_type,
           amount,
           source_description,
@@ -229,7 +234,7 @@ const addBulkTithes = async (req, res) => {
       total_amount: totalAmount
     });
 
-    await logActivity(
+    logActivity(
       "tithe",
       `Bulk tithe recorded (${inserted} members, Total: GHS ${totalAmount})`
     );

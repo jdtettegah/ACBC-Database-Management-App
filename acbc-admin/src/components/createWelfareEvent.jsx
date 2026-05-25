@@ -33,13 +33,10 @@ function CreateWelfareEvent({ onCreated }) {
 
       const year = new Date().getFullYear();
 
-      const res = await apiRequest("/welfare/events/create-yearly-dues", {
-        method: "POST",
-        body: JSON.stringify({
-          year,
-          default_amount: Number(amount),
-          created_by: user.id
-        })
+      const res = await createWelfareEvent({
+        event_type: "DUES",
+        default_amount: Number(amount),
+        created_by: user.id
       });
 
       if (!res.success) throw new Error();

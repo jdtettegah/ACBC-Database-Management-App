@@ -125,6 +125,7 @@ function AdminMembers() {
       other_names: member.other_names || "",
       gender: member.gender || "",
       phone: member.phone || "",
+      date_joined: member.date_joined,
       email: member.email || "",
       address: member.address || "",
       baptized: member.baptized ? 1 : 0,

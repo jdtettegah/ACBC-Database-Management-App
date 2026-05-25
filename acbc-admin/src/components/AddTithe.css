@@ -303,3 +303,11 @@
     min-width: 900px;
   }
 }
+
+.tithe-member-search{
+  margin-bottom: 5px;
+}
+
+.tithe-member-search input{
+  width: 300px;
+}
