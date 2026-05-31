@@ -15,7 +15,7 @@ function EditMember({ member, onClose, onSuccess }) {
     membership_status: member.membership_status,
     date_joined: member.date_joined?.split("T")[0] || "",
     baptized: member.baptized ? "Yes" : "No",
-    auxiliary_Group: member.auxiliary_Group || "",
+    auxiliary_group: member.auxiliary_group || "",
   });
 
   const [loading, setLoading] = useState(false);

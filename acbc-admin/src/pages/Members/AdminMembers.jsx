@@ -98,7 +98,7 @@ function AdminMembers() {
       m.last_name,
       m.phone || "",
       m.gender,
-      m.Auxiliary_Group || "",
+      m.auxiliary_group || "",
       m.membership_status,
       m.baptized ? "Yes" : "No"
     ]);
@@ -129,7 +129,7 @@ function AdminMembers() {
       email: member.email || "",
       address: member.address || "",
       baptized: member.baptized ? 1 : 0,
-      Auxiliary_Group: member.Auxiliary_Group || "",
+      auxiliary_group: member.auxiliary_group || "",
       membership_status: member.membership_status || "Active",
       date_of_birth: member.date_of_birth
         ? member.date_of_birth.split("T")[0]
@@ -238,7 +238,7 @@ function AdminMembers() {
 
       && (baptizedFilter === "" || baptizedValue === baptizedFilter)
 
-      && (groupFilter === "" || m.Auxiliary_Group === groupFilter)
+      && (groupFilter === "" || m.auxiliary_group === groupFilter)
 
       && ageMatch
     );
@@ -514,7 +514,7 @@ function AdminMembers() {
 
             <p>
               <b>Group:</b>
-              <span> {viewingMember.Auxiliary_Group || "-"}</span>
+              <span> {viewingMember.auxiliary_group || "-"}</span>
             </p>
 
             <p>
@@ -640,7 +640,7 @@ function AdminMembers() {
                 <label>Auxiliary Group</label>
                 <select
                   name="Auxiliary_Group"
-                  value={editForm.Auxiliary_Group}
+                  value={editForm.auxiliary_group}
                   onChange={handleEditChange}
                 >
                   <option value="">None</option>
