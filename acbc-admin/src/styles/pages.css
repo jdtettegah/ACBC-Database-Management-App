@@ -7,40 +7,44 @@
     display: flex;
     background: #f5f7fa;
     position: relative;
+    justify-content: center;   /* centers horizontally */
+    align-items: center;
+    
   }
 
-  .auth-brand-form{
+  .auth-brand-form {
     display: flex;
     flex-direction: row;
     align-items: center;
-    text-align: center;
     justify-content: center;
-    margin: auto;
+    gap: 40px;
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
   }
-  
   /* ---------- LEFT BRAND ---------- */
   .auth-brand {
     flex: 1;
-    padding: 4rem;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin-left: 100px;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   }
   
   #acbc-logo {
-    width: 500px;
-    margin-top: -120px;
-    margin-left: 50px;
+    width: 260px;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto 10px;
   }
   
   .auth-brand h1 {
-    font-size: 3rem;
+    font-size: 2rem;
     font-weight: 700;
     color: #000;
-    margin-top: -140px;
-    margin-left: 70px;
+    margin: 10px 0;
+    text-align: center;
   }
   
   .auth-brand p {
@@ -48,17 +52,15 @@
     color: #374151;
     max-width: 420px;
     line-height: 1.6;
-    margin-left: 90px;
-    margin-top: 40px
+    text-align: center;
+    margin: 10px auto 0;
   }
-  
   /* ---------- RIGHT FORM ---------- */
   .auth-form {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-right: 180px;
   }
   
   /* CARD */
@@ -209,40 +211,40 @@
     background: #b91c1c;
   }
   
-  @media (max-width: 480px) {
+  @media (max-width: 900px) {
+
+    .auth-brand-form {
+      flex-direction: column;
+      gap: 20px;
+      padding: 10px;
+    }
+  
     .auth-brand {
-      padding: 2rem 1.5rem;
-      align-items: center;
+      padding: 1rem;
       text-align: center;
-      justify-content: center;
-      margin: auto;
+    }
+  
+    .auth-form {
+      width: 100%;
+    }
+  
+    .auth-form form {
+      width: 100%;
+      max-width: 420px;
+      padding: 2rem;
     }
   
     #acbc-logo {
-      width: 280px;
+      width: 180px;
     }
   
     .auth-brand h1 {
       font-size: 1.6rem;
-      align-items: center;
-      text-align: center;
-      justify-content: center;
-      margin: auto;
     }
   
-    .auth-form {
-      padding: 1rem;
-    }
-  
-    .auth-form form {
-      padding: 2rem 1.5rem;
-    }
-
-    .auth-brand-form{
-      align-items: center;
-      text-align: center;
-      justify-content: center;
-      margin: auto;
+    .auth-footer {
+      position: relative;
+      bottom: auto;
+      margin-top: 30px;
     }
   }
-  

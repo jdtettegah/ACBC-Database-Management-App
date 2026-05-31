@@ -8,7 +8,9 @@ import { HandCoins } from "lucide-react";
 function AddTithe({ onSaved }) {
   const [members, setMembers] = useState([]);
   const [amounts, setAmounts] = useState({});
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [paymentMethod, setPaymentMethod] = useState({});
   const [paymentReference, setPaymentReference] = useState({});
   const [open, setOpen] = useState(false);
@@ -33,30 +35,31 @@ function AddTithe({ onSaved }) {
 
   /* Handle Amount */
   const handleAmount = (id, value) => {
-    setAmounts(prev => ({
+    setAmounts((prev) => ({
       ...prev,
-      [id]: value
+      [id]: value,
     }));
   };
 
   const handlePaymentMethod = (id, value) => {
-    setPaymentMethod(prev => ({
+    setPaymentMethod((prev) => ({
       ...prev,
-      [id]: value
+      [id]: value,
     }));
-    // Reset reference if switching to Cash
+
+    // Reset reference if switched to Cash
     if (value === "Cash") {
-      setPaymentReference(prev => ({
+      setPaymentReference((prev) => ({
         ...prev,
-        [id]: ""
+        [id]: "",
       }));
     }
   };
 
   const handlePaymentReference = (id, value) => {
-    setPaymentReference(prev => ({
+    setPaymentReference((prev) => ({
       ...prev,
-      [id]: value
+      [id]: value,
     }));
   };
 
@@ -64,18 +67,27 @@ function AddTithe({ onSaved }) {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    if (!date) return alert("Select date");
+    if (!date) {
+      return alert("Select date");
+    }
 
     const tithes = [];
 
-    for (let m of members) {
+    for (const m of members) {
       const amt = amounts[m.id];
-      if (amt && amt > 0) {
+
+      if (amt && Number(amt) > 0) {
         const method = paymentMethod[m.id] || "Cash";
-        const reference = method === "Momo" ? paymentReference[m.id] : null;
+
+        const reference =
+          method === "Momo"
+            ? paymentReference[m.id]?.trim()
+            : null;
 
         if (method === "Momo" && !reference) {
-          return alert(`Payment reference required for ${m.first_name} ${m.last_name}`);
+          return alert(
+            `Payment reference required for ${m.first_name} ${m.last_name}`
+          );
         }
 
         tithes.push({
@@ -83,12 +95,14 @@ function AddTithe({ onSaved }) {
           member_code: m.member_code,
           amount: parseFloat(amt),
           payment_method: method,
-          payment_reference: reference
+          payment_reference: reference,
         });
       }
     }
 
-    if (!tithes.length) return alert("No tithe entered");
+    if (!tithes.length) {
+      return alert("No tithe entered");
+    }
 
     try {
       setLoading(true);
@@ -96,7 +110,7 @@ function AddTithe({ onSaved }) {
       const res = await saveBulkTithe({
         date_paid: date,
         recorded_by: user.id,
-        tithes
+        tithes,
       });
 
       alert(`Saved ${res.count} tithes`);
@@ -105,29 +119,51 @@ function AddTithe({ onSaved }) {
       setAmounts({});
       setPaymentMethod({});
       setPaymentReference({});
-      setDate("");
+      setDate(new Date().toISOString().split("T")[0]);
+      setMemberSearch("");
 
-      if (onSaved) onSaved();
+      if (onSaved) {
+        onSaved();
+      }
     } catch (err) {
       alert(err.message || "Failed to save tithes");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
+  /* ESC closes modal */
   useEffect(() => {
     const handleEsc = (e) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
     };
-  
+
     if (open) {
       window.addEventListener("keydown", handleEsc);
     }
-  
+
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
   }, [open]);
+
+  /* Search */
+  const filteredMembers = members.filter((m) => {
+    const term = memberSearch.toLowerCase().trim();
+
+    if (!term) return true;
+
+    return (
+      `${m.first_name || ""} ${m.last_name || ""}`
+        .toLowerCase()
+        .includes(term) ||
+      String(m.member_code || "")
+        .toLowerCase()
+        .includes(term)
+    );
+  });
 
   return (
     <>
@@ -141,9 +177,14 @@ function AddTithe({ onSaved }) {
       </button>
 
       {open && (
-        <div className="add-tithe-modal-overlay" onClick={() => setOpen(false)}>
-          <div className="transaction-page tithe-container" onClick={(e) => e.stopPropagation()}>
-
+        <div
+          className="add-tithe-modal-overlay"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            className="transaction-page tithe-container"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* HEADER */}
             <div className="add-tithe-header">
               <h2>Record Tithe</h2>
@@ -161,19 +202,22 @@ function AddTithe({ onSaved }) {
                 <input
                   type="date"
                   value={date}
-                  onChange={e => setDate(e.target.value)}
+                  onChange={(e) => setDate(e.target.value)}
                   required
                 />
               </div>
 
-              <div className="tithe-member-search">
-              <input
-                type="text"
-                placeholder="Search member name or code..."
-                value={memberSearch}
-                onChange={(e) => setMemberSearch(e.target.value)}
-              />
-            </div>
+              {/* SEARCH */}
+              <div className="tithe-member-search full-width">
+                <input
+                  type="text"
+                  placeholder="Search member name or code..."
+                  value={memberSearch}
+                  onChange={(e) =>
+                    setMemberSearch(e.target.value)
+                  }
+                />
+              </div>
 
               {/* MEMBERS TABLE */}
               <div className="tithe-table-wrapper full-width">
@@ -185,46 +229,93 @@ function AddTithe({ onSaved }) {
                       <th>Member ID</th>
                       <th>Amount (GHS)</th>
                       <th>Payment Method</th>
-                      <th>Reference (if Momo)</th>
+                      <th>Reference</th>
                     </tr>
                   </thead>
+
                   <tbody>
-                    {members.map((m, i) => (
-                      <tr key={m.id}>
-                        <td>{i + 1}</td>
-                        <td>{m.first_name} {m.last_name}</td>
-                        <td>{m.member_code}</td>
-                        <td>
-                          <input
-                            type="number"
-                            min="0"
-                            placeholder="0.00"
-                            value={amounts[m.id] || ""}
-                            onChange={e => handleAmount(m.id, e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <select
-                            value={paymentMethod[m.id] || "Cash"}
-                            onChange={e => handlePaymentMethod(m.id, e.target.value)}
-                          >
-                            <option value="Cash">Cash</option>
-                            <option value="Momo">Momo</option>
-                          </select>
-                        </td>
-                        <td>
-                          {paymentMethod[m.id] === "Momo" && (
+                    {filteredMembers.length > 0 ? (
+                      filteredMembers.map((m, i) => (
+                        <tr key={m.id}>
+                          <td>{i + 1}</td>
+
+                          <td>
+                            {m.first_name} {m.last_name}
+                          </td>
+
+                          <td>{m.member_code}</td>
+
+                          <td>
                             <input
-                              type="text"
-                              placeholder="Reference"
-                              value={paymentReference[m.id] || ""}
-                              onChange={e => handlePaymentReference(m.id, e.target.value)}
-                              required
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={amounts[m.id] || ""}
+                              onChange={(e) =>
+                                handleAmount(
+                                  m.id,
+                                  e.target.value
+                                )
+                              }
                             />
-                          )}
+                          </td>
+
+                          <td>
+                            <select
+                              value={
+                                paymentMethod[m.id] || "Cash"
+                              }
+                              onChange={(e) =>
+                                handlePaymentMethod(
+                                  m.id,
+                                  e.target.value
+                                )
+                              }
+                            >
+                              <option value="Cash">
+                                Cash
+                              </option>
+                              <option value="Momo">
+                                Momo
+                              </option>
+                            </select>
+                          </td>
+
+                          <td>
+                            {paymentMethod[m.id] ===
+                              "Momo" && (
+                              <input
+                                type="text"
+                                placeholder="Reference"
+                                value={
+                                  paymentReference[m.id] ||
+                                  ""
+                                }
+                                onChange={(e) =>
+                                  handlePaymentReference(
+                                    m.id,
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan="6"
+                          style={{
+                            textAlign: "center",
+                            padding: "20px",
+                          }}
+                        >
+                          No members found
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -247,7 +338,6 @@ function AddTithe({ onSaved }) {
                   {loading ? "Saving..." : "Save"}
                 </button>
               </div>
-
             </form>
           </div>
         </div>

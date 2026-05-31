@@ -113,6 +113,7 @@
   cursor: pointer;
   transition: 0.25s ease;
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+  
 }
 
 .add-user-box button:hover {
@@ -180,10 +181,14 @@
 @media (max-width: 768px) {
   .add-user-box {
     padding: 22px;
+    justify-content: center;   /* centers horizontally */
+    align-items: center;
   }
 
   .add-user-box button,
   .add-user-cancel-btn {
     width: 100%;
+    justify-content: center;   /* centers horizontally */
+    align-items: center;
   }
 }

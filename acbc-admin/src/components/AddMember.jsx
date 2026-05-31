@@ -27,7 +27,7 @@ function AddMember({ onSuccess}) {
 
     baptized: false,
 
-    Auxiliary_Group: "",
+    auxiliary_group: "",
   });
 
   /* Generate Member Code */
@@ -101,7 +101,7 @@ function AddMember({ onSuccess}) {
 
         baptized: false,
 
-        Auxiliary_Group: "",
+        auxiliary_group: "",
       });
     } catch (err) {
       console.error(err);
@@ -262,8 +262,8 @@ function AddMember({ onSuccess}) {
                 <div className="add-member-form-group">
                   <label>Auxiliary Group</label>
                   <select
-                    name="Auxiliary_Group"
-                    value={formData.Auxiliary_Group}
+                    name="auxiliary_group"
+                    value={formData.auxiliary_group}
                     onChange={handleChange}
                   >
                     <option value="">Select</option>

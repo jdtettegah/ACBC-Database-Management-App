@@ -58,7 +58,7 @@ const createMember = async (req, res) => {
     membership_status,
     date_joined,
     baptized,
-    Auxiliary_Group
+    auxiliary_group
   } = req.body;
 
   if (!member_code || !first_name || !last_name || !gender || !date_of_birth || !membership_status) {
@@ -116,7 +116,7 @@ const createMember = async (req, res) => {
         membership_status,
         date_joined || new Date(),
         baptized ?? false,
-        Auxiliary_Group || null
+        auxiliary_group || null
       ]
     );
 
@@ -222,7 +222,7 @@ const updateMember = async (req, res) => {
     membership_status,
     date_joined,
     baptized,
-    Auxiliary_Group
+    auxiliary_group
   } = req.body;
 
   if (!first_name || !last_name || !gender || !date_of_birth || !membership_status) {
@@ -265,7 +265,7 @@ const updateMember = async (req, res) => {
         membership_status,
         date_joined || null,
         baptized ?? false,
-        Auxiliary_Group || null,
+        auxiliary_group || null,
         id
       ]
     );

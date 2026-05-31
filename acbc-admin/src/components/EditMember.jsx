@@ -15,7 +15,7 @@ function EditMember({ member, onClose, onSuccess }) {
     membership_status: member.membership_status,
     date_joined: member.date_joined?.split("T")[0] || "",
     baptized: member.baptized ? "Yes" : "No",
-    Auxiliary_Group: member.Auxiliary_Group || "",
+    auxiliary_Group: member.auxiliary_Group || "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -167,8 +167,8 @@ function EditMember({ member, onClose, onSuccess }) {
             </select>
 
             <input
-              name="Auxiliary_Group"
-              value={formData.Auxiliary_Group}
+              name="auxiliary_group"
+              value={formData.auxiliary_group}
               onChange={handleChange}
               placeholder="Auxiliary Group"
             />

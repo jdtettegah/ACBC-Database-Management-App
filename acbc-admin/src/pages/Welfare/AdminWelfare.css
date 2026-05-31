@@ -182,7 +182,6 @@
 
 .welfare-table {
   width: 100%;
-  min-width: 850px;
   border-collapse: collapse;
 }
 
@@ -266,27 +265,207 @@
   background: #cbd5e1;
   cursor: not-allowed;
 }
-
 /* ========================================
    RESPONSIVE
 ======================================== */
-@media (max-width: 768px) {
+
+@media (max-width: 1024px) {
+
   .welfare-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
+}
+
+
+@media (max-width: 768px) {
+
+  .welfare-page {
+    gap: 18px;
+  }
+
+  /* HEADER */
+  .welfare-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  /* TITLE */
+  .welfare-title-text {
+    font-size: 22px;
+  }
+
+  .welfare-title-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  /* ACTION BUTTONS */
+  .welfare-buttons-grid {
+    flex-direction: column;
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .welfare-button,
+  .welfare-button button,
+  .add-welfare-button {
+    width: 200px;
+  }
+
+  .add-welfare-button {
+    justify-content: center;
+  }
+
+  /* STATS */
+  .welfare-stats {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .welfare-stats-card {
+    padding: 1rem;
+  }
+
+  .welfare-stats-card p {
+    font-size: 24px;
+  }
+
+  /* CONTROLS */
   .welfare-controls {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .welfare-buttons-grid {
-    flex-direction: column;
+    background: #ffffff;
+    padding: 14px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
   }
 
   .wide-select,
   .wide-search,
   .welfare-export-btn {
     width: 100%;
+    min-width: unset;
   }
+
+  .welfare-export-btn {
+    justify-content: center;
+  }
+
+  /* TABLE WRAPPER */
+  .welfare-table-wrapper {
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  /* MOBILE CARD TABLE */
+  .welfare-table,
+  .welfare-table thead,
+  .welfare-table tbody,
+  .welfare-table th,
+  .welfare-table td,
+  .welfare-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  /* HIDE HEADER */
+  .welfare-table thead {
+    display: none;
+  }
+
+  /* CARD */
+  .welfare-table tr {
+    background: #ffffff;
+    margin-bottom: 16px;
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    border: 1px solid #eef2f7;
+  }
+
+  /* CELLS */
+  .welfare-table td {
+    border: none;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    font-size: 14px;
+    color: #334155;
+  }
+
+  .welfare-table td::before {
+    font-weight: 700;
+    color: #64748b;
+    min-width: 110px;
+  }
+
+  /* LABELS */
+  .welfare-table td:nth-child(1)::before {
+    content: "Member";
+  }
+
+  .welfare-table td:nth-child(2)::before {
+    content: "Expected";
+  }
+
+  .welfare-table td:nth-child(3)::before {
+    content: "Paid";
+  }
+
+  .welfare-table td:nth-child(4)::before {
+    content: "Balance";
+  }
+
+  .welfare-table td:nth-child(5)::before {
+    content: "Status";
+  }
+
+  .welfare-table td:nth-child(6)::before {
+    content: "Action";
+  }
+
+  /* PAY BUTTON */
+  .pay-btn {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* STATUS */
+  .status {
+    font-size: 12px;
+  }
+
+}
+
+
+@media (max-width: 480px) {
+
+  .welfare-title-text {
+    font-size: 20px;
+  }
+
+  .welfare-table tr {
+    padding: 12px;
+  }
+
+  .welfare-table td {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .welfare-table td::before {
+    min-width: unset;
+  }
+
+  .pay-btn {
+    width: 100%;
+  }
+
 }

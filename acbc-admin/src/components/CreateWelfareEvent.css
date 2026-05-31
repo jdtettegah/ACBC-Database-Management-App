@@ -234,10 +234,13 @@
 
   .add-welfareEvent-modal-actions {
     flex-direction: column;
+    justify-content: center;   /* centers horizontally */
+    align-items: center;
   }
 
   .add-welfareEvent-cancel-btn,
   .add-welfareEvent-submit-btn {
     width: 100%;
+    
   }
 }

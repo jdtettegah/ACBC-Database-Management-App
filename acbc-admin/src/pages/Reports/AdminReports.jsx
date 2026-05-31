@@ -97,7 +97,6 @@ function AdminReports() {
 
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Title</th>
                 <th>Category</th>
                 <th>Period</th>
@@ -120,7 +119,7 @@ function AdminReports() {
 
                   <tr key={report.id}>
 
-                    <td>{report.id}</td>
+                  
                     <td>{report.title}</td>
                     <td>{report.category}</td>
                     <td>{report.period}</td>
@@ -136,21 +135,23 @@ function AdminReports() {
                     </td>
 
                     <td>
+                      <div className="report-action-group">
 
-                      <button
-                        className="report-view-btn"
-                        onClick={() => setSelectedReport(report)}
-                      >
-                        View
-                      </button>
+                        <button
+                          className="report-view-btn"
+                          onClick={() => setSelectedReport(report)}
+                        >
+                          View
+                        </button>
 
-                      <button
-                        className="report-download-btn"
-                        onClick={() => setSelectedReport(report)}
-                      >
-                        Download
-                      </button>
+                        <button
+                          className="report-download-btn"
+                          onClick={() => setSelectedReport(report)}
+                        >
+                          Download
+                        </button>
 
+                      </div>
                     </td>
 
                   </tr>

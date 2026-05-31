@@ -344,11 +344,12 @@
     transform: translateY(0);
   }
 }
-
 /* ========================================
    RESPONSIVE
 ======================================== */
+
 @media (max-width: 1024px) {
+
   .department-stats-cards {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -356,27 +357,211 @@
   .departments-layout {
     grid-template-columns: 1fr;
   }
+
+  .departments-list {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+
+  .departments-list h3 {
+    display: none;
+  }
+
+  .dept-item {
+    white-space: nowrap;
+    min-width: fit-content;
+  }
 }
 
 @media (max-width: 768px) {
+
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  .departments-page {
+    gap: 18px;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
   .departments-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 14px;
   }
 
+  .department-title-text {
+    font-size: 22px;
+  }
+
+  .department-title-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .department-action-btn,
+  .add-department-button {
+    width: 200px;
+  }
+
+  .add-department-button {
+    justify-content: center;
+  }
+
+  /* STATS */
   .department-stats-cards {
     grid-template-columns: 1fr;
+    gap: 14px;
   }
 
+  .department-stats-card {
+    padding: 1rem;
+  }
+
+  .department-stats-card p {
+    font-size: 22px;
+  }
+
+  /* FORM */
+  .dept-form {
+    max-width: 100%;
+    padding: 18px;
+  }
+
+  .department-form-actions {
+    flex-direction: column;
+  }
+
+  .department-save-btn,
+  .department-cancel-btn {
+    width: 100%;
+  }
+
+  /* LAYOUT */
+  .departments-layout {
+    gap: 16px;
+  }
+
+  /* DEPARTMENT LIST */
+  .departments-list {
+    border-radius: 14px;
+  }
+
+  .dept-item {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  /* PANEL */
+  .department-panel {
+    padding: 16px;
+    overflow: hidden;
+  }
+
+  /* ASSIGN */
   .department-assign-box {
     flex-direction: column;
+  }
+
+  .department-assign-box button {
+    width: 100%;
+  }
+
+  /* TABLE TO CARDS */
+  .dept-table,
+  .dept-table thead,
+  .dept-table tbody,
+  .dept-table th,
+  .dept-table td,
+  .dept-table tr {
+    display: block;
+    width: 100%;
   }
 
   .dept-table {
     min-width: 100%;
   }
 
+  .dept-table thead {
+    display: none;
+  }
+
+  .dept-table tr {
+    background: #ffffff;
+    margin-bottom: 14px;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    border: 1px solid #eef2f7;
+    overflow: hidden;
+  }
+
+  .dept-table td {
+    border: none;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .dept-table td::before {
+    font-weight: 700;
+    color: #64748b;
+    min-width: 80px;
+  }
+
+  .dept-table td:nth-child(1)::before {
+    content: "Name";
+  }
+
+  .dept-table td:nth-child(2)::before {
+    content: "Phone";
+  }
+
+  .dept-table td:nth-child(3)::before {
+    content: "Action";
+  }
+
+  /* REMOVE BUTTON */
+  .department-delete-btn {
+    width: 100px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .department-title-text {
+    font-size: 20px;
+  }
+
+  .dept-table td {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .dept-table td::before {
+    min-width: unset;
+  }
+
   .department-panel {
-    overflow-x: auto;
+    padding: 14px;
+  }
+
+  .dept-form {
+    padding: 14px;
   }
 }

@@ -290,8 +290,11 @@
 /* =========================
    RESPONSIVE
 ========================= */
+
 @media (max-width: 1024px) {
-  .members-stats {
+
+  /* FIXED TYPO */
+  .attendance-members-stats {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -301,37 +304,189 @@
 }
 
 @media (max-width: 768px) {
-  .attendance-header {
-    flex-direction: column;
-    align-items: flex-start;
+
+  .m-attendance-page {
+    gap: 18px;
   }
 
+  /* HEADER */
+  .attendance-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .attendance-action-btn {
+    width: 100%;
+  }
+
+  .attendance-action-btn button {
+    width: 200px;
+  }
+
+  /* TITLE */
+  .attendance-title-text {
+    font-size: 22px;
+  }
+
+  .attendance-title-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  /* STATS */
+  .attendance-members-stats {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .attendance-stats-card {
+    padding: 1rem;
+  }
+
+  .attendance-stats-card p {
+    font-size: 24px;
+  }
+
+  /* FILTERS */
   .attendance-controls {
     flex-direction: column;
+    padding: 14px;
   }
 
   .attendance-controls input,
   .attendance-controls select {
     width: 100%;
     min-width: unset;
+    font-size: 15px;
   }
 
+  /* EXPORT BUTTON */
+  .attendance-export-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* TABLE WRAPPER */
   .attendance-table-wrapper {
-    overflow-x: auto;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
   }
 
-  .attendance-table {
-    min-width: 750px;
+  /* TURN TABLE INTO CARDS */
+  .attendance-table,
+  .attendance-table thead,
+  .attendance-table tbody,
+  .attendance-table th,
+  .attendance-table td,
+  .attendance-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  /* HIDE HEADERS */
+  .attendance-table thead {
+    display: none;
+  }
+
+  /* CARD ROW */
+  .attendance-table tr {
+    background: #ffffff;
+    margin-bottom: 16px;
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    border: 1px solid #eef2f7;
+  }
+
+  /* EACH CELL */
+  .attendance-table td {
+    border: none;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    font-size: 14px;
+  }
+
+  .attendance-table td::before {
+    font-weight: 700;
+    color: #64748b;
+    min-width: 110px;
+  }
+
+  /* LABELS */
+  .attendance-table td:nth-child(1)::before {
+    content: "Name";
+  }
+
+  .attendance-table td:nth-child(2)::before {
+    content: "Member Code";
+  }
+
+  .attendance-table td:nth-child(3)::before {
+    content: "Date";
+  }
+
+  .attendance-table td:nth-child(4)::before {
+    content: "Service";
+  }
+
+  .attendance-table td:nth-child(5)::before {
+    content: "Status";
+  }
+
+  .attendance-table td:nth-child(6)::before {
+    content: "Type";
+  }
+
+  .attendance-table td:nth-child(7)::before {
+    content: "Action";
+  }
+
+  /* BUTTON */
+  .attendance-edit-btn {
+    width: 100px;
+    justify-content: center;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* STATUS */
+  .status.present,
+  .status.absent {
+    font-size: 13px;
+  }
+
+  .loading-more {
+    font-size: 13px;
   }
 }
 
-@media (max-width: 600px) {
-  .members-stats {
-    grid-template-columns: 1fr;
+@media (max-width: 480px) {
+
+  .attendance-title-text {
+    font-size: 20px;
   }
 
-  .attendance-table-header {
-    font-size: 24px;
+  .attendance-table tr {
+    padding: 12px;
+  }
+
+  .attendance-table td {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .attendance-table td::before {
+    min-width: unset;
+  }
+
+  .attendance-edit-btn {
+    width: 100%;
   }
 }
 
@@ -345,6 +500,7 @@
   background:#2d513b;
   color:white;
   transition:0.2s ease;
+  width: 100px;
 }
 
 .attendance-edit-btn:hover{

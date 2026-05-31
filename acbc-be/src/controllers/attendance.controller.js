@@ -162,7 +162,7 @@ const getAllAttendance = async (req, res) => {
           a.service_date,
           a.service_type,
           a.status,
-          'Member' AS type
+          'member' AS type
         FROM "attendance" a
         JOIN "members" m ON a.member_id = m.id
 
