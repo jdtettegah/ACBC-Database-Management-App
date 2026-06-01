@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import AddTransaction from "../../components/AddTransaction";
 import IncomeExpenseChart from "../../components/IncomeExpenseChart";
 import IncomeCategoryChart from "../../components/IncomeCategoryChart";
-import { getIncome, getExpenses } from "../../services/api";
+import { getIncome, getExpenses, deleteIncome, deleteExpenditure, updateIncome, updateExpenditure } from "../../services/api";
 
 import "./FinancialSecretaryFinance.css";
 import "./AdminFinance.css"
