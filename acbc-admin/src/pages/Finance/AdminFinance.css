@@ -346,6 +346,127 @@
   }
 }
 
+/* ================= ACTION BUTTONS ================= */
+.finance-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.finance-edit-btn,
+.finance-delete-btn {
+  border: none;
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-weight: 500;
+}
+
+/* EDIT */
+.finance-edit-btn {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.finance-edit-btn:hover {
+  background: #c7d2fe;
+  transform: translateY(-1px);
+}
+
+/* DELETE */
+.finance-delete-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.finance-delete-btn:hover {
+  background: #fecaca;
+  transform: translateY(-1px);
+}
+
+/* ================= EDIT MODAL ================= */
+.edit-transaction-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(4px);
+}
+
+/* Modal Box */
+.edit-transaction-modal-box {
+  background: #ffffff;
+  padding: 22px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.25s ease;
+}
+
+.edit-transaction-modal-box h3 {
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Inputs */
+.edit-transaction-modal-box input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+.edit-transaction-modal-box input:focus {
+  border-color: #4d4dea;
+  box-shadow: 0 0 0 3px rgba(77, 77, 234, 0.15);
+}
+
+/* Save Button */
+.edit-transaction-save-button {
+  width: 100%;
+  padding: 10px;
+  background: #4d4dea;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.edit-transaction-save-button:hover {
+  background: #3c3cd9;
+  transform: translateY(-1px);
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+
 @media (max-width: 480px) {
 
   .finance-title-text {

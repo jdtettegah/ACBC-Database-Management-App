@@ -15,4 +15,7 @@ router.get('/finance/weekly', reportsController.weeklyFinanceChart);
 
 router.get('/welfare', reportsController.welfareReport);
 
+router.delete("/:id", reportsController.deleteReport);
+router.delete("/", reportsController.clearReports);
+
 export default router;

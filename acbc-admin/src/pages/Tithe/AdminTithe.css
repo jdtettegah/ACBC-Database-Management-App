@@ -398,3 +398,85 @@
   }
 
 }
+
+/* ================= ACTION BUTTONS ================= */
+.tithe-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.tithe-edit-btn,
+.tithe-delete-btn {
+  border: none;
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.tithe-edit-btn {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.tithe-delete-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.tithe-edit-btn:hover {
+  background: #c7d2fe;
+}
+
+.tithe-delete-btn:hover {
+  background: #fecaca;
+}
+
+/* ================= MODAL ================= */
+.tithe-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.tithe-modal-box {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.tithe-modal-box input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.tithe-save-btn {
+  width: 100%;
+  padding: 10px;
+  background: #4d4dea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* MOBILE FIX */
+@media (max-width: 768px) {
+  .tithe-actions {
+    flex-direction: column;
+  }
+
+  .tithe-table td:nth-child(9)::before {
+    content: "Actions";
+  }
+}

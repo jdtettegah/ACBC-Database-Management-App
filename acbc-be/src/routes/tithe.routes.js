@@ -7,5 +7,7 @@ router.post('/', titheController.addTithe);
 router.get('/', titheController.getAllTithes);
 router.get('/member/:memberId', titheController.getTithesByMember);
 router.post('/bulk', titheController.addBulkTithes);
+router.put('/:id', titheController.updateTithe);
+router.delete('/:id', titheController.deleteTithe);
 
 export default router;

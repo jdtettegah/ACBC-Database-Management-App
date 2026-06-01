@@ -308,7 +308,7 @@ function AddAttendance({ refresh }) {
                     <tr key={member.id}>
                       <td>{member.member_code}</td>
                       <td>{member.first_name} {member.last_name}</td>
-                      <td>{member.Auxiliary_Group}</td>
+                      <td>{member.auxiliary_group}</td>
                       <td>
                         <input
                           type="checkbox"

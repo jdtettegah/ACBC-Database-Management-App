@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import AdminGenerateReport from "../../components/AdminGenerateReport";
 import "./AdminReports.css";
 
-import { getAllReports } from "../../services/api";
+import { getAllReports, deleteReport, clearReports } from "../../services/api";
 import { FileText } from "lucide-react";
 
 function AdminReports() {
@@ -34,6 +34,28 @@ function AdminReports() {
   useEffect(() => {
     loadReports();
   }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this report?")) return;
+  
+    try {
+      await deleteReport(id);
+      loadReports();
+    } catch {
+      alert("Failed to delete report");
+    }
+  };
+  
+  const handleClearAll = async () => {
+    if (!window.confirm("Clear ALL report history? This cannot be undone!")) return;
+  
+    try {
+      await clearReports();
+      loadReports();
+    } catch {
+      alert("Failed to clear reports");
+    }
+  };
 
   return (
 
@@ -81,6 +103,16 @@ function AdminReports() {
           <h3>Pending</h3>
           <p>{reports.filter(r => r.status === "Pending").length}</p>
         </div>
+
+      </div>
+
+      <div className="report-clear-div">
+        <button
+          className="report-clear-btn"
+          onClick={handleClearAll}
+        >
+          Clear History
+        </button>
 
       </div>
 
@@ -145,15 +177,14 @@ function AdminReports() {
                         </button>
 
                         <button
-                          className="report-download-btn"
-                          onClick={() => setSelectedReport(report)}
+                          className="report-delete-btn"
+                          onClick={() => handleDelete(report.id)}
                         >
-                          Download
+                          Delete
                         </button>
 
                       </div>
                     </td>
-
                   </tr>
 
                 ))

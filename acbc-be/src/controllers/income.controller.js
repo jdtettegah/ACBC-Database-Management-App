@@ -127,8 +127,79 @@ const getIncomeByDateRange = async (req, res) => {
   }
 };
 
+/* ✏️ UPDATE INCOME */
+const updateIncome = async (req, res) => {
+  const { id } = req.params;
+
+  const {
+    income_type,
+    amount,
+    source_description,
+    member_id,
+    recorded_by,
+    date_received
+  } = req.body;
+
+  try {
+    const result = await pool.query(
+      `
+      UPDATE income
+      SET
+        income_type = $1,
+        amount = $2,
+        source_description = $3,
+        member_id = $4,
+        recorded_by = $5,
+        date_received = $6
+      WHERE id = $7
+      RETURNING *
+      `,
+      [
+        income_type,
+        amount,
+        source_description || null,
+        member_id || null,
+        recorded_by,
+        date_received,
+        id
+      ]
+    );
+
+    res.json(result.rows[0]);
+
+    await logActivity(
+      "finance",
+      `Income updated: ${income_type} - GHS ${amount}`
+    );
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to update income" });
+  }
+};
+
+
+/* 🗑 DELETE INCOME */
+const deleteIncome = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query(`DELETE FROM income WHERE id = $1`, [id]);
+
+    res.json({ message: "Income deleted successfully" });
+
+    await logActivity("finance", `Income deleted (ID: ${id})`);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete income" });
+  }
+};
+
 export default {
   addIncome,
   getAllIncome,
-  getIncomeByDateRange
+  getIncomeByDateRange,
+  updateIncome,
+  deleteIncome
 };

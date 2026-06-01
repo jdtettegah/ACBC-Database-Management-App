@@ -563,6 +563,53 @@ const welfareReport = async (req, res) => {
   }
 };
 
+/**
+ * ❌ DELETE SINGLE REPORT
+ */
+const deleteReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `DELETE FROM reports WHERE id = $1 RETURNING *`,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        message: "Report not found"
+      });
+    }
+
+    res.json({
+      message: "Report deleted successfully"
+    });
+
+  } catch (err) {
+    console.error("Delete Report Error:", err);
+    res.status(500).json({ message: "Failed to delete report" });
+  }
+};
+
+
+/**
+ * 🧹 CLEAR ALL REPORT HISTORY
+ */
+const clearReports = async (req, res) => {
+  try {
+
+    await pool.query(`DELETE FROM reports`);
+
+    res.json({
+      message: "All reports cleared successfully"
+    });
+
+  } catch (err) {
+    console.error("Clear Reports Error:", err);
+    res.status(500).json({ message: "Failed to clear reports" });
+  }
+};
+
 export default {
   monthlyFinanceReport,
   titheSummary,
@@ -571,5 +618,7 @@ export default {
   saveReport,
   weeklyAttendanceChart,
   weeklyFinanceChart,
-  welfareReport
+  welfareReport,
+  deleteReport,
+  clearReports
 };

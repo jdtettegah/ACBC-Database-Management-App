@@ -19,6 +19,9 @@ function AdminFinance() {
   const [typeFilter, setTypeFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("");
 
+  const [editingTx, setEditingTx] = useState(null);
+  const [editForm, setEditForm] = useState({});
+
   useEffect(() => {
     loadFinance();
   }, []);
@@ -83,6 +86,71 @@ function AdminFinance() {
   const balance = totalIncome - totalExpense;
 
   if (loading) return <p style={{ padding: 20 }}>Loading finance...</p>;
+
+  const parseTransaction = (tx) => {
+    const [type, id] = tx.id.split("-");
+    return { type, id };
+  };
+
+  const handleDelete = async (tx) => {
+    if (!window.confirm("Delete this transaction?")) return;
+  
+    const { type, id } = parseTransaction(tx);
+  
+    try {
+      if (type === "INC") {
+        await deleteIncome(id);
+      } else {
+        await deleteExpenditure(id);
+      }
+  
+      loadFinance();
+  
+    } catch (err) {
+      alert("Failed to delete");
+    }
+  };
+
+  const openEdit = (tx) => {
+    setEditingTx(tx);
+  
+    setEditForm({
+      description: tx.description,
+      amount: tx.amount,
+      date: tx.date,
+    });
+  };
+
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+  
+    const { type, id } = parseTransaction(editingTx);
+  
+    try {
+      if (type === "INC") {
+        await updateIncome(id, {
+          income_type: editForm.description,
+          amount: editForm.amount,
+          date_received: editForm.date,
+        });
+      } else {
+        await updateExpenditure(id, {
+          category: editForm.description,
+          amount: editForm.amount,
+          date_spent: editForm.date,
+        });
+      }
+  
+      setEditingTx(null);
+      loadFinance();
+  
+    } catch {
+      alert("Update failed");
+    }
+  };
+
+
 
   return (
     <div className="finance-page">
@@ -166,6 +234,7 @@ function AdminFinance() {
               <th>Description</th>
               <th>Amount</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
 
@@ -187,12 +256,64 @@ function AdminFinance() {
                   <td>{tx.description}</td>
                   <td>GH₵ {Number(tx.amount).toFixed(2)}</td>
                   <td className="status completed">{tx.status}</td>
+                  <td>
+                    <div className="finance-actions">
+                      <button
+                        className="finance-edit-btn"
+                        onClick={() => openEdit(tx)}
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        className="finance-delete-btn"
+                        onClick={() => handleDelete(tx)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      {editingTx && (
+        <div className="edit-transaction-modal-overlay" onClick={() => setEditingTx(null)}>
+          <div className="edit-transaction-modal-box" onClick={(e) => e.stopPropagation()}>
+            <h3>Edit Transaction</h3>
+
+            <form onSubmit={handleEditSubmit}>
+              <input
+                value={editForm.description}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, description: e.target.value })
+                }
+              />
+
+              <input
+                type="number"
+                value={editForm.amount}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, amount: e.target.value })
+                }
+              />
+
+              <input
+                type="date"
+                value={editForm.date?.split("T")[0]}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, date: e.target.value })
+                }
+              />
+
+              <button type="submit" className="edit-transaction-save-button">Save</button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

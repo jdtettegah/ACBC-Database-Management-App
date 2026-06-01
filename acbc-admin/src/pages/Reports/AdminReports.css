@@ -426,3 +426,37 @@
   }
 
 }
+
+.report-delete-btn {
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s ease;
+}
+
+.report-delete-btn:hover {
+  background: #fecaca;
+  transform: translateY(-1px);
+}
+
+.report-clear-btn {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 10px;
+  transition: 0.2s ease;
+}
+
+
+.report-clear-btn:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+}

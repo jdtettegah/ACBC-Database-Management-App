@@ -119,6 +119,7 @@ const getAllTithes = async (req, res) => {
         t.date_paid,
         t.recorded_by,
         t.created_at,
+        t.member_code,
         m.first_name,
         m.last_name
       FROM tithes t
@@ -245,12 +246,80 @@ const addBulkTithes = async (req, res) => {
   }
 };
 
+/* ✏️ UPDATE TITHE */
+const updateTithe = async (req, res) => {
+  const { id } = req.params;
+
+  const {
+    amount,
+    payment_method,
+    payment_reference,
+    date_paid
+  } = req.body;
+
+  try {
+    const result = await pool.query(
+      `
+      UPDATE tithes
+      SET
+        amount = $1,
+        payment_method = $2,
+        payment_reference = $3,
+        date_paid = $4
+      WHERE id = $5
+      RETURNING *
+      `,
+      [
+        amount,
+        payment_method || null,
+        payment_reference || null,
+        date_paid,
+        id
+      ]
+    );
+
+    res.json(result.rows[0]);
+
+    await logActivity(
+      "tithe",
+      `Tithe updated (ID: ${id}) - GHS ${amount}`
+    );
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to update tithe" });
+  }
+};
+
+
+/* 🗑 DELETE TITHE */
+const deleteTithe = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query(`DELETE FROM tithes WHERE id = $1`, [id]);
+
+    res.json({ message: "Tithe deleted successfully" });
+
+    await logActivity(
+      "tithe",
+      `Tithe deleted (ID: ${id})`
+    );
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete tithe" });
+  }
+};
+
 export default {
   addTithe,
   getAllTithes,
   getTithesByMember,
   addBulkTithes,
-  generateTitheCode
+  generateTitheCode,
+  updateTithe,
+  deleteTithe
 };
 
 

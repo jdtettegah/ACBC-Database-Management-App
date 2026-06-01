@@ -13,6 +13,9 @@ function AdminTithe() {
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState("");
 
+  const [editingTithe, setEditingTithe] = useState(null);
+  const [editForm, setEditForm] = useState({});
+
   /* ================= LOAD DATA ================= */
 
   useEffect(() => {
@@ -130,6 +133,44 @@ function AdminTithe() {
     return <p style={{ padding: 20 }}>Loading tithes...</p>;
   }
 
+  const openEdit = (t) => {
+    setEditingTithe(t);
+  
+    setEditForm({
+      amount: t.amount,
+      payment_method: t.payment_method || "",
+      payment_reference: t.payment_reference || "",
+      date_paid: t.date_paid,
+    });
+  };
+  
+  const handleDelete = async (t) => {
+    if (!window.confirm("Delete this tithe?")) return;
+  
+    try {
+      await deleteTithe(t.id);
+      loadTithes();
+    } catch {
+      alert("Delete failed");
+    }
+  };
+  
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+  
+    try {
+      await updateTithe(editingTithe.id, editForm);
+  
+      setEditingTithe(null);
+      loadTithes();
+  
+    } catch {
+      alert("Update failed");
+    }
+  };
+
+
+
   return (
     <div className="tithe-page">
 
@@ -215,6 +256,7 @@ function AdminTithe() {
               <th>Method</th>
               <th>Reference</th>
               <th>Date</th>
+              <th>Actions</th>
             </tr>
           </thead>
 
@@ -250,6 +292,26 @@ function AdminTithe() {
                     {new Date(t.date_paid).toLocaleDateString()}
                   </td>
 
+                  <td>
+                    <div className="tithe-actions">
+
+                      <button
+                        className="tithe-edit-btn"
+                        onClick={() => openEdit(t)}
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        className="tithe-delete-btn"
+                        onClick={() => handleDelete(t)}
+                      >
+                        Delete
+                      </button>
+
+                    </div>
+                  </td>
+
                 </tr>
               ))
             )}
@@ -259,6 +321,57 @@ function AdminTithe() {
         </table>
 
       </div>
+
+      {editingTithe && (
+        <div
+          className="tithe-modal-overlay"
+          onClick={() => setEditingTithe(null)}
+        >
+          <div
+            className="tithe-modal-box"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Edit Tithe</h3>
+
+            <form onSubmit={handleEditSubmit}>
+
+              <input
+                type="number"
+                value={editForm.amount}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, amount: e.target.value })
+                }
+              />
+
+              <input
+                placeholder="Payment Method"
+                value={editForm.payment_method}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, payment_method: e.target.value })
+                }
+              />
+
+              <input
+                placeholder="Reference"
+                value={editForm.payment_reference}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, payment_reference: e.target.value })
+                }
+              />
+
+              <input
+                type="date"
+                value={editForm.date_paid?.split("T")[0]}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, date_paid: e.target.value })
+                }
+              />
+
+              <button className="tithe-save-btn">Save</button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

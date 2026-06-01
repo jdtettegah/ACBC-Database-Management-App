@@ -67,6 +67,21 @@ export function getAllTithes() {
   return apiRequest("/tithes");
 }
 
+/* ================= TITHE EDIT/DELETE ================= */
+
+export function updateTithe(id, data) {
+  return apiRequest(`/tithes/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteTithe(id) {
+  return apiRequest(`/tithes/${id}`, {
+    method: "DELETE",
+  });
+}
+
 /* ================= FINANCE ================= */
 
 export function getIncome() {
@@ -95,6 +110,34 @@ export function syncWeeklyTithe(data) {
   return apiRequest("/income/sync-tithe-weekly", {
     method: "POST",
     body: JSON.stringify(data),
+  });
+}
+
+/* ================= FINANCE EDIT/DELETE ================= */
+
+export function updateIncome(id, data) {
+  return apiRequest(`/income/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteIncome(id) {
+  return apiRequest(`/income/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export function updateExpenditure(id, data) {
+  return apiRequest(`/expenditure/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteExpenditure(id) {
+  return apiRequest(`/expenditure/${id}`, {
+    method: "DELETE",
   });
 }
 
@@ -143,6 +186,20 @@ export function saveReport(data) {
   return apiRequest(`/reports/save`, {
     method: "POST",
     body: JSON.stringify(data),
+  });
+}
+
+/* ================= REPORTS ================= */
+
+export function deleteReport(id) {
+  return apiRequest(`/reports/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export function clearReports() {
+  return apiRequest(`/reports`, {
+    method: "DELETE",
   });
 }
 

@@ -639,7 +639,7 @@ function AdminMembers() {
               <div className="member-form-group">
                 <label>Auxiliary Group</label>
                 <select
-                  name="Auxiliary_Group"
+                  name="auxiliary_group"
                   value={editForm.auxiliary_group}
                   onChange={handleEditChange}
                 >

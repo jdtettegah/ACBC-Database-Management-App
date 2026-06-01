@@ -127,8 +127,81 @@ const getExpenditureByDateRange = async (req, res) => {
   }
 };
 
+/* ✏️ UPDATE EXPENDITURE */
+const updateExpenditure = async (req, res) => {
+  const { id } = req.params;
+
+  const {
+    category,
+    amount,
+    description,
+    approved_by,
+    recorded_by,
+    date_spent
+  } = req.body;
+
+  try {
+    const result = await pool.query(
+      `
+      UPDATE expenditure
+      SET
+        category = $1,
+        amount = $2,
+        description = $3,
+        approved_by = $4,
+        recorded_by = $5,
+        date_spent = $6
+      WHERE id = $7
+      RETURNING *
+      `,
+      [
+        category,
+        amount,
+        description || null,
+        approved_by,
+        recorded_by || null,
+        date_spent,
+        id
+      ]
+    );
+
+    res.json(result.rows[0]);
+
+    await logActivity(
+      "finance",
+      `Expense updated: ${category} - GHS ${amount}`
+    );
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to update expenditure" });
+  }
+};
+
+
+/* 🗑 DELETE EXPENDITURE */
+const deleteExpenditure = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query(`DELETE FROM expenditure WHERE id = $1`, [id]);
+
+    res.json({ message: "Expenditure deleted successfully" });
+
+    await logActivity("finance", `Expense deleted (ID: ${id})`);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete expenditure" });
+  }
+};
+
+
+
 export default {
   addExpenditure,
   getAllExpenditure,
-  getExpenditureByDateRange
+  getExpenditureByDateRange,
+  updateExpenditure,
+  deleteExpenditure
 };
