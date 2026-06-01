@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAllTithes } from "../../services/api";
+import { getAllTithes, updateTithe, deleteTithe } from "../../services/api";
 import AddTithe from "../../components/AddTithe";
 import "./AdminTithe.css";
 import { FileSpreadsheet, Landmark } from "lucide-react";
