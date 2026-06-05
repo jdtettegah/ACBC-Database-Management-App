@@ -309,6 +309,15 @@ const deleteMember = async (req, res) => {
       [id]
     );
 
+    await pool.query(
+      `
+      DELETE FROM welfare_event_members
+      WHERE member_id = $1
+        AND total_paid = 0
+      `,
+      [id]
+    );
+
     res.json({
       message: "Member deleted successfully"
     });

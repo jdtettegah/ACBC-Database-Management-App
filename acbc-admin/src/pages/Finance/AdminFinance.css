@@ -452,6 +452,18 @@
   transform: translateY(-1px);
 }
 
+.finance-edit-btn:disabled{
+  background: #cbd5e1;
+  cursor: not-allowed;
+  color: white;
+}
+
+.finance-delete-btn:disabled{
+  background: #cbd5e1;
+  cursor: not-allowed;
+  color: white;
+}
+
 /* Animation */
 @keyframes fadeInUp {
   from {

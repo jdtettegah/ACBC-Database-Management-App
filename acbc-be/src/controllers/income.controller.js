@@ -1,11 +1,9 @@
 import pool from '../services/db.js';
-import {logActivity} from "./activity.controller.js";
+import { logActivity } from "./activity.controller.js";
 
-/**
- * ➕ CREATE INCOME
- */
+/* ================= ADD ================= */
+
 const addIncome = async (req, res) => {
-
   const {
     income_type,
     amount,
@@ -15,84 +13,115 @@ const addIncome = async (req, res) => {
     date_received
   } = req.body;
 
-  if (!income_type || !amount || !date_received || !recorded_by) {
-    return res.status(400).json({
-      message: 'income_type, amount, recorded_by, and date_received are required'
+  if (income_type === "Tithe") {
+    return res.status(403).json({
+      message: "Tithe must be created from Tithes module"
     });
   }
 
   try {
-
     await pool.query(
       `
       INSERT INTO income (
+        income_type, amount, source_description,
+        member_id, recorded_by, date_received
+      )
+      VALUES ($1,$2,$3,$4,$5,$6)
+      `,
+      [
         income_type,
         amount,
         source_description,
         member_id,
         recorded_by,
         date_received
-      )
-      VALUES ($1, $2, $3, $4, $5, $6)
-      `,
-      [
-        income_type,
-        amount,
-        source_description || null,
-        member_id || null,
-        recorded_by,
-        date_received
       ]
     );
 
-    res.status(201).json({
-      message: 'Income recorded successfully'
-    });
+    res.json({ message: "Income added" });
 
-    await logActivity(
-      "finance",
-      `Income recorded: ${income_type} - GHS ${amount}`
-    );
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: 'Failed to record income'
-    });
+  } catch {
+    res.status(500).json({ message: "Error" });
   }
 };
 
+/* ================= GET ================= */
 
-/**
- * 📊 GET ALL INCOME
- */
 const getAllIncome = async (req, res) => {
+  const result = await pool.query(`SELECT * FROM income ORDER BY date_received DESC`);
+  res.json(result.rows);
+};
 
-  try {
+/* ================= UPDATE ================= */
 
-    const result = await pool.query(`
-      SELECT *
-      FROM income
-      ORDER BY date_received DESC
-    `);
+const updateIncome = async (req, res) => {
+  const { id } = req.params;
 
-    res.json(result.rows);
+  const check = await pool.query(
+    `SELECT income_type FROM income WHERE id=$1`,
+    [id]
+  );
 
-  } catch (error) {
-
-    console.error(error);
-
-    res.status(500).json({
-      message: 'Failed to fetch income'
+  if (check.rows[0]?.income_type === "Tithe") {
+    return res.status(403).json({
+      message: "Edit tithe from Tithe module"
     });
   }
+
+  // normal update...
+};
+
+/* ================= DELETE ================= */
+
+const deleteIncome = async (req, res) => {
+  const { id } = req.params;
+
+  const record = await pool.query(
+    `
+    SELECT income_type, transaction_group_id
+    FROM income
+    WHERE id = $1
+    `,
+    [id]
+  );
+
+  const check = await pool.query(
+    `SELECT income_type FROM income WHERE id=$1`,
+    [id]
+  );
+
+  if (check.rows[0]?.income_type === "Tithe") {
+    return res.status(403).json({
+      message: "Cannot delete tithe here"
+    });
+  }
+
+  if (
+    record.rows[0]?.income_type === "Day Born Offering"
+  ) {
+    const groupId =
+      record.rows[0].transaction_group_id;
+  
+    await pool.query(
+      `DELETE FROM welfare_direct_income
+       WHERE transaction_group_id = $1`,
+      [groupId]
+    );
+  
+    await pool.query(
+      `DELETE FROM expenditure
+       WHERE transaction_group_id = $1`,
+      [groupId]
+    );
+  }
+
+  await pool.query(`DELETE FROM income WHERE id=$1`, [id]);
+
+  res.json({ message: "Deleted" });
 };
 
 
-/**
- * 📅 GET INCOME BY DATE RANGE
- */
+
 const getIncomeByDateRange = async (req, res) => {
 
   const { start, end } = req.query;
@@ -127,79 +156,10 @@ const getIncomeByDateRange = async (req, res) => {
   }
 };
 
-/* ✏️ UPDATE INCOME */
-const updateIncome = async (req, res) => {
-  const { id } = req.params;
-
-  const {
-    income_type,
-    amount,
-    source_description,
-    member_id,
-    recorded_by,
-    date_received
-  } = req.body;
-
-  try {
-    const result = await pool.query(
-      `
-      UPDATE income
-      SET
-        income_type = $1,
-        amount = $2,
-        source_description = $3,
-        member_id = $4,
-        recorded_by = $5,
-        date_received = $6
-      WHERE id = $7
-      RETURNING *
-      `,
-      [
-        income_type,
-        amount,
-        source_description || null,
-        member_id || null,
-        recorded_by,
-        date_received,
-        id
-      ]
-    );
-
-    res.json(result.rows[0]);
-
-    await logActivity(
-      "finance",
-      `Income updated: ${income_type} - GHS ${amount}`
-    );
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to update income" });
-  }
-};
-
-
-/* 🗑 DELETE INCOME */
-const deleteIncome = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    await pool.query(`DELETE FROM income WHERE id = $1`, [id]);
-
-    res.json({ message: "Income deleted successfully" });
-
-    await logActivity("finance", `Income deleted (ID: ${id})`);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to delete income" });
-  }
-};
-
 export default {
   addIncome,
   getAllIncome,
-  getIncomeByDateRange,
   updateIncome,
-  deleteIncome
+  deleteIncome,
+  getIncomeByDateRange
 };

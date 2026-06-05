@@ -3,6 +3,7 @@ import { getAllTithes, updateTithe, deleteTithe } from "../../services/api";
 import AddTithe from "../../components/AddTithe";
 import "./AdminTithe.css";
 import { FileSpreadsheet, Landmark } from "lucide-react";
+import { saveBulkTithe } from "../../services/api";
 
 function AdminTithe() {
   const [tithes, setTithes] = useState([]);

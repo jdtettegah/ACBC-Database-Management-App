@@ -28,7 +28,11 @@ const generateTitheCode = async (memberCode, datePaid) => {
 /**
  * POST /api/tithes
  */
+/* ================= ADD TITHE ================= */
+
 const addTithe = async (req, res) => {
+  const client = await pool.connect();
+
   try {
     const {
       member_id,
@@ -41,42 +45,22 @@ const addTithe = async (req, res) => {
     } = req.body;
 
     if (!member_id || !amount || !date_paid) {
-      return res.status(400).json({
-        message: "member_id, amount and date_paid are required"
-      });
+      return res.status(400).json({ message: "Required fields missing" });
     }
 
-    // Check member exists
-    const memberCheck = await pool.query(
-      `
-      SELECT id
-      FROM members
-      WHERE id = $1
-      `,
-      [member_id]
-    );
+    await client.query("BEGIN");
 
-    if (memberCheck.rows.length === 0) {
-      return res.status(404).json({ message: "Member not found" });
-    }
-
-    // Generate code
     const titheCode = await generateTitheCode(member_code, date_paid);
 
-    await pool.query(
+    const result = await client.query(
       `
       INSERT INTO tithes (
-        tithe_code,
-        member_id,
-        amount,
-        payment_method,
-        payment_reference,
-        date_paid,
-        recorded_by,
-        created_at,
-        member_code
+        tithe_code, member_id, amount,
+        payment_method, payment_reference,
+        date_paid, recorded_by, created_at, member_code
       )
       VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),$8)
+      RETURNING id
       `,
       [
         titheCode,
@@ -85,26 +69,49 @@ const addTithe = async (req, res) => {
         payment_method || null,
         payment_reference || null,
         date_paid,
-        recorded_by || null,
+        recorded_by,
         member_code
       ]
     );
+    
+    const titheId = result.rows[0].id;
 
-    res.status(201).json({
-      message: "Tithe recorded successfully",
-      tithe_code: titheCode
-    });
-
-    await logActivity(
-      "tithe",
-      `Tithe recorded: Member ${member_id} - GHS ${amount}`
+    // 🔥 mirror to income
+    await client.query(
+      `
+      INSERT INTO income (
+        income_type,
+        amount,
+        source_description,
+        date_received,
+        recorded_by,
+        tithe_id,
+        created_at
+      )
+      VALUES ('Tithe',$1,$2,$3,$4,$5,NOW())
+      `,
+      [
+        amount,
+        `Tithe from member ${member_id}`,
+        date_paid,
+        recorded_by,
+        titheId
+      ]
     );
 
-  } catch (error) {
-    console.error("Add Tithe Error:", error);
-    res.status(500).json({ message: "Server error" });
+    await client.query("COMMIT");
+
+    res.status(201).json({ message: "Tithe recorded", tithe_code: titheCode });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error(err);
+    res.status(500).json({ message: "Error saving tithe" });
+  } finally {
+    client.release();
   }
 };
+
 
 const getAllTithes = async (req, res) => {
   try {
@@ -157,160 +164,145 @@ const getTithesByMember = async (req, res) => {
   }
 };
 
+/* ================= BULK TITHE ================= */
+
 const addBulkTithes = async (req, res) => {
+  const client = await pool.connect();
+
   try {
     const { date_paid, recorded_by, tithes } = req.body;
 
-    if (!date_paid || !Array.isArray(tithes)) {
-      return res.status(400).json({
-        message: "date_paid and tithes array required"
-      });
-    }
+    await client.query("BEGIN");
 
     let inserted = 0;
-    let totalAmount = 0;
 
     for (const t of tithes) {
-      if (!t.member_id || !t.amount || t.amount <= 0) continue;
+      if (!t.member_id || !t.amount) continue;
 
-      const titheCode = await generateTitheCode(t.member_code, date_paid);
+      const code = await generateTitheCode(t.member_code, date_paid);
 
-      await pool.query(
+      const result = await client.query(
         `
         INSERT INTO tithes (
-          tithe_code,
-          member_id,
+          tithe_code, 
+          member_id, 
           amount,
-          date_paid,
-          recorded_by,
           payment_method,
           payment_reference,
-          created_at,
+          date_paid, 
+          recorded_by, 
           member_code
         )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),$8)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+        RETURNING id
         `,
-        [
-          titheCode,
+        [code,
           t.member_id,
           t.amount,
-          date_paid,
-          recorded_by || null,
           t.payment_method || "Cash",
           t.payment_reference || null,
+          date_paid,
+          recorded_by,
           t.member_code
         ]
       );
 
-      inserted++;
-      totalAmount += Number(t.amount);
-    }
-
-    // record income
-    if (totalAmount > 0) {
-      await pool.query(
+      const titheId = result.rows[0].id;
+      await client.query(
         `
         INSERT INTO income (
-          income_type,
-          amount,
+          income_type, amount,
           source_description,
           date_received,
           recorded_by,
+          tithe_id,
           created_at
         )
-        VALUES ('Tithe', $1, $2, $3, $4, NOW())
+        VALUES ('Tithe',$1,$2,$3,$4,$5,NOW())
         `,
         [
-          totalAmount,
-          `Tithe collection for ${date_paid}`,
+          t.amount,
+          `Tithe from member ${t.member_id}`,
           date_paid,
-          recorded_by
+          recorded_by,
+          titheId
         ]
       );
+
+      inserted++;
     }
 
-    res.json({
-      message: "Bulk tithe saved",
-      count: inserted,
-      total_amount: totalAmount
+    await client.query("COMMIT");
+
+    res.json({ message: "Bulk saved", count: inserted });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+  
+    console.error("BULK TITHE ERROR:");
+    console.error(err);
+  
+    res.status(500).json({
+      message: err.message
     });
-
-    logActivity(
-      "tithe",
-      `Bulk tithe recorded (${inserted} members, Total: GHS ${totalAmount})`
-    );
-
-  } catch (error) {
-    console.error("Bulk Tithe Error:", error);
-    res.status(500).json({ message: "Bulk save failed" });
   }
 };
-
 /* ✏️ UPDATE TITHE */
+/* ================= UPDATE ================= */
+
 const updateTithe = async (req, res) => {
   const { id } = req.params;
-
-  const {
-    amount,
-    payment_method,
-    payment_reference,
-    date_paid
-  } = req.body;
+  const { amount, payment_method, payment_reference, date_paid } = req.body;
 
   try {
-    const result = await pool.query(
+    await pool.query(
       `
       UPDATE tithes
-      SET
-        amount = $1,
-        payment_method = $2,
-        payment_reference = $3,
-        date_paid = $4
-      WHERE id = $5
-      RETURNING *
+      SET amount=$1, payment_method=$2,
+          payment_reference=$3, date_paid=$4
+      WHERE id=$5
       `,
-      [
-        amount,
-        payment_method || null,
-        payment_reference || null,
-        date_paid,
-        id
-      ]
+      [amount, payment_method, payment_reference, date_paid, id]
     );
 
-    res.json(result.rows[0]);
-
-    await logActivity(
-      "tithe",
-      `Tithe updated (ID: ${id}) - GHS ${amount}`
+    // 🔥 sync income
+    await pool.query(
+      `
+      UPDATE income
+      SET amount=$1, date_received=$2
+      WHERE tithe_id=$3
+      `,
+      [amount, date_paid, id]
     );
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to update tithe" });
+    res.json({ message: "Updated" });
+
+  } catch {
+    res.status(500).json({ message: "Update failed" });
   }
 };
 
+/* ================= DELETE ================= */
 
-/* 🗑 DELETE TITHE */
 const deleteTithe = async (req, res) => {
   const { id } = req.params;
 
   try {
-    await pool.query(`DELETE FROM tithes WHERE id = $1`, [id]);
-
-    res.json({ message: "Tithe deleted successfully" });
-
-    await logActivity(
-      "tithe",
-      `Tithe deleted (ID: ${id})`
+    // 🔥 delete mirror first
+    await pool.query(
+      `DELETE FROM income WHERE tithe_id=$1`,
+      [id]
     );
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to delete tithe" });
+    await pool.query(`DELETE FROM tithes WHERE id=$1`, [id]);
+
+    res.json({ message: "Deleted" });
+
+  } catch {
+    res.status(500).json({ message: "Delete failed" });
   }
 };
+
 
 export default {
   addTithe,

@@ -240,7 +240,6 @@ function AddMember({ onSuccess}) {
                   >
                     <option>Active</option>
                     <option>Inactive</option>
-                    <option>Transferred</option>
                   </select>
                 </div>
 
@@ -270,7 +269,6 @@ function AddMember({ onSuccess}) {
                     <option>Youth</option>
                     <option>Men</option>
                     <option>WMU</option>
-                    <option>Children</option>
                   </select>
                 </div>
 

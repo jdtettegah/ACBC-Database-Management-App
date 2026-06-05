@@ -1,4 +1,5 @@
 import pool from '../services/db.js';
+import { randomUUID } from "crypto";
 
 /* ================= HELPERS ================= */
 
@@ -210,7 +211,7 @@ const getEventMembersFull = async (req, res) => {
               m.last_name
        FROM welfare_event_members wem
        JOIN members m ON wem.member_id = m.id
-       WHERE wem.event_id = $1`,
+       WHERE wem.event_id = $1 and m.is_deleted = false`,
       [req.params.eventId]
     );
 
@@ -327,6 +328,7 @@ const getMemberFullHistory = async (req, res) => {
 
 const addDayBornSplit = async (req, res) => {
   const client = await pool.connect();
+  const groupId = randomUUID();
 
   try {
     const {
@@ -358,32 +360,33 @@ const addDayBornSplit = async (req, res) => {
     // 1. Income
     await client.query(
       `INSERT INTO income
-       (income_type, amount, source_description, recorded_by, date_received)
-       VALUES ('Day Born Offering', $1, $2, $3, $4)`,
-      [total, description, recorded_by, date_received]
+       (income_type, amount, source_description, recorded_by, date_received, transaction_group_id)
+       VALUES ('Day Born Offering', $1, $2, $3, $4, $5)`,
+      [total, description, recorded_by, date_received, groupId]
     );
 
     // 2. Expenditure
     await client.query(
       `INSERT INTO expenditure
-       (category, amount, description, approved_by, recorded_by, date_spent)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
+       (category, amount, description, approved_by, recorded_by, date_spent, transaction_group_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         "Welfare Transfer",
         welfare,
         "Transfer from Day Born Offering",
         approved_by,
         recorded_by,
-        date_received
+        date_received,
+        groupId
       ]
     );
 
     // 3. Welfare income
     await client.query(
       `INSERT INTO welfare_direct_income
-       (source, amount, description, recorded_by, date_received)
-       VALUES ('Day Born Offering', $1, $2, $3, $4)`,
-      [welfare, description, recorded_by, date_received]
+       (source, amount, description, recorded_by, date_received, transaction_group_id)
+       VALUES ('Day Born Offering', $1, $2, $3, $4, $5)`,
+      [welfare, description, recorded_by, date_received, groupId]
     );
 
     await client.query("COMMIT");

@@ -93,6 +93,13 @@ function AdminFinance() {
   };
 
   const handleDelete = async (tx) => {
+    
+    
+    if (isTithe(tx)) {
+      alert("Delete this from Tithes module");
+      return;
+    }
+    
     if (!window.confirm("Delete this transaction?")) return;
   
     const { type, id } = parseTransaction(tx);
@@ -112,6 +119,12 @@ function AdminFinance() {
   };
 
   const openEdit = (tx) => {
+    
+    if (isTithe(tx)) {
+      alert("Edit this from Tithes module");
+      return;
+    }
+  
     setEditingTx(tx);
   
     setEditForm({
@@ -149,6 +162,20 @@ function AdminFinance() {
       alert("Update failed");
     }
   };
+
+  const isRestricted = (tx) => {
+    const desc = tx.description?.toLowerCase() || "";
+  
+    const isTithe =
+      tx.type === "Income" && desc.includes("tithe");
+  
+    const isWelfareTransfer =
+      tx.type === "Expense" && desc.includes("transfer from day born offering");
+  
+    return isTithe || isWelfareTransfer;
+  };
+
+  
 
 
 
@@ -260,6 +287,7 @@ function AdminFinance() {
                     <div className="finance-actions">
                       <button
                         className="finance-edit-btn"
+                        disabled={isRestricted(tx)}
                         onClick={() => openEdit(tx)}
                       >
                         Edit
@@ -267,6 +295,7 @@ function AdminFinance() {
 
                       <button
                         className="finance-delete-btn"
+                        disabled={isRestricted(tx)}
                         onClick={() => handleDelete(tx)}
                       >
                         Delete
