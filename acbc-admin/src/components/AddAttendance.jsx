@@ -314,6 +314,7 @@ function AddAttendance({ refresh }) {
                           type="checkbox"
                           checked={attendance[member.id] || false}
                           onChange={() => handleCheck(member.id)}
+                          
                         />
                       </td>
                     </tr>
