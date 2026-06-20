@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./PastorMemberTable.css";
-import { FileSpreadsheet } from "lucide-react";
+import { FileSpreadsheet, FileText } from "lucide-react";
 
 function PastorMemberTable({ members }) {
 
@@ -95,10 +95,63 @@ function PastorMemberTable({ members }) {
       ) &&
       (genderFilter === "" || m.gender === genderFilter) &&
       (baptizedFilter === "" || baptizedValue === baptizedFilter) &&
-      (groupFilter === "" || m.Auxiliary_Group === groupFilter) &&
+      (groupFilter === "" || m.auxiliary_group === groupFilter) &&
       ageMatch
     );
   });
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+  
+    doc.setFontSize(16);
+    doc.text("Church Members Report", 14, 15);
+  
+    const tableColumn = [
+      "Code",
+      "First Name",
+      "Last Name",
+      "Phone",
+      "Gender",
+      "Group",
+      "Status",
+      "Baptized",
+    ];
+  
+    const tableRows = filteredMembers.map((m) => [
+      m.member_code,
+      m.first_name,
+      m.last_name,
+      m.phone || "",
+      m.gender,
+      m.auxiliary_group || "",
+      m.membership_status,
+      m.baptized ? "Yes" : "No",
+    ]);
+  
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 25,
+    });
+  
+    doc.save("members_filtered.pdf");
+  };
+
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        setViewingMember(null);
+        
+      }
+    };
+  
+    window.addEventListener("keydown", handleEsc);
+  
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, []);
 
   /* ================= UI ================= */
 
@@ -145,6 +198,14 @@ function PastorMemberTable({ members }) {
         <button className="member-export-btn" onClick={exportToCSV}>
         <FileSpreadsheet size={18} />
         Export
+        </button>
+
+        <button
+          className="member-export-btn pdf"
+          onClick={exportToPDF}
+        >
+          <FileText size={18} />
+          Download PDF
         </button>
 
       </div>
@@ -203,9 +264,9 @@ function PastorMemberTable({ members }) {
 
       {/* MODAL */}
       {viewingMember && (
-        <div className="member-modal-overlay">
+        <div className="member-modal-overlay"  onClick={() => setViewingMember(null)}>
 
-          <div className="member-view-box">
+          <div className="member-view-box" onClick={(e) => e.stopPropagation()} >
 
             <h3>Member Profile</h3>
 
@@ -217,7 +278,7 @@ function PastorMemberTable({ members }) {
             <p><b>Email:</b> {viewingMember.email || "-"}</p>
             <p><b>Status:</b> {viewingMember.membership_status}</p>
             <p><b>Baptized:</b> {viewingMember.baptized ? "Yes" : "No"}</p>
-            <p><b>Group:</b> {viewingMember.Auxiliary_Group || "-"}</p>
+            <p><b>Group:</b> {viewingMember.auxiliary_group || "-"}</p>
             <p><b>Address:</b> {viewingMember.address || "-"}</p>
 
             <button

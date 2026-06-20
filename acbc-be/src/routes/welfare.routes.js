@@ -17,4 +17,8 @@ router.get('/history/:event_member_id', welfareController.getMemberFullHistory);
 /* DAY BORN SPLIT */
 router.post('/dayborn-split', welfareController.addDayBornSplit);
 
+router.get("/income-ledger", welfareController.getIncomeLedger);
+  
+router.get("/expense-ledger", welfareController.getExpenseLedger);
+
 export default router;

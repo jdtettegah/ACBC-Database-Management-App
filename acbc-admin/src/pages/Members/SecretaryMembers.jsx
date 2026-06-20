@@ -2,7 +2,10 @@ import "./AdminMember.css";
 import AddMember from "../../components/AddMember";
 import { useEffect, useState } from "react";
 import { apiRequest } from "../../services/api";
-import { FileSpreadsheet, Users} from "lucide-react";
+import AddUser from "../../components/AddUser";
+import { Eye, FileSpreadsheet, Pencil, Trash2, Users, FileText } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 function SecretaryMembers() {
 
@@ -97,7 +100,7 @@ function SecretaryMembers() {
       m.last_name,
       m.phone || "",
       m.gender,
-      m.Auxiliary_Group || "",
+      m.auxiliary_group || "",
       m.membership_status,
       m.baptized ? "Yes" : "No"
     ]);
@@ -112,6 +115,43 @@ function SecretaryMembers() {
     link.click();
   };
 
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+  
+    doc.setFontSize(16);
+    doc.text("Church Members Report", 14, 15);
+  
+    const tableColumn = [
+      "Code",
+      "First Name",
+      "Last Name",
+      "Phone",
+      "Gender",
+      "Group",
+      "Status",
+      "Baptized",
+    ];
+  
+    const tableRows = filteredMembers.map((m) => [
+      m.member_code,
+      m.first_name,
+      m.last_name,
+      m.phone || "",
+      m.gender,
+      m.auxiliary_group || "",
+      m.membership_status,
+      m.baptized ? "Yes" : "No",
+    ]);
+  
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 25,
+    });
+  
+    doc.save("members_filtered.pdf");
+  };
+
   /* ================= EDIT FUNCTIONS ================= */
 
   const openEdit = (member) => {
@@ -124,10 +164,11 @@ function SecretaryMembers() {
       other_names: member.other_names || "",
       gender: member.gender || "",
       phone: member.phone || "",
+      date_joined: member.date_joined,
       email: member.email || "",
       address: member.address || "",
       baptized: member.baptized ? 1 : 0,
-      Auxiliary_Group: member.Auxiliary_Group || "",
+      auxiliary_group: member.auxiliary_group || "",
       membership_status: member.membership_status || "Active",
       date_of_birth: member.date_of_birth
         ? member.date_of_birth.split("T")[0]
@@ -236,7 +277,7 @@ function SecretaryMembers() {
 
       && (baptizedFilter === "" || baptizedValue === baptizedFilter)
 
-      && (groupFilter === "" || m.Auxiliary_Group === groupFilter)
+      && (groupFilter === "" || m.auxiliary_group === groupFilter)
 
       && ageMatch
     );
@@ -251,6 +292,22 @@ function SecretaryMembers() {
     members.filter(m => m.membership_status === "Active").length;
 
   const inactive = total - active;
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        setViewingMember(null);
+        setEditingMember(null);
+        setDeletingMember(null);
+      }
+    };
+  
+    window.addEventListener("keydown", handleEsc);
+  
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, []);
 
   /* ================= UI ================= */
 
@@ -267,8 +324,10 @@ function SecretaryMembers() {
           <span className="member-title-text">Members</span>
         </div>
 
-        <div className="member-action-btn">
-          <AddMember onSuccess={loadMembers} />
+        <div className="member-header-buttons">
+          <div className="member-action-btn">
+            <AddMember onSuccess={loadMembers} />
+          </div>
         </div>
 
       </div>
@@ -353,10 +412,23 @@ function SecretaryMembers() {
             </select>
 
 
-            <button className="member-export-btn" onClick={exportToCSV}>
-            <FileSpreadsheet size={18} />
-            Export
-            </button>
+            <div className="member-export-actions">
+              <button
+                className="member-export-btn"
+                onClick={exportToCSV}
+              >
+                <FileSpreadsheet size={18} />
+                Export Excel
+              </button>
+
+              <button
+                className="member-export-btn pdf"
+                onClick={exportToPDF}
+              >
+                <FileText size={18} />
+                Download PDF
+              </button>
+            </div>
 
           </div>
 
@@ -389,8 +461,8 @@ function SecretaryMembers() {
                   <td
                     className={
                       member.membership_status === "Active"
-                        ? "status active"
-                        : "status inactive"
+                        ? "member-status active"
+                        : "member-status inactive"
                     }
                   >
                     {member.membership_status}
@@ -404,6 +476,7 @@ function SecretaryMembers() {
                       className="member-view-btn"
                       onClick={() => setViewingMember(member)}
                     >
+                      <Eye size={18} />
                       View
                     </button>
 
@@ -411,10 +484,9 @@ function SecretaryMembers() {
                       className="member-edit-btn"
                       onClick={() => openEdit(member)}
                     >
+                      <Pencil size={18} />
                       Edit
                     </button>
-
-                  
 
                   </td>
 
@@ -434,31 +506,61 @@ function SecretaryMembers() {
 
       {viewingMember && (
 
-        <div className="member-modal-overlay">
+        <div className="member-modal-overlay" onClick={() => setViewingMember(null)}>
 
-          <div className="member-view-box">
+          <div className="member-view-box" onClick={(e) => e.stopPropagation()}>
 
             <h3>Member Profile</h3>
 
-            <p><b>Code:</b> {viewingMember.member_code}</p>
+            <p>
+              <b>Code:</b>
+              <span>{viewingMember.member_code}</span>
+            </p>
 
-            <p><b>Name:</b> {viewingMember.first_name} {viewingMember.last_name} {viewingMember.other_names}</p>
+            <p>
+              <b>Name:</b> 
+              <span>{viewingMember.first_name} {viewingMember.last_name} {viewingMember.other_names}</span>
+            </p>
 
-            <p><b>Gender:</b> {viewingMember.gender}</p>
+            <p>
+              <b>Gender:</b> 
+              <span>{viewingMember.gender}</span>
+            </p>
 
-            <p><b>Age:</b> {calculateAge(viewingMember.date_of_birth)}</p>
+            <p>
+              <b>Age:</b>
+              <span> {calculateAge(viewingMember.date_of_birth)}</span>
+            </p>
 
-            <p><b>Phone:</b> {viewingMember.phone}</p>
+            <p>
+              <b>Phone:</b>
+              <span> {viewingMember.phone}</span>
+            </p>
 
-            <p><b>Email:</b> {viewingMember.email || "-"}</p>
+            <p>
+              <b>Email:</b> 
+              <span>{viewingMember.email || "-"}</span>
+            </p>
 
-            <p><b>Status:</b> {viewingMember.membership_status}</p>
+            <p>
+              <b>Status:</b> 
+              <span>{viewingMember.membership_status}</span>
+            </p>
 
-            <p><b>Baptized:</b> {viewingMember.baptized ? "Yes" : "No"}</p>
+            <p>
+              <b>Baptized:</b> 
+              <span>{viewingMember.baptized ? "Yes" : "No"}</span>
+            </p>
 
-            <p><b>Group:</b> {viewingMember.Auxiliary_Group || "-"}</p>
+            <p>
+              <b>Group:</b>
+              <span> {viewingMember.auxiliary_group || "-"}</span>
+            </p>
 
-            <p><b>Address:</b> {viewingMember.address || "-"}</p>
+            <p>
+              <b>Address:</b>
+              <span> {viewingMember.address || "-"}</span>
+            </p>
 
             <button
               className="member-cancel-btn"
@@ -477,13 +579,13 @@ function SecretaryMembers() {
 
       {editingMember && (
 
-        <div className="member-modal-overlay">
+        <div className="member-modal-overlay" onClick={() => setEditingMember(null)}>
 
-          <div className="member-form-box">
+          <div className="member-form-box" onClick={(e) => e.stopPropagation()}>
 
             <h3>Edit Member</h3>
 
-            <form onSubmit={handleEditSubmit} className="edit-form">
+            <form onSubmit={handleEditSubmit} className="member-edit-form">
 
               <div className="member-form-group">
                 <label>First Name</label>
@@ -577,8 +679,8 @@ function SecretaryMembers() {
               <div className="member-form-group">
                 <label>Auxiliary Group</label>
                 <select
-                  name="Auxiliary_Group"
-                  value={editForm.Auxiliary_Group}
+                  name="auxiliary_group"
+                  value={editForm.auxiliary_group}
                   onChange={handleEditChange}
                 >
                   <option value="">None</option>
@@ -610,7 +712,7 @@ function SecretaryMembers() {
                   Cancel
                 </button>
 
-                <button type="submit" className="member-edit-btn">
+                <button type="submit" className="member-edit-button">
                   Save Changes
                 </button>
 
@@ -624,6 +726,43 @@ function SecretaryMembers() {
 
       )}
 
+      {/* DELETE MODAL */}
+
+      {deletingMember && (
+
+        <div className="member-modal-overlay"  onClick={() => setDeletingMember(null)}>
+
+          <div className="member-confirm-box" onClick={(e) => e.stopPropagation()}>
+
+            <h3>Delete Member</h3>
+
+            <p>
+              Are you sure you want to Remove <strong>{deletingMember.first_name} {deletingMember.last_name}</strong> ?
+            </p>
+
+            <div className="member-confirm-actions">
+
+              <button
+                className="member-cancel-btn"
+                onClick={() => setDeletingMember(null)}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="member-delete-button"
+                onClick={handleDelete}
+              >
+                Delete
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
 
     </div>
   );

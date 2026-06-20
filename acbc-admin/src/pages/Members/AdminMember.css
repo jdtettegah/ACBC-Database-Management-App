@@ -122,6 +122,16 @@
   box-shadow: 0 0 0 4px rgba(74, 111, 211, 0.08);
 }
 
+.member-export-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.member-export-btn.pdf {
+  background: #ec6c6c;
+  color: white;
+}
+
 .member-export-btn {
   background: #22C55E;
   color: white;

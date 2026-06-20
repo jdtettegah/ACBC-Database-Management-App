@@ -103,19 +103,25 @@ const markAttendance = async (req, res) => {
 
 
 /* ================= GET ALL ================= */
+/* ================= GET ALL ================= */
 const getAllAttendance = async (req, res) => {
   try {
+    const today = new Date().toISOString().split("T")[0];
+
     const {
       page = 1,
       limit = 50,
       search = "",
       service = "All",
       status = "All",
-      date = "",
+      type = "All",
+      date = today,
       export: isExport
     } = req.query;
 
-    const offset = (page - 1) * limit;
+    const pageNumber = Number(page);
+    const pageLimit = Number(limit);
+    const offset = (pageNumber - 1) * pageLimit;
 
     let filters = [];
     let values = [];
@@ -123,36 +129,49 @@ const getAllAttendance = async (req, res) => {
 
     if (search) {
       filters.push(`
-        (m.first_name ILIKE $${i} OR m.last_name ILIKE $${i})
+        (
+          first_name ILIKE $${i}
+          OR last_name ILIKE $${i}
+          OR member_code ILIKE $${i}
+        )
       `);
       values.push(`%${search}%`);
       i++;
     }
 
     if (date) {
-      filters.push(`a.service_date::date = $${i}::date`);
+      filters.push(`service_date::date = $${i}::date`);
       values.push(date);
       i++;
     }
 
     if (service !== "All") {
-      filters.push(`a.service_type = $${i}`);
+      filters.push(`service_type = $${i}`);
       values.push(service);
       i++;
     }
 
     if (status !== "All") {
-      filters.push(`a.status = $${i}`);
+      filters.push(`status = $${i}`);
       values.push(status);
       i++;
     }
 
-    const whereClause =
-      filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+    if (type !== "All") {
+      filters.push(`type ILIKE $${i}`);
+      values.push(type);
+      i++;
+    }
 
-    let query = `
+    const whereClause =
+      filters.length > 0
+        ? `WHERE ${filters.join(" AND ")}`
+        : "";
+
+    const baseQuery = `
       SELECT *
       FROM (
+
         SELECT
           a.id,
           a.attendance_code,
@@ -162,9 +181,10 @@ const getAllAttendance = async (req, res) => {
           a.service_date,
           a.service_type,
           a.status,
-          'member' AS type
+          'members' AS type
         FROM "attendance" a
-        JOIN "members" m ON a.member_id = m.id
+        JOIN "members" m
+          ON a.member_id = m.id
 
         UNION ALL
 
@@ -173,36 +193,72 @@ const getAllAttendance = async (req, res) => {
           'visitor' AS attendance_code,
           v.first_name,
           v.last_name,
-          'Visitor',
-          v.visit_date,
+          'Visitor' AS member_code,
+          v.visit_date AS service_date,
           v.service_type,
-          'Visitor',
-          'Visitor'
+          'Visitor' AS status,
+          'visitors' AS type
         FROM "visitors" v
+
       ) combined
       ${whereClause}
+    `;
+
+    /* ================= COUNT ================= */
+
+    const countResult = await pool.query(
+      `
+      SELECT COUNT(*)::int AS total
+      FROM (
+        ${baseQuery}
+      ) count_query
+      `,
+      values
+    );
+
+    const total = countResult.rows[0].total;
+
+    /* ================= DATA ================= */
+
+    let dataQuery = `
+      ${baseQuery}
       ORDER BY service_date DESC
     `;
 
+    let dataValues = [...values];
+
     if (!isExport) {
-      query += ` LIMIT $${i} OFFSET $${i + 1}`;
-      values.push(limit, offset);
+      dataQuery += `
+        LIMIT $${i}
+        OFFSET $${i + 1}
+      `;
+
+      dataValues.push(pageLimit, offset);
     }
 
-    const result = await pool.query(query, values);
+    const result = await pool.query(
+      dataQuery,
+      dataValues
+    );
 
-    return res.json({
-      data: result.rows
+    return res.status(200).json({
+      data: result.rows,
+      pagination: {
+        page: pageNumber,
+        limit: pageLimit,
+        total,
+        totalPages: Math.ceil(total / pageLimit)
+      }
     });
 
   } catch (err) {
     console.error(err);
+
     return res.status(500).json({
       message: "Failed to fetch attendance"
     });
   }
 };
-
 
 /* ================= GET BY MEMBER ================= */
 const getAttendanceByMember = async (req, res) => {
@@ -363,6 +419,91 @@ const markAttendanceBulk = async (req, res) => {
   }
 };
 
+const getAttendanceStats = async (req, res) => {
+  try {
+    // =========================
+    // TODAY + MONTH RANGE
+    // =========================
+    const todayQuery = `
+      SELECT CURRENT_DATE as today,
+             DATE_TRUNC('month', CURRENT_DATE) as start_month,
+             (DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month - 1 day') as end_month
+    `;
+
+    const dateRes = await pool.query(todayQuery);
+    const { today, start_month, end_month } = dateRes.rows[0];
+
+    // =========================
+    // 🔥 PRESENT TODAY
+    // =========================
+    const presentTodayQuery = `
+      SELECT COUNT(*)::int AS count
+      FROM "attendance"
+      WHERE service_date = $1
+      AND status = 'Present'
+    `;
+
+    const presentTodayRes = await pool.query(presentTodayQuery, [today]);
+
+    // =========================
+    // 🔥 VISITORS TODAY
+    // =========================
+    const visitorsTodayQuery = `
+      SELECT COUNT(*)::int AS count
+      FROM "visitors"
+      WHERE visit_date = $1
+    `;
+
+    const visitorsTodayRes = await pool.query(visitorsTodayQuery, [today]);
+
+    // =========================
+    // 🔥 VISITORS THIS MONTH
+    // =========================
+    const visitorsMonthQuery = `
+      SELECT COUNT(*)::int AS count
+      FROM "visitors"
+      WHERE visit_date BETWEEN $1 AND $2
+    `;
+
+    const visitorsMonthRes = await pool.query(
+      visitorsMonthQuery,
+      [start_month, end_month]
+    );
+
+    // =========================
+    // 🔥 AVG ATTENDANCE (PER DAY)
+    // =========================
+    const avgQuery = `
+      SELECT
+        ROUND(AVG(daily_count))::int AS avg_attendance
+      FROM (
+        SELECT service_date, COUNT(*) as daily_count
+        FROM "attendance"
+        WHERE service_date BETWEEN $1 AND $2 AND status = 'Present'
+        GROUP BY service_date
+      ) sub
+    `;
+
+    const avgRes = await pool.query(avgQuery, [start_month, end_month]);
+
+    // =========================
+    // RESPONSE
+    // =========================
+    res.json({
+      presentToday: presentTodayRes.rows[0].count,
+      visitorsToday: visitorsTodayRes.rows[0].count,
+      visitorsThisMonth: visitorsMonthRes.rows[0].count,
+      averageAttendance: avgRes.rows[0].avg_attendance || 0
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Failed to fetch stats"
+    });
+  }
+};
+
 
 /* ================= EXPORT ================= */
 export default {
@@ -370,5 +511,6 @@ export default {
   getAllAttendance,
   getAttendanceByMember,
   updateAttendance,
-  markAttendanceBulk
+  markAttendanceBulk,
+  getAttendanceStats
 };

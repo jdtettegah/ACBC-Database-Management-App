@@ -271,6 +271,12 @@ export function markAttendanceBulk(data) {
   });
 }
 
+/* ================= ATTENDANCE STATS ================= */
+
+export function getAttendanceStats() {
+  return apiRequest("/attendance/stats");
+}
+
 // Update attendance
 export function updateAttendance(attendanceCode, data) {
   return apiRequest(`/attendance/${attendanceCode}`, {
@@ -337,6 +343,15 @@ export function saveBulkWelfare(data) {
 export function getWelfarePaymentHistory(event_member_id) {
   return apiRequest(`/welfare/history/${event_member_id}`);
 }
+
+export const getWelfareIncomeLedger = async () => {
+  return apiRequest("/welfare/income-ledger");
+};
+
+export const getWelfareExpenseLedger = async () => {
+  return apiRequest("/welfare/expense-ledger");
+};
+
 
 /* ================= DEPARTMENTS ================= */
 

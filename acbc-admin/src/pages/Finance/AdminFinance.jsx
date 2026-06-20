@@ -7,7 +7,9 @@ import { getIncome, getExpenses, deleteIncome, deleteExpenditure, updateIncome, 
 import "./FinancialSecretaryFinance.css";
 import "./AdminFinance.css"
 import ExpenseCategoryChart from "../../components/ExpenseCategoryChart";
-import { Wallet } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Wallet, FileSpreadsheet, FileText } from "lucide-react";
 
 function AdminFinance() {
 
@@ -17,7 +19,9 @@ function AdminFinance() {
 
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
-  const [dateFilter, setDateFilter] = useState("");
+  const today = new Date().toISOString().split("T")[0];
+
+  const [dateFilter, setDateFilter] = useState(today);
 
   const [editingTx, setEditingTx] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -92,10 +96,72 @@ function AdminFinance() {
     return { type, id };
   };
 
+  const exportToCSV = () => {
+    const headers = [
+      "ID",
+      "Date",
+      "Type",
+      "Description",
+      "Amount",
+      "Status",
+    ];
+  
+    const rows = filteredTransactions.map((tx) => [
+      tx.id,
+      new Date(tx.date).toLocaleDateString(),
+      tx.type,
+      tx.description,
+      tx.amount,
+      tx.status,
+    ]);
+  
+    let csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map((e) => e.join(",")).join("\n");
+  
+    const link = document.createElement("a");
+    link.href = encodeURI(csvContent);
+    link.download = "finance_report.csv";
+    link.click();
+  };
+
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+  
+    doc.setFontSize(16);
+    doc.text("Financial Report", 14, 15);
+  
+    autoTable(doc, {
+      startY: 25,
+      head: [[
+        "ID",
+        "Date",
+        "Type",
+        "Description",
+        "Amount",
+        "Status",
+      ]],
+      body: filteredTransactions.map((tx) => [
+        tx.id,
+        new Date(tx.date).toLocaleDateString(),
+        tx.type,
+        tx.description,
+        `GH₵ ${Number(tx.amount).toFixed(2)}`,
+        tx.status,
+      ]),
+      styles: {
+        fontSize: 8,
+      },
+    });
+  
+    doc.save("finance_report.pdf");
+  };
+
   const handleDelete = async (tx) => {
     
     
-    if (isTithe(tx)) {
+    if (isRestricted(tx)) {
       alert("Delete this from Tithes module");
       return;
     }
@@ -120,7 +186,7 @@ function AdminFinance() {
 
   const openEdit = (tx) => {
     
-    if (isTithe(tx)) {
+    if (isRestricted(tx)) {
       alert("Edit this from Tithes module");
       return;
     }
@@ -176,7 +242,7 @@ function AdminFinance() {
   };
 
   
-
+  
 
 
   return (
@@ -243,11 +309,49 @@ function AdminFinance() {
           <option value="Expense">Expense</option>
         </select>
 
-        <input
-          type="date"
-          value={dateFilter}
-          onChange={(e) => setDateFilter(e.target.value)}
-        />
+        <div className="finance-date-filter">
+          <input
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+          />
+
+          <button
+            type="button"
+            onClick={() =>
+              setDateFilter(new Date().toISOString().split("T")[0])
+            }
+          >
+            Today
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDateFilter("")}
+          >
+            Show All
+          </button>
+        </div>
+
+        <div className="finance-export-actions">
+
+          <button
+            className="finance-export-btn"
+            onClick={exportToCSV}
+          >
+            <FileSpreadsheet size={18} />
+            Export Excel
+          </button>
+
+          <button
+            className="finance-export-btn pdf"
+            onClick={exportToPDF}
+          >
+            <FileText size={18} />
+            Download PDF
+          </button>
+
+        </div>
       </div>
 
       {/* TABLE */}
@@ -268,7 +372,7 @@ function AdminFinance() {
           <tbody>
             {filteredTransactions.length === 0 ? (
               <tr>
-                <td colSpan="6" style={{ textAlign: "center" }}>
+                <td colSpan="7" style={{ textAlign: "center" }}>
                   No records
                 </td>
               </tr>

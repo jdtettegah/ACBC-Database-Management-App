@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import AdminGenerateReport from "../../components/AdminGenerateReport";
 import "./AdminReports.css";
-import { FileText } from "lucide-react";
-
-import { getAllReports } from "../../services/api";
 import SecretaryGenerateReport from "../../components/SecretaryGenerateReports";
+import { getAllReports, deleteReport, clearReports } from "../../services/api";
+import { FileText } from "lucide-react";
 
 function SecretaryReports() {
 
@@ -35,6 +34,28 @@ function SecretaryReports() {
   useEffect(() => {
     loadReports();
   }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this report?")) return;
+  
+    try {
+      await deleteReport(id);
+      loadReports();
+    } catch {
+      alert("Failed to delete report");
+    }
+  };
+  
+  const handleClearAll = async () => {
+    if (!window.confirm("Clear ALL report history? This cannot be undone!")) return;
+  
+    try {
+      await clearReports();
+      loadReports();
+    } catch {
+      alert("Failed to clear reports");
+    }
+  };
 
   return (
 
@@ -85,6 +106,16 @@ function SecretaryReports() {
 
       </div>
 
+      <div className="report-clear-div">
+        <button
+          className="report-clear-btn"
+          onClick={handleClearAll}
+        >
+          Clear History
+        </button>
+
+      </div>
+
 
       <div className="report-table-wrapper">
 
@@ -98,7 +129,6 @@ function SecretaryReports() {
 
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Title</th>
                 <th>Category</th>
                 <th>Period</th>
@@ -121,7 +151,7 @@ function SecretaryReports() {
 
                   <tr key={report.id}>
 
-                    <td>{report.id}</td>
+                  
                     <td>{report.title}</td>
                     <td>{report.category}</td>
                     <td>{report.period}</td>
@@ -137,23 +167,24 @@ function SecretaryReports() {
                     </td>
 
                     <td>
+                      <div className="report-action-group">
 
-                      <button
-                        className="report-view-btn"
-                        onClick={() => setSelectedReport(report)}
-                      >
-                        View
-                      </button>
+                        <button
+                          className="report-view-btn"
+                          onClick={() => setSelectedReport(report)}
+                        >
+                          View
+                        </button>
 
-                      <button
-                        className="report-download-btn"
-                        onClick={() => setSelectedReport(report)}
-                      >
-                        Download
-                      </button>
+                        <button
+                          className="report-delete-btn"
+                          onClick={() => handleDelete(report.id)}
+                        >
+                          Delete
+                        </button>
 
+                      </div>
                     </td>
-
                   </tr>
 
                 ))

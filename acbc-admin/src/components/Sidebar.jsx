@@ -123,11 +123,6 @@ function Sidebar() {
         icon: <ClipboardCheck size={20} />,
       },
       {
-        name: "Tithe",
-        path: "/dashboard/tithe",
-        icon: <Landmark size={20} />,
-      },
-      {
         name: "Department",
         path: "/dashboard/department",
         icon: <Building2 size={20} />,

@@ -4,10 +4,22 @@ import {
   getExpenses
 } from "../../services/api";
 
+import {
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  Scale,
+  Calendar,
+  PiggyBank,
+  Receipt,
+  Coins
+} from "lucide-react";
+
 import IncomeExpenseChart from "../../components/IncomeExpenseChart";
 import IncomeCategoryChart from "../../components/IncomeCategoryChart";
 import ExpenseCategoryChart from "../../components/ExpenseCategoryChart";
 import AddTransaction from "../../components/AddTransaction";
+import UpcomingEvents from "../../components/UpcomingEvents";
 
 import "./FinanceDashboard.css";
 
@@ -143,28 +155,45 @@ function FinanceDashboard() {
       {/* ================= HEADER ================= */}
 
       <div className="finance-dashboard-header">
-        <div className="finance-title">Finance Dashboard</div>
+        <div className="finance-title">
+          <span className="finance-title-icon"><Wallet /></span>
+          <span className="finance-title-text">Financial Management</span>
+        </div>
       </div>
 
       {/* ================= TOP SUMMARY STATS ================= */}
 
       <div className="finance-stats-grid">
-
-        <div className="finance-stats-card">
-          <h3>Total Income</h3>
-          <p>GH₵ {totalIncome.toFixed(2)}</p>
+        <div className="finance-stats-card income">
+          <div className="card-top">
+            <span>Total Income</span>
+            <TrendingUp size={20} />
+          </div>
+          <h2>GH₵ {totalIncome.toFixed(2)}</h2>
         </div>
 
-        <div className="finance-stats-card">
-          <h3>Total Expense</h3>
-          <p>GH₵ {totalExpense.toFixed(2)}</p>
+        <div className="finance-stats-card expense">
+          <div className="card-top">
+            <span>Total Expense</span>
+            <TrendingDown size={20} />
+          </div>
+          <h2>GH₵ {totalExpense.toFixed(2)}</h2>
         </div>
 
-        <div className="finance-stats-card">
-          <h3>Net Balance</h3>
-          <p>GH₵ {netBalance.toFixed(2)}</p>
+        <div className="finance-stats-card balance">
+          <div className="card-top">
+            <span>Net Balance</span>
+            <Scale size={20} />
+          </div>
+          <h2>GH₵ {netBalance.toFixed(2)}</h2>
         </div>
+      </div>
 
+      <UpcomingEvents />
+
+      <div className="charts-grid">
+        <IncomeCategoryChart income={income} />
+        <ExpenseCategoryChart expenses={expenses} />
       </div>
 
       {/* ================= TODAY'S INCOME ================= */}
@@ -179,11 +208,12 @@ function FinanceDashboard() {
             todayIncomeBreakdown.map((item, index) => (
               <div
                 key={index}
-                className={`finance-todaySummary-card ${getIncomeCardClass(
-                  item.type
-                )}`}
+                className={`finance-todaySummary-card ${getIncomeCardClass(item.type)}`}
               >
-                <p>{item.type}</p>
+                <div className="card-top">
+                  <p>{item.type}</p>
+                  <Coins size={18} />
+                </div>
                 <h2>GH₵ {item.amount.toFixed(2)}</h2>
               </div>
             ))
@@ -210,7 +240,10 @@ function FinanceDashboard() {
                 key={index}
                 className="finance-todaySummary-card expense"
               >
-                <p>{item.category}</p>
+                <div className="card-top">
+                  <p>{item.category}</p>
+                  <Receipt size={18} />
+                </div>
                 <h2>GH₵ {item.amount.toFixed(2)}</h2>
               </div>
             ))
@@ -223,32 +256,11 @@ function FinanceDashboard() {
         </div>
       </div>
 
-      {/* ================= TODAY SUMMARY ================= */}
+  
 
-      <div className="finance-today-summary">
-        <div className="finance-dashboard-header">
-          Today's Summary
-        </div>
+      {/* ================= TOP SUMMARY STATS ================= */}
 
-        <div className="finance-todaySummary-grid">
-
-          <div className="finance-stats-card">
-            <h3>Income</h3>
-            <p>GH₵ {todayIncomeTotal.toFixed(2)}</p>
-          </div>
-
-          <div className="finance-stats-card">
-            <h3>Expense</h3>
-            <p>GH₵ {todayExpenseTotal.toFixed(2)}</p>
-          </div>
-
-          <div className="finance-stats-card">
-            <h3>Balance</h3>
-            <p>GH₵ {todayBalance.toFixed(2)}</p>
-          </div>
-
-        </div>
-      </div>
+      
 
       {/* ================= CHARTS ================= */}
 
@@ -259,10 +271,7 @@ function FinanceDashboard() {
         />
       </div>
 
-      <div className="charts-grid">
-        <IncomeCategoryChart income={income} />
-        <ExpenseCategoryChart expenses={expenses} />
-      </div>
+   
 
     </div>
   );

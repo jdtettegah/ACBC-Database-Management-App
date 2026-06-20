@@ -12,6 +12,7 @@ import { CalendarPlus } from "lucide-react";
 function CreateWelfareEvent({ onCreated }) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState("DUES");
+  const [date, setDate] = useState("");
 
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
@@ -64,12 +65,18 @@ function CreateWelfareEvent({ onCreated }) {
           ? `${getCurrentMonthName()} Dues`
           : name;
   
-      const res = await createWelfareEvent({
-        event_name: eventName,
-        event_type: type,
-        default_amount: Number(amount),
-        created_by: user.id
-      });
+        const payload = {
+          event_name: eventName,
+          event_type: type,
+          default_amount: Number(amount),
+          created_by: user.id
+        };
+          
+        if (type === "SPECIAL") {
+          payload.event_date = date;
+        }
+          
+        const res = await createWelfareEvent(payload);
   
       // ✅ SAFER CHECK
       if (!res || res.success !== true) {
@@ -81,6 +88,7 @@ function CreateWelfareEvent({ onCreated }) {
       setOpen(false);
       setName("");
       setAmount("");
+      setDate("");
   
       if (onCreated) onCreated();
   
@@ -105,6 +113,12 @@ function CreateWelfareEvent({ onCreated }) {
       window.removeEventListener("keydown", handleEsc);
     };
   }, [open]);
+
+  useEffect(() => {
+    if (type !== "SPECIAL") {
+      setDate("");
+    }
+  }, [type]);
 
   return (
     <>
@@ -159,6 +173,19 @@ function CreateWelfareEvent({ onCreated }) {
                   onChange={(e) => setAmount(e.target.value)}
                 />
               </div>
+
+              {type === "SPECIAL" && (
+                <div className="add-welfareEvent-form-group">
+                  <label>Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                  />
+                </div>
+              )}
+
 
               {/* INFO */}
               {type === "DUES" && (

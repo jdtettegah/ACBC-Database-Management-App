@@ -10,7 +10,7 @@ import {
 
 import DepartmentChart from "../../components/DepartmentChart";
 import "./AdminDepartment.css";
-import { Building2 } from "lucide-react";
+import { Building2, CalendarPlus } from "lucide-react";
 
 function SecretaryDepartments() {
 
@@ -296,7 +296,7 @@ function SecretaryDepartments() {
               <h3>{selectedDept.name}</h3>
 
               {/* ASSIGN */}
-              <div className="assign-box">
+              <div className="department-assign-box">
 
                 <select
                   value={selectedMember?.member_code || ""}
@@ -348,7 +348,7 @@ function SecretaryDepartments() {
                       <td>
                         <button
                           className="department-delete-btn"
-                          onClick={() => handleRemove(m.memberDepartmentId)}
+                          onClick={() => handleRemove(m.member_department_id)}
                         >
                           {removing ? "Removing..." : "Remove"}
                         </button>

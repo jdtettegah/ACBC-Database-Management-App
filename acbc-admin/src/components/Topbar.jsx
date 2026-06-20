@@ -14,7 +14,7 @@ import {
 
 function Topbar({
   toggleSidebar,
-  title = "Dashboard",
+  title = "ACBC Database",
   onSearch
 }) {
   const [openSettings, setOpenSettings] = useState(false);
@@ -160,10 +160,7 @@ function Topbar({
         </div>
       </div>
 
-      {/* SECOND LINE */}
-      <div className="topbarSecondLine">
-        <p>{title}</p>
-      </div>
+     
 
     </header>
   );

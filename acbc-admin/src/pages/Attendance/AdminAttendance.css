@@ -22,6 +22,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  color: #2563eb;
+  font-size: 20px;
+  font-weight: bold;
 }
 
 /* ICON STYLE */
@@ -66,6 +69,16 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.attendance-export-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.attendance-export-btn.pdf {
+  background: #ec6c6c;
+  color: white;
 }
 
 .attendance-export-btn:hover {

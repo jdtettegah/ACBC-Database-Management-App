@@ -75,6 +75,18 @@ const addTithe = async (req, res) => {
     );
     
     const titheId = result.rows[0].id;
+    const memberResult = await pool.query(
+      `
+      SELECT first_name, last_name
+      FROM members
+      WHERE id = $1
+      `,
+      [member_id]
+    );
+    
+    const memberName = memberResult.rows.length
+      ? `${memberResult.rows[0].first_name} ${memberResult.rows[0].last_name}`
+      : `Member ${member_id}`;
 
     // 🔥 mirror to income
     await client.query(
@@ -92,7 +104,7 @@ const addTithe = async (req, res) => {
       `,
       [
         amount,
-        `Tithe from member ${member_id}`,
+        `Tithe from member ${memberName}`,
         date_paid,
         recorded_by,
         titheId
@@ -208,6 +220,18 @@ const addBulkTithes = async (req, res) => {
       );
 
       const titheId = result.rows[0].id;
+      const memberResult = await pool.query(
+        `
+        SELECT first_name, last_name
+        FROM members
+        WHERE id = $1
+        `,
+        [t.member_id]
+      );
+      
+      const memberName = memberResult.rows.length
+        ? `${memberResult.rows[0].first_name} ${memberResult.rows[0].last_name}`
+        : `Member ${t.member_id}`;
       await client.query(
         `
         INSERT INTO income (
@@ -222,7 +246,7 @@ const addBulkTithes = async (req, res) => {
         `,
         [
           t.amount,
-          `Tithe from member ${t.member_id}`,
+          `Tithe from member ${memberName}`,
           date_paid,
           recorded_by,
           titheId

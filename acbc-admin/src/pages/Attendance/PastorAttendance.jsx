@@ -1,9 +1,15 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import AddAttendance from "../../components/AddAttendance";
 import "./AdminAttendance.css";
-import { apiRequest } from "../../services/api";
+import { apiRequest, updateAttendance, getAttendanceStats } from "../../services/api";
 import SecretaryDashboardCharts from "../../components/SecretaryDashboardCharts";
-import { FileSpreadsheet, ClipboardCheck } from "lucide-react";
+import { ClipboardCheck, FileSpreadsheet, FileText } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+
+// 🔥 SAME KEY AS AddAttendance
+const STORAGE_KEY = "attendance_draft";
 
 function PastorAttendance() {
 
@@ -14,18 +20,62 @@ function PastorAttendance() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [filterDate, setFilterDate] = useState("");
+  const today = new Date().toISOString().split("T")[0];
+
+  const [filterDate, setFilterDate] = useState(today);
   const [typeFilter, setTypeFilter] = useState("All");
   const [serviceFilter, setServiceFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
 
-  // ✅ NEW STATES (DO NOT REMOVE YOUR OLD LOGIC)
+  // 🔥 NEW: LIVE DRAFT STATE
+  const [liveDraft, setLiveDraft] = useState({});
+
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState("");
 
+  const [stats, setStats] = useState({});
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await getAttendanceStats();
+        setStats(data);
+      } catch (err) {
+        console.error("Stats error:", err);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   const observer = useRef();
+
+  // ======================
+  // 🔥 LOAD DRAFT (AND WATCH FOR CHANGES)
+  // ======================
+  useEffect(() => {
+
+    const loadDraft = () => {
+      const draft = localStorage.getItem(STORAGE_KEY);
+      setLiveDraft(draft ? JSON.parse(draft) : {});
+    };
+
+    loadDraft();
+
+    // 🔥 listen for changes across tabs/components
+    window.addEventListener("storage", loadDraft);
+
+    // 🔥 polling fallback (important for same-tab updates)
+    const interval = setInterval(loadDraft, 1000);
+
+    return () => {
+      window.removeEventListener("storage", loadDraft);
+      clearInterval(interval);
+    };
+
+  }, []);
 
   // ======================
   // DEBOUNCE SEARCH
@@ -46,7 +96,7 @@ function PastorAttendance() {
     if (initialLoading) {
       setUpdating(false);
     } else if (pageNumber === 1) {
-      setUpdating(true); // ✅ smooth update instead of full reload
+      setUpdating(true);
     } else {
       setLoadingMore(true);
     }
@@ -82,20 +132,19 @@ function PastorAttendance() {
     setLoadingMore(false);
   };
 
-  // ======================
-  // REFETCH ON FILTER CHANGE
-  // ======================
   useEffect(() => {
     setPage(1);
     fetchData(1);
   }, [debouncedSearch, filterDate, typeFilter, serviceFilter, statusFilter]);
 
   // ======================
-  // INFINITE SCROLL (UNCHANGED)
+  // INFINITE SCROLL
   // ======================
   const lastRowRef = useCallback(node => {
 
     if (loadingMore) return;
+
+    if (loadingMore || attendance.length === 0) return;
 
     if (observer.current) observer.current.disconnect();
 
@@ -116,17 +165,25 @@ function PastorAttendance() {
   }, [loadingMore, page, pagination]);
 
   // ======================
-  // STATS (UNCHANGED 🔥)
+  // 🔥 STATS (UPDATED)
   // ======================
-  const today = new Date().toISOString().split("T")[0];
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
-  const presentToday = attendance.filter(
+  // 🔥 LIVE PRESENT COUNT
+  const livePresentCount = Object.values(liveDraft).filter(Boolean).length;
+
+  // 🔥 DB COUNT (fallback)
+  const dbPresentToday = attendance.filter(
     (a) =>
       a.service_date?.split("T")[0] === today &&
       a.status === "Present"
   ).length;
+
+  // 🔥 FINAL VALUE (priority: LIVE > DB)
+  const presentToday = livePresentCount > 0
+    ? livePresentCount
+    : dbPresentToday;
 
   const visitorsToday = attendance.filter(
     (a) =>
@@ -151,6 +208,19 @@ function PastorAttendance() {
     );
   });
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      const data = await getAttendanceStats();
+      setStats(data);
+    };
+  
+    fetchStats();
+  
+    const interval = setInterval(fetchStats, 10000); // every 10s
+  
+    return () => clearInterval(interval);
+  }, []);
+
   const attendanceByDay = {};
 
   attendanceThisMonth.forEach((a) => {
@@ -167,6 +237,7 @@ function PastorAttendance() {
           Object.values(attendanceByDay).reduce((a, b) => a + b, 0) / daysCount
         )
       : 0;
+
 
   // ======================
   // EXPORT (UNCHANGED)
@@ -215,9 +286,60 @@ function PastorAttendance() {
     }
   };
 
-  // ======================
-  // INITIAL LOADING (SKELETON)
-  // ======================
+  const exportToPDF = async () => {
+    try {
+      const query = new URLSearchParams({
+        search: debouncedSearch,
+        type: typeFilter,
+        service: serviceFilter,
+        date: filterDate,
+        status: statusFilter,
+        export: "true",
+      });
+  
+      const res = await apiRequest(`/attendance?${query}`);
+  
+      const data = res.data;
+  
+      const doc = new jsPDF();
+  
+      doc.setFontSize(16);
+      doc.text("Attendance Report", 14, 15);
+  
+      const tableRows = data.map((row) => [
+        row.attendance_code,
+        `${row.first_name} ${row.last_name}`,
+        row.member_code,
+        row.service_date?.split("T")[0],
+        row.service_type,
+        row.status,
+        row.type,
+      ]);
+  
+      autoTable(doc, {
+        head: [[
+          "Code",
+          "Name",
+          "Member Code",
+          "Date",
+          "Service",
+          "Status",
+          "Type",
+        ]],
+        body: tableRows,
+        startY: 25,
+        styles: {
+          fontSize: 8,
+        },
+      });
+  
+      doc.save("attendance_filtered.pdf");
+  
+    } catch (err) {
+      console.error("PDF export failed", err);
+    }
+  };
+
   if (initialLoading) {
     return (
       <div className="skeleton-container">
@@ -228,9 +350,6 @@ function PastorAttendance() {
     );
   }
 
-  // ======================
-  // ERROR
-  // ======================
   if (error) {
     return (
       <div className="error-box">
@@ -240,43 +359,79 @@ function PastorAttendance() {
     );
   }
 
+  // ======================
+// UPDATE ATTENDANCE
+// ======================
+  const handleUpdateAttendance = async (row) => {
+
+    const newStatus =
+      row.status === "Present"
+        ? "Absent"
+        : "Present";
+
+    try {
+
+      await updateAttendance(row.attendance_code, {
+        service_date: row.service_date?.split("T")[0],
+        service_type: row.service_type,
+        status: newStatus,
+      });
+
+      // instant UI update
+      setAttendance(prev =>
+        prev.map(item =>
+          item.attendance_code === row.attendance_code
+            ? { ...item, status: newStatus }
+            : item
+        )
+      );
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update attendance");
+    }
+  };
+
   return (
     <div className="m-attendance-page fade-in">
 
       {/* HEADER */}
-      <div className="attendance-table-header">
-        <span className="attendance-title-icon"><ClipboardCheck size={25}/></span>
-        <span className="attendance-title-text">Attendance</span>
+      <div className="attendance-header">
+        <div className="attendance-table-header">
+          <span className="attendance-title-icon"><ClipboardCheck size={25}/></span>
+          <span className="attendance-title-text">Attendance</span>
+        </div>
+
       </div>
 
-      {/* STATS (UNCHANGED ✅) */}
+      {/* 🔥 UPDATED STATS */}
       <div className="attendance-members-stats">
 
-        <div className="attendance-stats-card">
-          <h3>Present Today</h3>
-          <p>{presentToday}</p>
-        </div>
+      <div className="attendance-stats-card">
+        <h3>Present Today</h3>
+        <p>{stats.presentToday || 0}</p>
+      </div>
 
-        <div className="attendance-stats-card">
-          <h3>Visitors Today</h3>
-          <p>{visitorsToday}</p>
-        </div>
+      <div className="attendance-stats-card">
+        <h3>Visitors Today</h3>
+        <p>{stats.visitorsToday || 0}</p>
+      </div>
 
-        <div className="attendance-stats-card">
-          <h3>Visitors This Month</h3>
-          <p>{visitorsThisMonth}</p>
-        </div>
+      <div className="attendance-stats-card">
+        <h3>Visitors This Month</h3>
+        <p>{stats.visitorsThisMonth || 0}</p>
+      </div>
 
-        <div className="attendance-stats-card">
-          <h3>Avg Attendance</h3>
-          <p>{averageAttendance}</p>
-        </div>
+      <div className="attendance-stats-card">
+        <h3>Avg Attendance</h3>
+        <p>{stats.averageAttendance || 0}</p>
+      </div>
 
       </div>
 
-      <div>
-        <SecretaryDashboardCharts />
-      </div>
+      <SecretaryDashboardCharts />
+
+      {/* TABLE + rest unchanged */}
 
       <div className="attendance-table-header">Attendance Table</div>
 
@@ -297,9 +452,9 @@ function PastorAttendance() {
         />
 
         <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-          <option>All</option>
-          <option>Member</option>
-          <option>Visitor</option>
+          <option value="All">All</option>
+          <option value="members">Member</option>
+          <option value="visitors">Visitors</option>
         </select>
 
         <select value={serviceFilter} onChange={(e) => setServiceFilter(e.target.value)}>
@@ -314,12 +469,28 @@ function PastorAttendance() {
           <option>Absent</option>
         </select>
 
+        <div className="attendance-export-actions">
+
+          <button
+            className="attendance-export-btn"
+            onClick={exportToCSV}
+          >
+            <FileSpreadsheet size={18} />
+            Export Excel
+          </button>
+
+          <button
+            className="attendance-export-btn pdf"
+            onClick={exportToPDF}
+          >
+            <FileText size={18} />
+            Download PDF
+          </button>
+
+        </div>
       </div>
 
-      <button className="attendance-export-btn" onClick={exportToCSV}>
-      <FileSpreadsheet size={18} />
-      Export
-      </button>
+     
 
       {/* ✅ SMOOTH UPDATE INDICATOR */}
       {updating && <p className="updating">Updating...</p>}
@@ -340,39 +511,55 @@ function PastorAttendance() {
           </thead>
 
           <tbody>
-            {attendance.map((row, index) => {
+            {attendance.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="attendance-empty">
+                  No attendance recorded for {filterDate}
+                </td>
+              </tr>
+            ) : (
+              attendance.map((row, index) => {
 
-              const statusClass =
-                row.status === "Present"
-                  ? "status present"
-                  : row.status === "Absent"
-                  ? "status absent"
-                  : "";
+                const statusClass =
+                  row.status === "Present"
+                    ? "status present"
+                    : row.status === "Absent"
+                    ? "status absent"
+                    : "";
 
-              if (attendance.length === index + 1) {
+                if (attendance.length === index + 1) {
+                  return (
+                    <tr ref={lastRowRef} key={row.id}>
+                      <td>{row.first_name} {row.last_name}</td>
+                      <td>{row.member_code}</td>
+                      <td>{row.service_date?.split("T")[0]}</td>
+                      <td>{row.service_type}</td>
+
+                      <td className={statusClass}>
+                        {row.status}
+                      </td>
+
+                      <td>{row.type}</td>
+                    </tr>
+                  );
+                }
+
                 return (
-                  <tr ref={lastRowRef} key={row.id}>
+                  <tr key={row.id}>
                     <td>{row.first_name} {row.last_name}</td>
                     <td>{row.member_code}</td>
                     <td>{row.service_date?.split("T")[0]}</td>
                     <td>{row.service_type}</td>
-                    <td className={statusClass}>{row.status}</td>
+
+                    <td className={statusClass}>
+                      {row.status}
+                    </td>
+
                     <td>{row.type}</td>
                   </tr>
                 );
-              }
-
-              return (
-                <tr key={row.id}>
-                  <td>{row.first_name} {row.last_name}</td>
-                  <td>{row.member_code}</td>
-                  <td>{row.service_date?.split("T")[0]}</td>
-                  <td>{row.service_type}</td>
-                  <td className={statusClass}>{row.status}</td>
-                  <td>{row.type}</td>
-                </tr>
-              );
-            })}
+              })
+            )}
           </tbody>
         </table>
 

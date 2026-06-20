@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import AddTransaction from "../../components/AddTransaction";
 import IncomeExpenseChart from "../../components/IncomeExpenseChart";
 import IncomeCategoryChart from "../../components/IncomeCategoryChart";
-import { getIncome, getExpenses } from "../../services/api";
-import { Wallet } from "lucide-react";
+import { getIncome, getExpenses, deleteIncome, deleteExpenditure, updateIncome, updateExpenditure } from "../../services/api";
 
 import "./FinancialSecretaryFinance.css";
+import "./AdminFinance.css"
 import ExpenseCategoryChart from "../../components/ExpenseCategoryChart";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Wallet, FileSpreadsheet, FileText } from "lucide-react";
 
 function PastorFinance() {
 
@@ -16,7 +19,12 @@ function PastorFinance() {
 
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
-  const [dateFilter, setDateFilter] = useState("");
+  const today = new Date().toISOString().split("T")[0];
+
+  const [dateFilter, setDateFilter] = useState(today);
+
+  const [editingTx, setEditingTx] = useState(null);
+  const [editForm, setEditForm] = useState({});
 
   useEffect(() => {
     loadFinance();
@@ -83,6 +91,160 @@ function PastorFinance() {
 
   if (loading) return <p style={{ padding: 20 }}>Loading finance...</p>;
 
+  const parseTransaction = (tx) => {
+    const [type, id] = tx.id.split("-");
+    return { type, id };
+  };
+
+  const exportToCSV = () => {
+    const headers = [
+      "ID",
+      "Date",
+      "Type",
+      "Description",
+      "Amount",
+      "Status",
+    ];
+  
+    const rows = filteredTransactions.map((tx) => [
+      tx.id,
+      new Date(tx.date).toLocaleDateString(),
+      tx.type,
+      tx.description,
+      tx.amount,
+      tx.status,
+    ]);
+  
+    let csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map((e) => e.join(",")).join("\n");
+  
+    const link = document.createElement("a");
+    link.href = encodeURI(csvContent);
+    link.download = "finance_report.csv";
+    link.click();
+  };
+
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+  
+    doc.setFontSize(16);
+    doc.text("Financial Report", 14, 15);
+  
+    autoTable(doc, {
+      startY: 25,
+      head: [[
+        "ID",
+        "Date",
+        "Type",
+        "Description",
+        "Amount",
+        "Status",
+      ]],
+      body: filteredTransactions.map((tx) => [
+        tx.id,
+        new Date(tx.date).toLocaleDateString(),
+        tx.type,
+        tx.description,
+        `GH₵ ${Number(tx.amount).toFixed(2)}`,
+        tx.status,
+      ]),
+      styles: {
+        fontSize: 8,
+      },
+    });
+  
+    doc.save("finance_report.pdf");
+  };
+
+  const handleDelete = async (tx) => {
+    
+    
+    if (isRestricted(tx)) {
+      alert("Delete this from Tithes module");
+      return;
+    }
+    
+    if (!window.confirm("Delete this transaction?")) return;
+  
+    const { type, id } = parseTransaction(tx);
+  
+    try {
+      if (type === "INC") {
+        await deleteIncome(id);
+      } else {
+        await deleteExpenditure(id);
+      }
+  
+      loadFinance();
+  
+    } catch (err) {
+      alert("Failed to delete");
+    }
+  };
+
+  const openEdit = (tx) => {
+    
+    if (isRestricted(tx)) {
+      alert("Edit this from Tithes module");
+      return;
+    }
+  
+    setEditingTx(tx);
+  
+    setEditForm({
+      description: tx.description,
+      amount: tx.amount,
+      date: tx.date,
+    });
+  };
+
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+  
+    const { type, id } = parseTransaction(editingTx);
+  
+    try {
+      if (type === "INC") {
+        await updateIncome(id, {
+          income_type: editForm.description,
+          amount: editForm.amount,
+          date_received: editForm.date,
+        });
+      } else {
+        await updateExpenditure(id, {
+          category: editForm.description,
+          amount: editForm.amount,
+          date_spent: editForm.date,
+        });
+      }
+  
+      setEditingTx(null);
+      loadFinance();
+  
+    } catch {
+      alert("Update failed");
+    }
+  };
+
+  const isRestricted = (tx) => {
+    const desc = tx.description?.toLowerCase() || "";
+  
+    const isTithe =
+      tx.type === "Income" && desc.includes("tithe");
+  
+    const isWelfareTransfer =
+      tx.type === "Expense" && desc.includes("transfer from day born offering");
+  
+    return isTithe || isWelfareTransfer;
+  };
+
+  
+  
+
+
   return (
     <div className="finance-page">
 
@@ -91,10 +253,6 @@ function PastorFinance() {
         <div className="finance-title">
           <span className="finance-title-icon"><Wallet /></span>
           <span className="finance-title-text">Financial Management</span>
-        </div>
-
-        <div className="finance-action-btn">
-          <AddTransaction onSuccess={loadFinance} />
         </div>
       </div>
 
@@ -147,11 +305,49 @@ function PastorFinance() {
           <option value="Expense">Expense</option>
         </select>
 
-        <input
-          type="date"
-          value={dateFilter}
-          onChange={(e) => setDateFilter(e.target.value)}
-        />
+        <div className="finance-date-filter">
+          <input
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+          />
+
+          <button
+            type="button"
+            onClick={() =>
+              setDateFilter(new Date().toISOString().split("T")[0])
+            }
+          >
+            Today
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDateFilter("")}
+          >
+            Show All
+          </button>
+        </div>
+
+        <div className="finance-export-actions">
+
+          <button
+            className="finance-export-btn"
+            onClick={exportToCSV}
+          >
+            <FileSpreadsheet size={18} />
+            Export Excel
+          </button>
+
+          <button
+            className="finance-export-btn pdf"
+            onClick={exportToPDF}
+          >
+            <FileText size={18} />
+            Download PDF
+          </button>
+
+        </div>
       </div>
 
       {/* TABLE */}
@@ -171,7 +367,7 @@ function PastorFinance() {
           <tbody>
             {filteredTransactions.length === 0 ? (
               <tr>
-                <td colSpan="6" style={{ textAlign: "center" }}>
+                <td colSpan="7" style={{ textAlign: "center" }}>
                   No records
                 </td>
               </tr>
@@ -192,6 +388,41 @@ function PastorFinance() {
           </tbody>
         </table>
       </div>
+
+      {editingTx && (
+        <div className="edit-transaction-modal-overlay" onClick={() => setEditingTx(null)}>
+          <div className="edit-transaction-modal-box" onClick={(e) => e.stopPropagation()}>
+            <h3>Edit Transaction</h3>
+
+            <form onSubmit={handleEditSubmit}>
+              <input
+                value={editForm.description}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, description: e.target.value })
+                }
+              />
+
+              <input
+                type="number"
+                value={editForm.amount}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, amount: e.target.value })
+                }
+              />
+
+              <input
+                type="date"
+                value={editForm.date?.split("T")[0]}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, date: e.target.value })
+                }
+              />
+
+              <button type="submit" className="edit-transaction-save-button">Save</button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

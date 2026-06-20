@@ -1,37 +1,77 @@
 /* ======================================================
    FINANCE DASHBOARD — CLEAN SYSTEM STYLE
 ====================================================== */
-
 .finance-dashboard {
-  padding: 24px;
-  background: #f5f7fb;
+  padding: 30px;
   min-height: 100vh;
+  background:
+    linear-gradient(to bottom,
+      #f8fafc,
+      #eef2ff);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 25px;
 }
 
 /* ======================================================
    HEADER
 ====================================================== */
-
 .finance-dashboard-header {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
-  color: #1E293B;
-  letter-spacing: -0.4px;
-  margin-bottom: 4px;
+  color: #1e293b;
+  margin-bottom: 15px;
 }
 
 .finance-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1E293B;
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
 }
-
 /* ======================================================
    TOP SUMMARY STATS
 ====================================================== */
+.summary-stats{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+.finance-stats-card {
+  background: #fff;
+  padding: 24px;
+  border-radius: 20px;
+  border-left: 5px solid #4A6FD3;
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.06);
+  transition: all 0.3s ease;
+}
+
+.finance-stats-card:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+.finance-stats-card h2 {
+  margin-top: 20px;
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* color themes */
+.finance-stats-card.income {
+  border-left-color: #16a34a;
+}
+
+.finance-stats-card.expense {
+  border-left-color: #dc2626;
+}
+
+.finance-stats-card.balance {
+  border-left-color: #4A6FD3;
+}
+
 
 .finance-stats-grid {
   display: grid;
@@ -67,18 +107,54 @@
   margin: 0;
 }
 
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-top span,
+.card-top p {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.card-top svg {
+  width: 38px;
+  height: 38px;
+  padding: 8px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #4A6FD3;
+}
+
+.finance-stats-card.income .card-top svg {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.finance-stats-card.expense .card-top svg {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.finance-stats-card.balance .card-top svg {
+  background: #dbeafe;
+  color: #2563eb;
+}
 /* ======================================================
    TODAY SUMMARY WRAPPER
 ====================================================== */
 
 .finance-today-summary {
-  background: #ffffff;
-  padding: 24px;
-  border-radius: 18px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-  animation: fadeIn 0.4s ease;
+  background: #fff;
+  padding: 28px;
+  border-radius: 22px;
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.06);
 }
-
 /* ======================================================
    TODAY GRID
 ====================================================== */
@@ -93,22 +169,21 @@
 /* ======================================================
    TODAY CARD BASE
 ====================================================== */
-
 .finance-todaySummary-card {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 16px;
-  border-left: 5px solid #2f2fd6;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
-  transition: 0.25s ease;
+  background: #fff;
+  padding: 22px;
+  border-radius: 18px;
+  border-left: 5px solid #4A6FD3;
+  box-shadow:
+    0 6px 20px rgba(15, 23, 42, 0.05);
+  transition: all 0.3s ease;
 }
 
 .finance-todaySummary-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
+  transform: translateY(-6px);
+  box-shadow:
+    0 15px 35px rgba(15, 23, 42, 0.12);
 }
-
 .finance-todaySummary-card p {
   font-size: 14px;
   font-weight: 600;
@@ -123,6 +198,21 @@
   font-weight: 700;
   color: #1E293B;
   margin: 0;
+}
+
+.finance-todaySummary-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.finance-todaySummary-card::after {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(0,0,0,0.05), transparent);
+  top: -20px;
+  right: -20px;
 }
 
 /* ======================================================
@@ -167,6 +257,14 @@
 /* ======================================================
    CHARTS
 ====================================================== */
+.charts > *,
+.charts-grid > * {
+  background: #fff;
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.06);
+}
 
 .charts {
   margin-top: 10px;
@@ -178,13 +276,6 @@
   gap: 20px;
 }
 
-.charts > *,
-.charts-grid > * {
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-}
 
 /* ======================================================
    ANIMATION
@@ -199,6 +290,13 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.finance-stats-card,
+.finance-todaySummary-card,
+.charts > *,
+.charts-grid > * {
+  animation: fadeIn 0.4s ease;
 }
 
 /* ======================================================
@@ -227,6 +325,25 @@
 
   .finance-dashboard-header {
     font-size: 20px;
+  }
+
+  .finance-today-summary {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .finance-dashboard {
+    padding: 15px;
+  }
+
+  .finance-title {
+    font-size: 26px;
+  }
+
+  .finance-stats-card h2,
+  .finance-todaySummary-card h2 {
+    font-size: 24px;
   }
 
   .finance-today-summary {

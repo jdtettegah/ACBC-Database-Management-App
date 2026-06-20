@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { getAllTithes, updateTithe, deleteTithe } from "../../services/api";
 import AddTithe from "../../components/AddTithe";
 import "./AdminTithe.css";
-import { FileSpreadsheet, Landmark } from "lucide-react";
+import { FileSpreadsheet, Landmark, FileText } from "lucide-react";
 import { saveBulkTithe } from "../../services/api";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 
 function AdminTithe() {
   const [tithes, setTithes] = useState([]);
@@ -12,7 +15,8 @@ function AdminTithe() {
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
+  const today = new Date().toISOString().split("T")[0];
+  const [dateFilter, setDateFilter] = useState(today);
 
   const [editingTithe, setEditingTithe] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -73,8 +77,6 @@ function AdminTithe() {
     0
   );
 
-  const today = new Date().toISOString().split("T")[0];
-
   const todayTithes = tithes.filter(
     t => new Date(t.date_paid).toISOString().split("T")[0] === today
   );
@@ -126,6 +128,55 @@ function AdminTithe() {
     link.href = encodeURI(csvContent);
     link.download = "tithe-report.csv";
     link.click();
+  };
+
+  const exportToPDF = () => {
+
+    if (filtered.length === 0) {
+      return alert("No data to export");
+    }
+  
+    const doc = new jsPDF();
+  
+    doc.setFontSize(16);
+    doc.text("Tithe Report", 14, 15);
+  
+    // Total amount
+    const totalAmount = filtered.reduce(
+      (sum, t) => sum + Number(t.amount),
+      0
+    );
+  
+    doc.setFontSize(11);
+    doc.text(`Total Records: ${filtered.length}`, 14, 25);
+    doc.text(`Total Amount: GH₵ ${totalAmount.toFixed(2)}`, 14, 32);
+  
+    autoTable(doc, {
+      startY: 40,
+      head: [[
+        "Name",
+        "Member Code",
+        "Tithe Code",
+        "Amount",
+        "Method",
+        "Reference",
+        "Date"
+      ]],
+      body: filtered.map(t => [
+        `${t.first_name} ${t.last_name}`,
+        t.member_code,
+        t.tithe_code,
+        `GH₵ ${Number(t.amount).toFixed(2)}`,
+        t.payment_method,
+        t.payment_reference || "",
+        new Date(t.date_paid).toLocaleDateString()
+      ]),
+      styles: {
+        fontSize: 8,
+      },
+    });
+  
+    doc.save("tithe-report.pdf");
   };
 
   /* ================= UI ================= */
@@ -221,6 +272,7 @@ function AdminTithe() {
           placeholder="Search name, code, amount..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          className="tithe-search"
         />
 
         <input
@@ -229,13 +281,38 @@ function AdminTithe() {
           onChange={(e) => setDateFilter(e.target.value)}
         />
 
-        <div className="tithe-export-btn">
-            <button
-              onClick={exportToExcel}
-            >
-              <FileSpreadsheet size={18} />
-              Export
-            </button>
+        <button
+          onClick={() => setDateFilter(today)}
+          className="tithe-today-btn"
+        >
+          Today
+        </button>
+
+        <button
+          onClick={() => setDateFilter("")}
+          className="tithe-show-all-btn"
+        >
+          Show All
+        </button>
+
+        <div className="tithe-export-actions">
+
+          <button
+            className="tithe-export-btn"
+            onClick={exportToExcel}
+          >
+            <FileSpreadsheet size={18} />
+            Export Excel
+          </button>
+
+          <button
+            className="tithe-export-btn pdf"
+            onClick={exportToPDF}
+          >
+            <FileText size={18} />
+            Download PDF
+          </button>
+
         </div>
 
       </div>

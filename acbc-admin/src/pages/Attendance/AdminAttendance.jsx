@@ -1,9 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import AddAttendance from "../../components/AddAttendance";
 import "./AdminAttendance.css";
-import { apiRequest, updateAttendance } from "../../services/api";
+import { apiRequest, updateAttendance, getAttendanceStats } from "../../services/api";
 import SecretaryDashboardCharts from "../../components/SecretaryDashboardCharts";
-import { ClipboardCheck, FileSpreadsheet } from "lucide-react";
+import { ClipboardCheck, FileSpreadsheet, FileText } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 
 // 🔥 SAME KEY AS AddAttendance
 const STORAGE_KEY = "attendance_draft";
@@ -17,7 +20,9 @@ function AdminAttendance() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [filterDate, setFilterDate] = useState("");
+  const today = new Date().toISOString().split("T")[0];
+
+  const [filterDate, setFilterDate] = useState(today);
   const [typeFilter, setTypeFilter] = useState("All");
   const [serviceFilter, setServiceFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -29,6 +34,21 @@ function AdminAttendance() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState("");
+
+  const [stats, setStats] = useState({});
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await getAttendanceStats();
+        setStats(data);
+      } catch (err) {
+        console.error("Stats error:", err);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const observer = useRef();
 
@@ -124,6 +144,8 @@ function AdminAttendance() {
 
     if (loadingMore) return;
 
+    if (loadingMore || attendance.length === 0) return;
+
     if (observer.current) observer.current.disconnect();
 
     observer.current = new IntersectionObserver(entries => {
@@ -145,7 +167,6 @@ function AdminAttendance() {
   // ======================
   // 🔥 STATS (UPDATED)
   // ======================
-  const today = new Date().toISOString().split("T")[0];
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
@@ -187,6 +208,19 @@ function AdminAttendance() {
     );
   });
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      const data = await getAttendanceStats();
+      setStats(data);
+    };
+  
+    fetchStats();
+  
+    const interval = setInterval(fetchStats, 10000); // every 10s
+  
+    return () => clearInterval(interval);
+  }, []);
+
   const attendanceByDay = {};
 
   attendanceThisMonth.forEach((a) => {
@@ -203,6 +237,7 @@ function AdminAttendance() {
           Object.values(attendanceByDay).reduce((a, b) => a + b, 0) / daysCount
         )
       : 0;
+
 
   // ======================
   // EXPORT (UNCHANGED)
@@ -248,6 +283,60 @@ function AdminAttendance() {
 
     } catch (err) {
       console.error("Export failed", err);
+    }
+  };
+
+  const exportToPDF = async () => {
+    try {
+      const query = new URLSearchParams({
+        search: debouncedSearch,
+        type: typeFilter,
+        service: serviceFilter,
+        date: filterDate,
+        status: statusFilter,
+        export: "true",
+      });
+  
+      const res = await apiRequest(`/attendance?${query}`);
+  
+      const data = res.data;
+  
+      const doc = new jsPDF();
+  
+      doc.setFontSize(16);
+      doc.text("Attendance Report", 14, 15);
+  
+      const tableRows = data.map((row) => [
+        row.attendance_code,
+        `${row.first_name} ${row.last_name}`,
+        row.member_code,
+        row.service_date?.split("T")[0],
+        row.service_type,
+        row.status,
+        row.type,
+      ]);
+  
+      autoTable(doc, {
+        head: [[
+          "Code",
+          "Name",
+          "Member Code",
+          "Date",
+          "Service",
+          "Status",
+          "Type",
+        ]],
+        body: tableRows,
+        startY: 25,
+        styles: {
+          fontSize: 8,
+        },
+      });
+  
+      doc.save("attendance_filtered.pdf");
+  
+    } catch (err) {
+      console.error("PDF export failed", err);
     }
   };
 
@@ -321,25 +410,25 @@ function AdminAttendance() {
       {/* 🔥 UPDATED STATS */}
       <div className="attendance-members-stats">
 
-        <div className="attendance-stats-card">
-          <h3>Present Today {livePresentCount > 0 && "(Live)"}</h3>
-          <p>{presentToday}</p>
-        </div>
+      <div className="attendance-stats-card">
+        <h3>Present Today</h3>
+        <p>{stats.presentToday || 0}</p>
+      </div>
 
-        <div className="attendance-stats-card">
-          <h3>Visitors Today</h3>
-          <p>{visitorsToday}</p>
-        </div>
+      <div className="attendance-stats-card">
+        <h3>Visitors Today</h3>
+        <p>{stats.visitorsToday || 0}</p>
+      </div>
 
-        <div className="attendance-stats-card">
-          <h3>Visitors This Month</h3>
-          <p>{visitorsThisMonth}</p>
-        </div>
+      <div className="attendance-stats-card">
+        <h3>Visitors This Month</h3>
+        <p>{stats.visitorsThisMonth || 0}</p>
+      </div>
 
-        <div className="attendance-stats-card">
-          <h3>Avg Attendance</h3>
-          <p>{averageAttendance}</p>
-        </div>
+      <div className="attendance-stats-card">
+        <h3>Avg Attendance</h3>
+        <p>{stats.averageAttendance || 0}</p>
+      </div>
 
       </div>
 
@@ -366,9 +455,9 @@ function AdminAttendance() {
         />
 
         <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-          <option>All</option>
-          <option>Member</option>
-          <option>Visitor</option>
+          <option value="All">All</option>
+          <option value="members">Member</option>
+          <option value="visitors">Visitors</option>
         </select>
 
         <select value={serviceFilter} onChange={(e) => setServiceFilter(e.target.value)}>
@@ -383,12 +472,28 @@ function AdminAttendance() {
           <option>Absent</option>
         </select>
 
+        <div className="attendance-export-actions">
+
+          <button
+            className="attendance-export-btn"
+            onClick={exportToCSV}
+          >
+            <FileSpreadsheet size={18} />
+            Export Excel
+          </button>
+
+          <button
+            className="attendance-export-btn pdf"
+            onClick={exportToPDF}
+          >
+            <FileText size={18} />
+            Download PDF
+          </button>
+
+        </div>
       </div>
 
-      <button className="attendance-export-btn" onClick={exportToCSV}>
-      <FileSpreadsheet size={18} />
-      Export
-      </button>
+     
 
       {/* ✅ SMOOTH UPDATE INDICATOR */}
       {updating && <p className="updating">Updating...</p>}
@@ -410,18 +515,54 @@ function AdminAttendance() {
           </thead>
 
           <tbody>
-            {attendance.map((row, index) => {
+            {attendance.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="attendance-empty">
+                  No attendance recorded for {filterDate}
+                </td>
+              </tr>
+            ) : (
+              attendance.map((row, index) => {
 
-              const statusClass =
-                row.status === "Present"
-                  ? "status present"
-                  : row.status === "Absent"
-                  ? "status absent"
-                  : "";
+                const statusClass =
+                  row.status === "Present"
+                    ? "status present"
+                    : row.status === "Absent"
+                    ? "status absent"
+                    : "";
 
-              if (attendance.length === index + 1) {
+                if (attendance.length === index + 1) {
+                  return (
+                    <tr ref={lastRowRef} key={row.id}>
+                      <td>{row.first_name} {row.last_name}</td>
+                      <td>{row.member_code}</td>
+                      <td>{row.service_date?.split("T")[0]}</td>
+                      <td>{row.service_type}</td>
+
+                      <td className={statusClass}>
+                        {row.status}
+                      </td>
+
+                      <td>{row.type}</td>
+
+                      <td>
+                        {row.type === "members" && (
+                          <button
+                            className="attendance-edit-btn"
+                            onClick={() => handleUpdateAttendance(row)}
+                          >
+                            Mark {row.status === "Present"
+                              ? "Absent"
+                              : "Present"}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                }
+
                 return (
-                  <tr ref={lastRowRef} key={row.id}>
+                  <tr key={row.id}>
                     <td>{row.first_name} {row.last_name}</td>
                     <td>{row.member_code}</td>
                     <td>{row.service_date?.split("T")[0]}</td>
@@ -434,45 +575,21 @@ function AdminAttendance() {
                     <td>{row.type}</td>
 
                     <td>
-                      {row.type === "Member" && (
+                      {row.type === "members" && (
                         <button
                           className="attendance-edit-btn"
                           onClick={() => handleUpdateAttendance(row)}
                         >
-                          Mark {row.status === "Present" ? "Absent" : "Present"}
+                          Mark {row.status === "Present"
+                            ? "Absent"
+                            : "Present"}
                         </button>
                       )}
                     </td>
                   </tr>
                 );
-              }
-
-              return (
-                <tr key={row.id}>
-                  <td>{row.first_name} {row.last_name}</td>
-                  <td>{row.member_code}</td>
-                  <td>{row.service_date?.split("T")[0]}</td>
-                  <td>{row.service_type}</td>
-
-                  <td className={statusClass}>
-                    {row.status}
-                  </td>
-
-                  <td>{row.type}</td>
-
-                  <td>
-                    {row.type === "Member" && (
-                      <button
-                        className="attendance-edit-btn"
-                        onClick={() => handleUpdateAttendance(row)}
-                      >
-                        Mark {row.status === "Present" ? "Absent" : "Present"}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
+              })
+            )}
           </tbody>
         </table>
 

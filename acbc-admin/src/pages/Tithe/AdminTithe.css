@@ -93,59 +93,85 @@
   color: #1E293B;
 }
 
-/* ========================================
-   CONTROLS
-======================================== */
+/* FILTERS */
 .tithe-controls {
   display: flex;
-  gap: 14px;
   flex-wrap: wrap;
+  gap: 10px;
   align-items: center;
-}
 
-.tithe-controls input {
-  padding: 11px 14px;
-  border: 1px solid #dbe2ea;
-  border-radius: 10px;
   background: #ffffff;
-  font-size: 14px;
-  outline: none;
-  transition: 0.2s ease;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
 }
 
-.tithe-controls input[type="text"] {
-  flex: 1;
-  min-width: 260px;
-}
-
-.tithe-controls input[type="date"] {
+/* Inputs */
+.tithe-controls input {
   min-width: 180px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
 }
 
-.tithe-controls input:focus {
-  border-color: #4d4dea;
-  box-shadow: 0 0 0 3px rgba(77, 77, 234, 0.12);
+.tithe-search{
+  width: 300px;
 }
 
-.tithe-export-btn button {
-  background: #22C55E;
-  color: white;
+/* Buttons */
+.tithe-controls button {
+  padding: 10px 14px;
+  border-radius: 10px;
   border: none;
-  padding: 12px 18px;
-  border-radius: 12px;
-  font-weight: 600;
   cursor: pointer;
-  transition: 0.2s ease;
-  display: inline-flex;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Today button */
+.tithe-today-btn {
+  background: #2563eb;
+  color: white;
+}
+
+/* Show all button */
+.tithe-show-all-btn {
+  background: #e5e7eb;
+  color: #333;
+}
+
+.tithe-export-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.tithe-export-btn.pdf {
+  background: #ec6c6c;
+  color: white;
+}
+
+/* Export button */
+.tithe-export-btn {
+  display: flex;
   align-items: center;
   gap: 6px;
+  background: #16a34a;
+  color: white;
 }
 
-.tithe-export-btn button:hover {
-  background: #1f1fc0;
-  transform: translateY(-2px);
-}
+/* MOBILE FIX */
+@media (max-width: 600px) {
+  .tithe-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
+  .tithe-controls input,
+  .tithe-controls button {
+    width: 100%;
+  }
+}
 /* ========================================
    TABLE WRAPPER
 ======================================== */

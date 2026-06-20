@@ -348,7 +348,7 @@ function AdminDepartments() {
                       <td>
                         <button
                           className="department-delete-btn"
-                          onClick={() => handleRemove(m.memberDepartmentId)}
+                          onClick={() => handleRemove(m.member_department_id)}
                         >
                           {removing ? "Removing..." : "Remove"}
                         </button>

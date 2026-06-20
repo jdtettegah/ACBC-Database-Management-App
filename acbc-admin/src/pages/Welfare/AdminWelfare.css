@@ -84,6 +84,9 @@
   flex-wrap: wrap;
   gap: 14px;
   align-items: center;
+  background-color: white;
+  padding: 20px;
+  border-radius: 15px;
 }
 
 .welfare-controls input,
@@ -133,6 +136,25 @@
   transform: translateY(-2px);
 }
 
+.welfare-pdf-btn {
+  background: #ec6c6c;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.welfare-pdf-btn:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
 /* ========================================
    STATS
 ======================================== */
@@ -169,6 +191,54 @@
   font-weight: 700;
   color: #1E293B;
 }
+
+/* ===== TABS CONTAINER ===== */
+.welfare-tabs {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+  background: #f5f7fb;
+  padding: 6px;
+  border-radius: 12px;
+  width: fit-content;
+}
+
+/* ===== TAB BUTTON ===== */
+.welfare-tab {
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #555;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+/* ===== HOVER EFFECT ===== */
+.welfare-tab:hover {
+  background: #e4e9f2;
+  color: #222;
+}
+
+/* ===== ACTIVE TAB ===== */
+.welfare-tab.active {
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.welfare-export-actions {
+  display: flex;
+  gap: 10px;
+}
+
 
 /* ========================================
    TABLE

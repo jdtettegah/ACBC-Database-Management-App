@@ -10,6 +10,7 @@ router.post("/bulk", attendanceController.markAttendanceBulk);
 /* ================= READ ================= */
 router.get("/", attendanceController.getAllAttendance);
 router.get("/member/:memberId", attendanceController.getAttendanceByMember);
+router.get("/stats", attendanceController.getAttendanceStats);
 
 /* ================= UPDATE ================= */
 router.put("/:attendanceCode", attendanceController.updateAttendance);

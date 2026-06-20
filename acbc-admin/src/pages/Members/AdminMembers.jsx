@@ -3,7 +3,9 @@ import AddMember from "../../components/AddMember";
 import { useEffect, useState } from "react";
 import { apiRequest } from "../../services/api";
 import AddUser from "../../components/AddUser";
-import { Eye, FileSpreadsheet, Pencil, Trash2, Users } from "lucide-react";
+import { Eye, FileSpreadsheet, Pencil, Trash2, Users, FileText } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 function AdminMembers() {
 
@@ -111,6 +113,43 @@ function AdminMembers() {
     link.href = encodeURI(csvContent);
     link.download = "members_filtered.csv";
     link.click();
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+  
+    doc.setFontSize(16);
+    doc.text("Church Members Report", 14, 15);
+  
+    const tableColumn = [
+      "Code",
+      "First Name",
+      "Last Name",
+      "Phone",
+      "Gender",
+      "Group",
+      "Status",
+      "Baptized",
+    ];
+  
+    const tableRows = filteredMembers.map((m) => [
+      m.member_code,
+      m.first_name,
+      m.last_name,
+      m.phone || "",
+      m.gender,
+      m.auxiliary_group || "",
+      m.membership_status,
+      m.baptized ? "Yes" : "No",
+    ]);
+  
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 25,
+    });
+  
+    doc.save("members_filtered.pdf");
   };
 
   /* ================= EDIT FUNCTIONS ================= */
@@ -377,10 +416,23 @@ function AdminMembers() {
             </select>
 
 
-            <button className="member-export-btn" onClick={exportToCSV}>
-            <FileSpreadsheet size={18} />
-            Export
-            </button>
+            <div className="member-export-actions">
+              <button
+                className="member-export-btn"
+                onClick={exportToCSV}
+              >
+                <FileSpreadsheet size={18} />
+                Export Excel
+              </button>
+
+              <button
+                className="member-export-btn pdf"
+                onClick={exportToPDF}
+              >
+                <FileText size={18} />
+                Download PDF
+              </button>
+            </div>
 
           </div>
 

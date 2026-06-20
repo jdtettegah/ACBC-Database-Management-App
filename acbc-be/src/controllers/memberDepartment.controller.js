@@ -102,6 +102,7 @@ const getMembersByDepartment = async (req, res) => {
       JOIN members m ON md.member_id = m.id
       WHERE md.department_id = $1
         AND md.is_active = true
+        AND m.is_deleted = false
       ORDER BY m.first_name
       `,
       [deptId]
@@ -192,6 +193,7 @@ const getDepartmentsByMember = async (req, res) => {
       JOIN members m ON md.member_id = m.id
       WHERE md.member_id = $1
         AND md.is_active = true
+        AND m.is_deleted = false
       `,
       [member_id]
     );

@@ -12,28 +12,39 @@ function AddWelfarePayment({ member, onClose, onSaved }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
+    const numericAmount = Number(amount);
+  
+    const remainingBalance =
+      Number(member.expected_amount) - Number(member.total_paid);
+  
+    // ✅ VALIDATION FIRST
+    if (numericAmount > remainingBalance) {
+      alert(`Payment exceeds balance. Remaining: GH₵ ${remainingBalance.toFixed(2)}`);
+      return;
+    }
+  
     try {
       await recordWelfarePayment({
         event_member_id: member.event_member_id,
-        amount: Number(amount),
+        amount: numericAmount,
         payment_method: method,
         payment_reference: method === "Momo" ? ref : null,
         date_paid: date,
         recorded_by: user.id
       });
-
+  
       alert("✅ Payment successful");
-
+  
       onClose();
       onSaved();
-
+  
     } catch (err) {
       console.error(err);
       alert("❌ Payment failed");
     }
   };
-
+  
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") {

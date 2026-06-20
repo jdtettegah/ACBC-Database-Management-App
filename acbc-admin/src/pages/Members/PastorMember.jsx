@@ -72,7 +72,7 @@ function PastorMember() {
   const auxGroups = {};
 
   members.forEach((m) => {
-    const group = m.Auxiliary_Group || "Unknown";
+    const group = m.auxiliary_group || "Unknown";
     auxGroups[group] = (auxGroups[group] || 0) + 1;
   });
 
@@ -82,6 +82,8 @@ function PastorMember() {
   }));
 
   if (loading) return <p>Loading members...</p>;
+
+  
 
   return (
     <div className="pastor-members">
