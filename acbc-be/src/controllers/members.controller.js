@@ -318,6 +318,15 @@ const deleteMember = async (req, res) => {
       [id]
     );
 
+    await pool.query(
+      `
+      UPDATE member_departments
+      SET is_active = false
+      WHERE member_id = $1
+      `,
+      [id]
+    );
+
     res.json({
       message: "Member deleted successfully"
     });

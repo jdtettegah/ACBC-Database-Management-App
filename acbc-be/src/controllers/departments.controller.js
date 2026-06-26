@@ -47,26 +47,29 @@ const getAllDepartments = async (req, res) => {
   try {
 
     const result = await pool.query(`
-      SELECT 
-        d.id,
-        d.name,
-        d.description,
-        d.is_active,
-        d.created_at,
-        COUNT(md.id) AS member_count
-      FROM departments d
-      LEFT JOIN member_departments md
-        ON d.id = md.department_id
-        AND md.is_active = true
-      WHERE d.is_active = true
-      GROUP BY 
-        d.id,
-        d.name,
-        d.description,
-        d.is_active,
-        d.created_at
-      ORDER BY d.name
-    `);
+    SELECT
+      d.id,
+      d.name,
+      d.description,
+      d.is_active,
+      d.created_at,
+      COUNT(m.id) AS member_count
+    FROM departments d
+    LEFT JOIN member_departments md
+      ON d.id = md.department_id
+      AND md.is_active = true
+    LEFT JOIN members m
+      ON md.member_id = m.id
+      AND m.is_deleted = false
+    WHERE d.is_active = true
+    GROUP BY
+      d.id,
+      d.name,
+      d.description,
+      d.is_active,
+      d.created_at
+    ORDER BY d.name
+  `);
 
     res.json(result.rows);
 
