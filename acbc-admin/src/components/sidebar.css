@@ -143,3 +143,23 @@
 .sidebar::-webkit-scrollbar-track {
   background: transparent;
 }
+
+.install-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+
+  background: #004d00;
+  color: white;
+
+  border: none;
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  font-size: 15px;
+}
+
+.install-btn:hover {
+  background: #006600;
+}

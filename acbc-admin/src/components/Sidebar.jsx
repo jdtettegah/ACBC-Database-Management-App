@@ -12,10 +12,35 @@ import {
 
 import acbclogo from "../assets/acbc-logo.png";
 import "./sidebar.css";
+import usePWAInstall from "../hooks/usePWAInstall";
+import { useState, useEffect } from "react";
+
+
+
+
+
 
 
 
 function Sidebar() {
+  
+  const { install, isInstallable } = usePWAInstall();
+
+  useEffect(() => {
+    const installed =
+      window.matchMedia("(display-mode: standalone)").matches;
+  
+    if (installed) {
+      console.log("Running as installed app");
+    }
+  }, []);
+  
+  window.addEventListener("appinstalled", () => {
+    console.log("ACBC installed");
+  
+    alert("Thank you for installing ACBC!");
+  });
+
   const user = JSON.parse(localStorage.getItem("user"));
   const role = user?.role;
 
@@ -193,6 +218,15 @@ function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      {isInstallable && (
+        <button
+            onClick={install}
+            className="install-btn"
+        >
+            📱 Install ACBC App
+        </button>
+      )}
     </div>
   );
 }

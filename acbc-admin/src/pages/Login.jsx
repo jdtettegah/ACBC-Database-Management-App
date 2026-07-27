@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {useNavigate} from "react-router-dom";
 import acbcLogo from "../assets/acbc-logo.png"; // put logo here
-import "../styles/pages.css"
+import "../styles/pages.css";
 import { Eye, EyeOff } from "lucide-react";
 
 

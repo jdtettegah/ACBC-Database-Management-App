@@ -6,6 +6,7 @@ import Login from './pages/Login.jsx'
 import AdminDashboard from './pages/dashboards/AdminDashboard.jsx';
 import PastorDashboard from './pages/dashboards/PastorDashboard.jsx';
 import DashboardLayout from './layouts/DashboardLayout.jsx';
+import { registerSW } from "virtual:pwa-register";
 
 import { initTheme } from './utils/theme';
 
@@ -16,6 +17,11 @@ import './styles/components.css';
 import './styles/pages.css';
 
 initTheme();
+
+registerSW({
+  immediate: true
+});
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
