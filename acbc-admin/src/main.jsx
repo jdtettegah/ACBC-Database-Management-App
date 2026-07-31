@@ -1,13 +1,8 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App.jsx'
-import Login from './pages/Login.jsx'
-import AdminDashboard from './pages/dashboards/AdminDashboard.jsx';
-import PastorDashboard from './pages/dashboards/PastorDashboard.jsx';
-import DashboardLayout from './layouts/DashboardLayout.jsx';
-import { registerSW } from "virtual:pwa-register";
+import ReactDOM from 'react-dom/client';
+import { registerSW } from 'virtual:pwa-register';
 
+import App from './App.jsx';
 import { initTheme } from './utils/theme';
 
 import './styles/variables.css';
@@ -18,10 +13,7 @@ import './styles/pages.css';
 
 initTheme();
 
-registerSW({
-  immediate: true
-});
-
+registerSW();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
