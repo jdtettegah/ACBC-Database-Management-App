@@ -1,6 +1,7 @@
-const bcrypt = require('bcryptjs');
+import bcrypt from "bcryptjs";
 
-const password = 'Finance'; // choose your password
-const hash = bcrypt.hashSync(password, 10);
+const password = "Blessing@09";
+
+const hash = await bcrypt.hash(password, 10);
 
 console.log(hash);
