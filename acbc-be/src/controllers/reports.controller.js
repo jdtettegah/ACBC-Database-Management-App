@@ -1,91 +1,283 @@
-import pool from '../services/db.js';
+import pool from "../services/db.js";
 
 /**
  * 📊 MONTHLY FINANCE REPORT
+ *
+ * Supports:
+ * - All funds
+ * - A selected fund using fund_code
+ * - Detailed income transactions
+ * - Detailed expense transactions
+ * - Tithe collections displayed separately
  */
 const monthlyFinanceReport = async (req, res) => {
-
   try {
-
-    const { start, end } = req.query;
+    const { start, end, fund_code } = req.query;
 
     if (!start || !end) {
       return res.status(400).json({
-        message: "Start and End date required"
+        message: "Start and End date required",
       });
     }
 
-    // OPENING BALANCE - INCOME
+    const hasFundFilter = Boolean(fund_code);
+
+    const fundCondition = hasFundFilter
+      ? "AND f.fund_code = $3"
+      : "";
+
+    const params = hasFundFilter
+      ? [start, end, fund_code]
+      : [start, end];
+
+    // ==========================================
+    // OPENING BALANCE
+    // ==========================================
+
+    const openingFundCondition = hasFundFilter
+      ? "AND f.fund_code = $2"
+      : "";
+
+    const openingParams = hasFundFilter
+      ? [start, fund_code]
+      : [start];
+
+    // ==========================================
+    // OPENING INCOME
+    // ==========================================
+
     const openingIncomeResult = await pool.query(
       `
-      SELECT COALESCE(SUM(amount), 0) AS total
-      FROM income
-      WHERE date_received < $1
+      SELECT COALESCE(SUM(i.amount), 0) AS total
+      FROM income i
+      JOIN funds f ON i.fund_id = f.id
+      WHERE i.date_received < $1
+      ${openingFundCondition}
       `,
-      [start]
+      openingParams
     );
 
-    // OPENING BALANCE - EXPENSE
+    // ==========================================
+    // OPENING EXPENSE
+    // ==========================================
+
     const openingExpenseResult = await pool.query(
       `
-      SELECT COALESCE(SUM(amount), 0) AS total
-      FROM expenditure
-      WHERE date_spent < $1
+      SELECT COALESCE(SUM(e.amount), 0) AS total
+      FROM expenditure e
+      JOIN funds f ON e.fund_id = f.id
+      WHERE e.date_spent < $1
+      ${openingFundCondition}
       `,
-      [start]
+      openingParams
     );
 
     const openingBalance =
       Number(openingIncomeResult.rows[0].total) -
       Number(openingExpenseResult.rows[0].total);
 
-    // INCOME PERIOD
+    // ==========================================
+    // INCOME TRANSACTIONS
+    // ==========================================
+
     const incomeResult = await pool.query(
       `
-      SELECT income_type, SUM(amount) AS total
-      FROM income
-      WHERE date_received BETWEEN $1 AND $2
-      GROUP BY income_type
+      SELECT
+        i.id,
+        i.date_received AS date,
+        i.income_type,
+        i.source_description AS source,
+        i.amount,
+        i.source_description AS description,
+        f.fund_code,
+        f.fund_name
+      FROM income i
+      JOIN funds f ON i.fund_id = f.id
+      WHERE i.date_received BETWEEN $1 AND $2
+      ${fundCondition}
+      ORDER BY i.date_received ASC, i.id ASC
       `,
-      [start, end]
+      params
     );
 
-    // EXPENSE PERIOD
+    // ==========================================
+    // EXPENSE TRANSACTIONS
+    // ==========================================
+
     const expenseResult = await pool.query(
       `
-      SELECT category, SUM(amount) AS total
-      FROM expenditure
-      WHERE date_spent BETWEEN $1 AND $2
-      GROUP BY category
+      SELECT
+        e.id,
+        e.date_spent AS date,
+        e.category,
+        e.amount,
+        e.description,
+        f.fund_code,
+        f.fund_name
+      FROM expenditure e
+      JOIN funds f ON e.fund_id = f.id
+      WHERE e.date_spent BETWEEN $1 AND $2
+      ${fundCondition}
+      ORDER BY e.date_spent ASC, e.id ASC
       `,
-      [start, end]
+      params
     );
 
     const income = incomeResult.rows;
     const expenses = expenseResult.rows;
 
-    const totalIncome = income.reduce((s, i) => s + Number(i.total), 0);
-    const totalExpense = expenses.reduce((s, e) => s + Number(e.total), 0);
+    // ==========================================
+    // NORMAL INCOME / EXPENSE TOTALS
+    // ==========================================
+
+    const totalIncome = income.reduce(
+      (sum, item) => sum + Number(item.amount),
+      0
+    );
+
+    const totalExpense = expenses.reduce(
+      (sum, item) => sum + Number(item.amount),
+      0
+    );
 
     const closingBalance =
       openingBalance + totalIncome - totalExpense;
 
+    // ==========================================
+    // TITHE TOTAL
+    //
+    // Tithes are stored separately in the tithes
+    // table and are displayed separately from
+    // normal income transactions.
+    //
+    // At the moment tithes are NOT assigned to
+    // funds, so they are not filtered by fund_code.
+    // ==========================================
+
+    const titheTotalResult = await pool.query(
+      `
+      SELECT
+        COALESCE(SUM(amount), 0) AS total
+      FROM tithes
+      WHERE date_paid BETWEEN $1 AND $2
+      `,
+      [start, end]
+    );
+
+    const totalTithe = Number(
+      titheTotalResult.rows[0].total
+    );
+
+    // ==========================================
+    // TITHE COLLECTIONS BY DATE
+    //
+    // The frontend expects:
+    //
+    // titheCollections: [
+    //   {
+    //     date: "...",
+    //     total: "..."
+    //   }
+    // ]
+    // ==========================================
+
+    const titheCollectionsResult = await pool.query(
+      `
+      SELECT
+        date_paid AS date,
+        COALESCE(SUM(amount), 0) AS total
+      FROM tithes
+      WHERE date_paid BETWEEN $1 AND $2
+      GROUP BY date_paid
+      ORDER BY date_paid ASC
+      `,
+      [start, end]
+    );
+
+    const titheCollections =
+      titheCollectionsResult.rows;
+
+    // ==========================================
+    // FUND BREAKDOWN
+    // ==========================================
+
+    const fundBreakdownResult = await pool.query(
+      `
+      SELECT
+        f.fund_code,
+        f.fund_name,
+
+        COALESCE(income_totals.total_income, 0)
+          AS total_income,
+
+        COALESCE(expense_totals.total_expense, 0)
+          AS total_expense,
+
+        COALESCE(income_totals.total_income, 0)
+        - COALESCE(expense_totals.total_expense, 0)
+          AS balance
+
+      FROM funds f
+
+      LEFT JOIN (
+        SELECT
+          i.fund_id,
+          SUM(i.amount) AS total_income
+        FROM income i
+        WHERE i.date_received BETWEEN $1 AND $2
+        GROUP BY i.fund_id
+      ) income_totals
+        ON f.id = income_totals.fund_id
+
+      LEFT JOIN (
+        SELECT
+          e.fund_id,
+          SUM(e.amount) AS total_expense
+        FROM expenditure e
+        WHERE e.date_spent BETWEEN $1 AND $2
+        GROUP BY e.fund_id
+      ) expense_totals
+        ON f.id = expense_totals.fund_id
+
+      WHERE f.is_active = TRUE
+      ${hasFundFilter ? "AND f.fund_code = $3" : ""}
+
+      ORDER BY f.fund_name
+      `,
+      params
+    );
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
     res.json({
       start,
       end,
+      fund_code: fund_code || "ALL",
+
       openingBalance,
+
       income,
       expenses,
+
       totalIncome,
       totalExpense,
-      closingBalance
+      closingBalance,
+
+      // Tithes are intentionally returned
+      // separately from normal income.
+      totalTithe,
+      titheCollections,
+
+      fundBreakdown: fundBreakdownResult.rows,
     });
 
   } catch (err) {
     console.error("Finance Report Error:", err);
 
     res.status(500).json({
-      message: "Failed to generate report"
+      message: "Failed to generate report",
     });
   }
 };
@@ -93,29 +285,46 @@ const monthlyFinanceReport = async (req, res) => {
 
 /**
  * 💰 TITHE SUMMARY
+ *
+ * Standalone Tithe Report
+ *
+ * Returns:
+ * - Total unique members who paid
+ * - Total amount of tithes
+ * - Individual tithe payments
  */
 const titheSummary = async (req, res) => {
-
   try {
-
     const { start, end } = req.query;
 
     if (!start || !end) {
       return res.status(400).json({
-        message: "Start and end date required"
+        message: "Start and end date required",
       });
     }
+
+    // ==========================================
+    // TITHE SUMMARY
+    // ==========================================
 
     const summary = await pool.query(
       `
       SELECT
         COUNT(DISTINCT member_id) AS totalmembers,
-        COALESCE(SUM(amount),0) AS totaltithes
+        COALESCE(SUM(amount), 0) AS totaltithes
       FROM tithes
       WHERE date_paid BETWEEN $1 AND $2
       `,
       [start, end]
     );
+
+    // ==========================================
+    // INDIVIDUAL TITHE PAYMENTS
+    //
+    // IMPORTANT:
+    // This assumes tithes.member_id references
+    // members.id.
+    // ==========================================
 
     const members = await pool.query(
       `
@@ -126,24 +335,38 @@ const titheSummary = async (req, res) => {
         t.amount AS amount_paid,
         t.date_paid
       FROM tithes t
-      JOIN members m ON t.member_id = m.id
+      LEFT JOIN members m
+        ON t.member_id = m.id
       WHERE t.date_paid BETWEEN $1 AND $2
-      ORDER BY t.date_paid ASC
+      ORDER BY t.date_paid ASC, t.id ASC
       `,
       [start, end]
     );
 
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
     res.json({
-      totalMembers: summary.rows[0].totalmembers,
-      totalTithes: summary.rows[0].totaltithes,
-      members: members.rows
+      start,
+      end,
+
+      totalMembers: Number(
+        summary.rows[0].totalmembers
+      ),
+
+      totalTithes: Number(
+        summary.rows[0].totaltithes
+      ),
+
+      members: members.rows,
     });
 
   } catch (err) {
     console.error("Tithe Report Error:", err);
 
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
     });
   }
 };
@@ -153,14 +376,12 @@ const titheSummary = async (req, res) => {
  * 👥 ATTENDANCE SUMMARY
  */
 const attendanceSummary = async (req, res) => {
-
   try {
-
     const { start, end } = req.query;
 
     if (!start || !end) {
       return res.status(400).json({
-        message: "Start and end date required"
+        message: "Start and end date required",
       });
     }
 
@@ -176,7 +397,7 @@ const attendanceSummary = async (req, res) => {
 
     const members = await pool.query(
       `
-      SELECT 
+      SELECT
         service_date,
         service_type,
         COUNT(*) AS members
@@ -191,7 +412,7 @@ const attendanceSummary = async (req, res) => {
 
     const visitors = await pool.query(
       `
-      SELECT 
+      SELECT
         visit_date AS service_date,
         service_type,
         COUNT(*) AS visitors
@@ -207,17 +428,18 @@ const attendanceSummary = async (req, res) => {
 
     const services = {};
 
-    memberData.forEach(m => {
+    memberData.forEach((m) => {
       const key = `${m.service_date}-${m.service_type}`;
+
       services[key] = {
         service_date: m.service_date,
         service_type: m.service_type,
         members: m.members,
-        visitors: 0
+        visitors: 0,
       };
     });
 
-    visitorData.forEach(v => {
+    visitorData.forEach((v) => {
       const key = `${v.service_date}-${v.service_type}`;
 
       if (!services[key]) {
@@ -225,40 +447,58 @@ const attendanceSummary = async (req, res) => {
           service_date: v.service_date,
           service_type: v.service_type,
           members: 0,
-          visitors: v.visitors
+          visitors: v.visitors,
         };
       } else {
         services[key].visitors = v.visitors;
       }
     });
 
-    const results = Object.values(services).map(s => ({
+    const results = Object.values(services).map((s) => ({
       ...s,
-      total: Number(s.members) + Number(s.visitors)
+      total:
+        Number(s.members) +
+        Number(s.visitors),
     }));
 
     const totalMemberAttendance =
-      results.reduce((s, r) => s + Number(r.members), 0);
+      results.reduce(
+        (s, r) => s + Number(r.members),
+        0
+      );
 
     const totalVisitors =
-      results.reduce((s, r) => s + Number(r.visitors), 0);
+      results.reduce(
+        (s, r) => s + Number(r.visitors),
+        0
+      );
 
     res.json({
       start,
       end,
-      totalMembers: uniqueMembers.rows[0].totalmembers,
+
+      totalMembers:
+        Number(uniqueMembers.rows[0].totalmembers),
+
       totalMemberAttendance,
+
       totalVisitors,
-      totalAttendance: totalMemberAttendance + totalVisitors,
-      services: results
+
+      totalAttendance:
+        totalMemberAttendance +
+        totalVisitors,
+
+      services: results,
     });
 
   } catch (err) {
-
-    console.error("Attendance Report Error:", err);
+    console.error(
+      "Attendance Report Error:",
+      err
+    );
 
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
     });
   }
 };
@@ -268,11 +508,15 @@ const attendanceSummary = async (req, res) => {
  * 📋 ALL REPORTS
  */
 const getAllReports = async (req, res) => {
-
   try {
-
     const result = await pool.query(`
-      SELECT id, title, category, period, status, created_at
+      SELECT
+        id,
+        title,
+        category,
+        period,
+        status,
+        created_at
       FROM reports
       ORDER BY created_at DESC
     `);
@@ -283,7 +527,7 @@ const getAllReports = async (req, res) => {
     console.error(err);
 
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
     });
   }
 };
@@ -293,35 +537,39 @@ const getAllReports = async (req, res) => {
  * 💾 SAVE REPORT
  */
 const saveReport = async (req, res) => {
-
   try {
-
-    const { title, category, period } = req.body;
+    const {
+      title,
+      category,
+      period,
+    } = req.body;
 
     if (!title || !category || !period) {
       return res.status(400).json({
-        message: "title, category and period are required"
+        message:
+          "title, category and period are required",
       });
     }
 
     await pool.query(
       `
-      INSERT INTO reports (title, category, period)
-      VALUES ($1, $2, $3)
+      INSERT INTO reports
+        (title, category, period)
+      VALUES
+        ($1, $2, $3)
       `,
       [title, category, period]
     );
 
     res.json({
-      message: "Report saved successfully"
+      message: "Report saved successfully",
     });
 
   } catch (err) {
-
     console.error(err);
 
     res.status(500).json({
-      message: "Failed to save report"
+      message: "Failed to save report",
     });
   }
 };
@@ -331,14 +579,13 @@ const saveReport = async (req, res) => {
  * 📊 WEEKLY ATTENDANCE CHART
  */
 const weeklyAttendanceChart = async (req, res) => {
-
   try {
-
     const { start, end } = req.query;
 
     const result = await pool.query(
       `
-      SELECT week,
+      SELECT
+        week,
         SUM(sunday) AS sunday,
         SUM(midweek) AS midweek,
         MIN(startdate) AS startdate,
@@ -346,46 +593,110 @@ const weeklyAttendanceChart = async (req, res) => {
       FROM (
         SELECT
           CASE
-            WHEN EXTRACT(DAY FROM service_date) BETWEEN 1 AND 7 THEN 'Week 1'
-            WHEN EXTRACT(DAY FROM service_date) BETWEEN 8 AND 14 THEN 'Week 2'
-            WHEN EXTRACT(DAY FROM service_date) BETWEEN 15 AND 21 THEN 'Week 3'
-            WHEN EXTRACT(DAY FROM service_date) BETWEEN 22 AND 28 THEN 'Week 4'
+            WHEN EXTRACT(DAY FROM service_date)
+              BETWEEN 1 AND 7
+              THEN 'Week 1'
+
+            WHEN EXTRACT(DAY FROM service_date)
+              BETWEEN 8 AND 14
+              THEN 'Week 2'
+
+            WHEN EXTRACT(DAY FROM service_date)
+              BETWEEN 15 AND 21
+              THEN 'Week 3'
+
+            WHEN EXTRACT(DAY FROM service_date)
+              BETWEEN 22 AND 28
+              THEN 'Week 4'
+
             ELSE 'Week 5'
           END AS week,
-          CASE WHEN service_type ILIKE '%Sunday%' AND status = 'Present' THEN 1 ELSE 0 END AS sunday,
-          CASE WHEN service_type ILIKE '%Midweek%' AND status = 'Present' THEN 1 ELSE 0 END AS midweek,
+
+          CASE
+            WHEN service_type ILIKE '%Sunday%'
+              AND status = 'Present'
+              THEN 1
+            ELSE 0
+          END AS sunday,
+
+          CASE
+            WHEN service_type ILIKE '%Midweek%'
+              AND status = 'Present'
+              THEN 1
+            ELSE 0
+          END AS midweek,
+
           service_date AS startdate,
           service_date AS enddate
+
         FROM attendance
-        WHERE service_date BETWEEN $1 AND $2
+
+        WHERE service_date
+          BETWEEN $1 AND $2
 
         UNION ALL
 
         SELECT
           CASE
-            WHEN EXTRACT(DAY FROM visit_date) BETWEEN 1 AND 7 THEN 'Week 1'
-            WHEN EXTRACT(DAY FROM visit_date) BETWEEN 8 AND 14 THEN 'Week 2'
-            WHEN EXTRACT(DAY FROM visit_date) BETWEEN 15 AND 21 THEN 'Week 3'
-            WHEN EXTRACT(DAY FROM visit_date) BETWEEN 22 AND 28 THEN 'Week 4'
+            WHEN EXTRACT(DAY FROM visit_date)
+              BETWEEN 1 AND 7
+              THEN 'Week 1'
+
+            WHEN EXTRACT(DAY FROM visit_date)
+              BETWEEN 8 AND 14
+              THEN 'Week 2'
+
+            WHEN EXTRACT(DAY FROM visit_date)
+              BETWEEN 15 AND 21
+              THEN 'Week 3'
+
+            WHEN EXTRACT(DAY FROM visit_date)
+              BETWEEN 22 AND 28
+              THEN 'Week 4'
+
             ELSE 'Week 5'
           END AS week,
-          CASE WHEN service_type ILIKE '%Sunday%' THEN 1 ELSE 0 END,
-          CASE WHEN service_type ILIKE '%Midweek%' THEN 1 ELSE 0 END,
+
+          CASE
+            WHEN service_type ILIKE '%Sunday%'
+              THEN 1
+            ELSE 0
+          END,
+
+          CASE
+            WHEN service_type ILIKE '%Midweek%'
+              THEN 1
+            ELSE 0
+          END,
+
           visit_date,
           visit_date
+
         FROM visitors
-        WHERE visit_date BETWEEN $1 AND $2
+
+        WHERE visit_date
+          BETWEEN $1 AND $2
       ) combined
+
       GROUP BY week
       ORDER BY week
       `,
       [start, end]
     );
 
-    res.json({ weeks: result.rows });
+    res.json({
+      weeks: result.rows,
+    });
 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(
+      "Weekly Attendance Chart Error:",
+      err
+    );
+
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
 
@@ -394,55 +705,97 @@ const weeklyAttendanceChart = async (req, res) => {
  * 📊 WEEKLY FINANCE CHART
  */
 const weeklyFinanceChart = async (req, res) => {
-
   try {
-
     const { start, end } = req.query;
 
     const result = await pool.query(
       `
-      SELECT week,
+      SELECT
+        week,
         SUM(income) AS income,
         SUM(expense) AS expense
+
       FROM (
         SELECT
           CASE
-            WHEN EXTRACT(DAY FROM date_received) BETWEEN 1 AND 7 THEN 'Week 1'
-            WHEN EXTRACT(DAY FROM date_received) BETWEEN 8 AND 14 THEN 'Week 2'
-            WHEN EXTRACT(DAY FROM date_received) BETWEEN 15 AND 21 THEN 'Week 3'
-            WHEN EXTRACT(DAY FROM date_received) BETWEEN 22 AND 28 THEN 'Week 4'
+            WHEN EXTRACT(DAY FROM date_received)
+              BETWEEN 1 AND 7
+              THEN 'Week 1'
+
+            WHEN EXTRACT(DAY FROM date_received)
+              BETWEEN 8 AND 14
+              THEN 'Week 2'
+
+            WHEN EXTRACT(DAY FROM date_received)
+              BETWEEN 15 AND 21
+              THEN 'Week 3'
+
+            WHEN EXTRACT(DAY FROM date_received)
+              BETWEEN 22 AND 28
+              THEN 'Week 4'
+
             ELSE 'Week 5'
           END AS week,
+
           amount AS income,
           0 AS expense
+
         FROM income
-        WHERE date_received BETWEEN $1 AND $2
+
+        WHERE date_received
+          BETWEEN $1 AND $2
 
         UNION ALL
 
         SELECT
           CASE
-            WHEN EXTRACT(DAY FROM date_spent) BETWEEN 1 AND 7 THEN 'Week 1'
-            WHEN EXTRACT(DAY FROM date_spent) BETWEEN 8 AND 14 THEN 'Week 2'
-            WHEN EXTRACT(DAY FROM date_spent) BETWEEN 15 AND 21 THEN 'Week 3'
-            WHEN EXTRACT(DAY FROM date_spent) BETWEEN 22 AND 28 THEN 'Week 4'
+            WHEN EXTRACT(DAY FROM date_spent)
+              BETWEEN 1 AND 7
+              THEN 'Week 1'
+
+            WHEN EXTRACT(DAY FROM date_spent)
+              BETWEEN 8 AND 14
+              THEN 'Week 2'
+
+            WHEN EXTRACT(DAY FROM date_spent)
+              BETWEEN 15 AND 21
+              THEN 'Week 3'
+
+            WHEN EXTRACT(DAY FROM date_spent)
+              BETWEEN 22 AND 28
+              THEN 'Week 4'
+
             ELSE 'Week 5'
           END AS week,
+
           0,
           amount
+
         FROM expenditure
-        WHERE date_spent BETWEEN $1 AND $2
+
+        WHERE date_spent
+          BETWEEN $1 AND $2
       ) combined
+
       GROUP BY week
       ORDER BY week
       `,
       [start, end]
     );
 
-    res.json({ weeks: result.rows });
+    res.json({
+      weeks: result.rows,
+    });
 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(
+      "Weekly Finance Chart Error:",
+      err
+    );
+
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
 
@@ -451,38 +804,51 @@ const weeklyFinanceChart = async (req, res) => {
  * 🏥 WELFARE REPORT
  */
 const welfareReport = async (req, res) => {
-
   try {
-
     const { start, end } = req.query;
 
     if (!start || !end) {
       return res.status(400).json({
-        message: "Start and end date required"
+        message: "Start and end date required",
       });
     }
 
+    // ==========================================
+    // OPENING WELFARE INCOME
+    // ==========================================
+
     const openingIncome = await pool.query(
       `
-      SELECT COALESCE(SUM(amount),0) AS total
+      SELECT
+        COALESCE(SUM(amount), 0) AS total
       FROM welfare_funds
       WHERE date_paid < $1
       `,
       [start]
     );
 
+    // ==========================================
+    // OPENING DIRECT INCOME
+    // ==========================================
+
     const directIncome = await pool.query(
       `
-      SELECT COALESCE(SUM(amount),0) AS total
+      SELECT
+        COALESCE(SUM(amount), 0) AS total
       FROM welfare_direct_income
       WHERE date_received < $1
       `,
       [start]
     );
 
+    // ==========================================
+    // OPENING EXPENSE
+    // ==========================================
+
     const expense = await pool.query(
       `
-      SELECT COALESCE(SUM(amount),0) AS total
+      SELECT
+        COALESCE(SUM(amount), 0) AS total
       FROM welfare_expenses
       WHERE date_spent < $1
       AND status = 'APPROVED'
@@ -495,23 +861,43 @@ const welfareReport = async (req, res) => {
       Number(directIncome.rows[0].total) -
       Number(expense.rows[0].total);
 
+    // ==========================================
+    // EVENT INCOME
+    // ==========================================
+
     const eventIncome = await pool.query(
       `
-      SELECT we.event_type AS source, SUM(wf.amount) AS total
+      SELECT
+        we.event_type AS source,
+        SUM(wf.amount) AS total
       FROM welfare_funds wf
-      JOIN welfare_event_members wem ON wf.event_member_id = wem.id
-      JOIN welfare_events we ON wem.event_id = we.id
-      WHERE wf.date_paid BETWEEN $1 AND $2
+
+      JOIN welfare_event_members wem
+        ON wf.event_member_id = wem.id
+
+      JOIN welfare_events we
+        ON wem.event_id = we.id
+
+      WHERE wf.date_paid
+        BETWEEN $1 AND $2
+
       GROUP BY we.event_type
       `,
       [start, end]
     );
 
+    // ==========================================
+    // DIRECT WELFARE INCOME
+    // ==========================================
+
     const directIncomePeriod = await pool.query(
       `
-      SELECT source, SUM(amount) AS total
+      SELECT
+        source,
+        SUM(amount) AS total
       FROM welfare_direct_income
-      WHERE date_received BETWEEN $1 AND $2
+      WHERE date_received
+        BETWEEN $1 AND $2
       GROUP BY source
       `,
       [start, end]
@@ -519,16 +905,28 @@ const welfareReport = async (req, res) => {
 
     const income = [
       ...eventIncome.rows,
-      ...directIncomePeriod.rows
+      ...directIncomePeriod.rows,
     ];
+
+    // ==========================================
+    // WELFARE EXPENSES
+    // ==========================================
 
     const expensePeriod = await pool.query(
       `
-      SELECT et.name AS category, SUM(we.amount) AS total
+      SELECT
+        et.name AS category,
+        SUM(we.amount) AS total
       FROM welfare_expenses we
-      JOIN welfare_expense_types et ON we.expense_type_id = et.id
-      WHERE we.date_spent BETWEEN $1 AND $2
+
+      JOIN welfare_expense_types et
+        ON we.expense_type_id = et.id
+
+      WHERE we.date_spent
+        BETWEEN $1 AND $2
+
       AND we.status = 'APPROVED'
+
       GROUP BY et.name
       `,
       [start, end]
@@ -536,32 +934,55 @@ const welfareReport = async (req, res) => {
 
     const expenses = expensePeriod.rows;
 
-    const totalIncome = income.reduce((s, i) => s + Number(i.total), 0);
-    const totalExpense = expenses.reduce((s, e) => s + Number(e.total), 0);
+    // ==========================================
+    // TOTALS
+    // ==========================================
+
+    const totalIncome = income.reduce(
+      (s, i) => s + Number(i.total),
+      0
+    );
+
+    const totalExpense = expenses.reduce(
+      (s, e) => s + Number(e.total),
+      0
+    );
 
     const closingBalance =
-      openingBalance + totalIncome - totalExpense;
+      openingBalance +
+      totalIncome -
+      totalExpense;
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
 
     res.json({
       start,
       end,
+
       openingBalance,
+
       income,
       expenses,
+
       totalIncome,
       totalExpense,
-      closingBalance
+      closingBalance,
     });
 
   } catch (err) {
-
-    console.error(err);
+    console.error(
+      "Welfare Report Error:",
+      err
+    );
 
     res.status(500).json({
-      message: "Failed to generate welfare report"
+      message: "Failed to generate welfare report",
     });
   }
 };
+
 
 /**
  * ❌ DELETE SINGLE REPORT
@@ -571,23 +992,33 @@ const deleteReport = async (req, res) => {
     const { id } = req.params;
 
     const result = await pool.query(
-      `DELETE FROM reports WHERE id = $1 RETURNING *`,
+      `
+      DELETE FROM reports
+      WHERE id = $1
+      RETURNING *
+      `,
       [id]
     );
 
     if (result.rowCount === 0) {
       return res.status(404).json({
-        message: "Report not found"
+        message: "Report not found",
       });
     }
 
     res.json({
-      message: "Report deleted successfully"
+      message: "Report deleted successfully",
     });
 
   } catch (err) {
-    console.error("Delete Report Error:", err);
-    res.status(500).json({ message: "Failed to delete report" });
+    console.error(
+      "Delete Report Error:",
+      err
+    );
+
+    res.status(500).json({
+      message: "Failed to delete report",
+    });
   }
 };
 
@@ -597,18 +1028,26 @@ const deleteReport = async (req, res) => {
  */
 const clearReports = async (req, res) => {
   try {
-
-    await pool.query(`DELETE FROM reports`);
+    await pool.query(`
+      DELETE FROM reports
+    `);
 
     res.json({
-      message: "All reports cleared successfully"
+      message: "All reports cleared successfully",
     });
 
   } catch (err) {
-    console.error("Clear Reports Error:", err);
-    res.status(500).json({ message: "Failed to clear reports" });
+    console.error(
+      "Clear Reports Error:",
+      err
+    );
+
+    res.status(500).json({
+      message: "Failed to clear reports",
+    });
   }
 };
+
 
 export default {
   monthlyFinanceReport,
@@ -620,5 +1059,5 @@ export default {
   weeklyFinanceChart,
   welfareReport,
   deleteReport,
-  clearReports
+  clearReports,
 };

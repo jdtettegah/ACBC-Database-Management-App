@@ -17,7 +17,6 @@ import { CalendarCheck, Download } from "lucide-react";
 import { createPortal } from "react-dom";
 
 function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
-
   const [reportType, setReportType] = useState("Tithe");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -25,12 +24,11 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
   const [result, setResult] = useState(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fundCode, setFundCode] = useState("ALL");
 
   // OPEN REPORT FROM TABLE
   useEffect(() => {
-
     if (existingReport) {
-
       const [start, end] = existingReport.period.split(" - ");
 
       setReportType(existingReport.category);
@@ -39,12 +37,8 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
       setOpen(true);
 
       handleGenerate(start, end, existingReport.category);
-
     }
-
   }, [existingReport]);
-
-
 
   // GENERATE REPORT
   const handleGenerate = async (
@@ -52,9 +46,7 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
     end = endDate,
     type = reportType
   ) => {
-
     try {
-
       if (!start || !end) {
         alert("Please select start and end date");
         return;
@@ -70,7 +62,7 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
       }
 
       if (type === "Financial") {
-        data = await getMonthlyFinance(start, end);
+        data = await getMonthlyFinance(start, end, fundCode);
       }
 
       if (type === "Attendance") {
@@ -89,279 +81,416 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
 
       // SAVE REPORT
       if (!existingReport) {
-
         await saveReport({
           title: `${type} Report`,
           category: type,
           period: `${start} - ${end}`,
-          status: "Generated"
+          status: "Generated",
         });
 
         if (refreshReports) refreshReports();
-
       }
-
     } catch (err) {
-
       console.error(err);
       alert("Failed to generate report");
-
     } finally {
-
       setLoading(false);
-
     }
-
   };
-
 
   // DOWNLOAD PDF
   const downloadPDF = () => {
-
     if (!result) return;
-  
+
     const doc = new jsPDF();
-  
+
     // SAFER FONT
     doc.setFont("helvetica", "normal");
-  
+
     /* =========================
         FORMATTERS
     ========================= */
-  
+
     const formatDate = (date) => {
-  
       if (!date) return "-";
-  
+
       return new Date(date).toLocaleDateString("en-GB", {
         day: "2-digit",
         month: "short",
         year: "numeric",
       });
-  
     };
-  
+
     const formatCurrency = (amount) => {
-  
       return new Intl.NumberFormat("en-GH", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(Number(amount));
-  
     };
-  
+
     const money = (amount) => `GHS ${formatCurrency(amount)}`;
-  
+
     /* =========================
         HEADER
     ========================= */
-  
+
     doc.addImage(acbcLogo, "PNG", 80, 10, 50, 25);
-  
+
     doc.setFontSize(18);
-  
+
     doc.text(
       "ACTS CHARISMATIC BAPTIST CHURCH - KWAMO",
       105,
       40,
       { align: "center" }
     );
-  
+
     doc.setFontSize(14);
-  
+
     doc.text(
       `${reportType} Report`,
       105,
       50,
       { align: "center" }
     );
-  
+
     doc.setFontSize(10);
-  
+
     doc.text(
       `Period: ${formatDate(startDate)} - ${formatDate(endDate)}`,
       14,
       60
     );
-  
+
     let startY = 70;
-  
+
     /* =========================
         COMMON TABLE STYLE
     ========================= */
-  
+
     const tableStyles = {
       theme: "grid",
-  
+
       styles: {
         fontSize: 10,
         cellPadding: 3,
         overflow: "linebreak",
       },
-  
+
       headStyles: {
         fillColor: [41, 128, 185],
         textColor: 255,
         fontStyle: "bold",
       },
-  
+
       alternateRowStyles: {
         fillColor: [245, 245, 245],
       },
     };
-  
+
     /* =========================
         TITHE REPORT
     ========================= */
-  
+
     if (reportType === "Tithe") {
-  
       doc.setFontSize(12);
-  
+
       doc.text(
         `Total Members Paid: ${result.totalMembers}`,
         14,
         startY
       );
-  
+
       doc.text(
         `Total Tithes: ${money(result.totalTithes)}`,
         14,
         startY + 7
       );
-  
+
       const rows = result.members?.map((m) => [
         m.member_id,
         `${m.first_name} ${m.last_name || ""}`,
         money(m.amount_paid),
         formatDate(m.date_paid),
       ]);
-  
+
       if (rows?.length) {
-  
         autoTable(doc, {
           startY: startY + 18,
-  
+
           head: [[
             "Member ID",
             "Name",
             "Amount",
             "Date",
           ]],
-  
+
           body: rows,
-  
+
           ...tableStyles,
         });
-  
       }
-  
     }
-  
+
     /* =========================
         FINANCIAL REPORT
     ========================= */
-  
+
     if (reportType === "Financial") {
-  
+      // ==========================================
+      // REPORT SUMMARY
+      // ==========================================
+
       autoTable(doc, {
         startY,
-  
-        head: [["Description", "Amount"]],
-  
+
+        head: [["Financial Summary", "Amount"]],
+
         body: [
           ["Opening Balance", money(result.openingBalance)],
+          ["Total Income", money(result.totalIncome)],
+          ["Total Expense", money(result.totalExpense)],
+          ["Closing Balance", money(result.closingBalance)],
         ],
-  
+
         ...tableStyles,
       });
-  
-      startY = doc.lastAutoTable.finalY + 8;
-  
-      autoTable(doc, {
-        startY,
-  
-        head: [["Income Type", "Amount"]],
-  
-        body: result.income.map((i) => [
-          i.income_type,
-          money(i.total),
-        ]),
-  
-        ...tableStyles,
-      });
-  
-      startY = doc.lastAutoTable.finalY + 8;
-  
-      autoTable(doc, {
-        startY,
-  
-        head: [["Expense Category", "Amount"]],
-  
-        body: result.expenses.map((e) => [
-          e.category,
-          money(e.total),
-        ]),
-  
-        ...tableStyles,
-      });
-  
+
       startY = doc.lastAutoTable.finalY + 12;
-  
-      doc.setFontSize(12);
-  
+
+      // ==========================================
+      // INCOME TRANSACTIONS
+      // ==========================================
+
+      doc.setFontSize(13);
+      doc.text("INCOME", 14, startY);
+
+      startY += 5;
+
+      const incomeRows = (result.income || []).map((income) => [
+        formatDate(income.date),
+        income.source || income.income_type || "-",
+        money(income.amount),
+        income.description || "-",
+        income.fund_name || "-",
+      ]);
+
+      autoTable(doc, {
+        startY: startY + 5,
+
+        head: [[
+          "Date",
+          "Source",
+          "Amount",
+          "Description",
+          "Fund",
+        ]],
+
+        body: incomeRows.length
+          ? incomeRows
+          : [["-", "No income transactions", "-", "-", "-"]],
+
+        ...tableStyles,
+
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 32 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 55 },
+          4: { cellWidth: 35 },
+        },
+      });
+
+      startY = doc.lastAutoTable.finalY + 5;
+
+      // ==========================================
+      // TOTAL INCOME
+      // ==========================================
+
+      doc.setFontSize(11);
+
       doc.text(
         `Total Income: ${money(result.totalIncome)}`,
         14,
         startY
       );
-  
+
+      // ==========================================
+      // TITHE COLLECTIONS
+      // ==========================================
+
+      startY += 12;
+
+      doc.setFontSize(13);
+      doc.text("TITHE", 14, startY);
+
+      startY += 5;
+
+      /*
+        Tithes are stored separately from the normal
+        income transactions.
+
+        The backend groups all individual tithes
+        collected on the same date into one bulk
+        collection.
+
+        Expected backend response:
+
+        titheCollections: [
+          {
+            date: "2026-09-06",
+            total: "4250"
+          },
+          ...
+        ]
+
+        totalTithe: 13225
+      */
+
+      const titheRows = (result.titheCollections || []).map((tithe) => [
+        formatDate(tithe.date),
+        money(tithe.total),
+      ]);
+
+      autoTable(doc, {
+        startY: startY + 5,
+
+        head: [[
+          "Date",
+          "Total Tithe",
+        ]],
+
+        body: titheRows.length
+          ? titheRows
+          : [["-", "No tithe collections"]],
+
+        ...tableStyles,
+
+        columnStyles: {
+          0: { cellWidth: 60 },
+          1: { cellWidth: 50 },
+        },
+      });
+
+      startY = doc.lastAutoTable.finalY + 5;
+
+      // ==========================================
+      // TOTAL TITHE
+      // ==========================================
+
+      doc.setFontSize(11);
+
+      doc.text(
+        `Total Tithe: ${money(result.totalTithe || 0)}`,
+        14,
+        startY
+      );
+
+      // ==========================================
+      // EXPENSE TRANSACTIONS
+      // ==========================================
+
+      startY += 12;
+
+      doc.setFontSize(13);
+      doc.text("EXPENSE", 14, startY);
+
+      startY += 5;
+
+      const expenseRows = (result.expenses || []).map((expense) => [
+        formatDate(expense.date),
+        expense.category || "-",
+        money(expense.amount),
+        expense.description || "-",
+        expense.fund_name || "-",
+      ]);
+
+      autoTable(doc, {
+        startY: startY + 5,
+
+        head: [[
+          "Date",
+          "Category",
+          "Amount",
+          "Description",
+          "Fund",
+        ]],
+
+        body: expenseRows.length
+          ? expenseRows
+          : [["-", "No expense transactions", "-", "-", "-"]],
+
+        ...tableStyles,
+
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 32 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 55 },
+          4: { cellWidth: 35 },
+        },
+      });
+
+      startY = doc.lastAutoTable.finalY + 5;
+
+      // ==========================================
+      // TOTAL EXPENSE
+      // ==========================================
+
+      doc.setFontSize(11);
+
       doc.text(
         `Total Expense: ${money(result.totalExpense)}`,
         14,
-        startY + 7
+        startY
       );
-  
+
+      startY += 12;
+
+      // ==========================================
+      // CLOSING BALANCE
+      // ==========================================
+
+      doc.setFontSize(13);
+
       doc.text(
         `Closing Balance: ${money(result.closingBalance)}`,
         14,
-        startY + 14
+        startY
       );
-  
     }
-  
+
     /* =========================
         ATTENDANCE REPORT
     ========================= */
-  
+
     if (reportType === "Attendance") {
-  
       doc.setFontSize(12);
-  
+
       doc.text(
         `Unique Members: ${result.totalMembers}`,
         14,
         startY
       );
-  
+
       doc.text(
         `Member Attendance: ${result.totalMemberAttendance}`,
         14,
         startY + 7
       );
-  
+
       doc.text(
         `Visitors: ${result.totalVisitors}`,
         14,
         startY + 14
       );
-  
+
       doc.text(
         `Total Attendance: ${result.totalAttendance}`,
         14,
         startY + 21
       );
-  
+
       const rows = result.services?.map((s) => [
         formatDate(s.service_date),
         s.service_type,
@@ -369,12 +498,11 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
         s.visitors,
         s.total,
       ]);
-  
+
       if (rows?.length) {
-  
         autoTable(doc, {
           startY: startY + 32,
-  
+
           head: [[
             "Date",
             "Service",
@@ -382,129 +510,122 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
             "Visitors",
             "Total",
           ]],
-  
+
           body: rows,
-  
+
           ...tableStyles,
         });
-  
       }
-  
     }
-  
+
     /* =========================
         VISITORS REPORT
     ========================= */
-  
+
     if (reportType === "Visitors") {
-  
       doc.setFontSize(12);
-  
+
       doc.text(
         `Total Visitors: ${result.total}`,
         14,
         startY
       );
-  
+
       const rows = result.visitors?.map((v) => [
         `${v.first_name} ${v.last_name || ""}`,
         formatDate(v.visit_date),
         v.service_type,
       ]);
-  
+
       if (rows?.length) {
-  
         autoTable(doc, {
           startY: startY + 15,
-  
+
           head: [[
             "Name",
             "Visit Date",
             "Service",
           ]],
-  
+
           body: rows,
-  
+
           ...tableStyles,
         });
-  
       }
-  
     }
-  
+
     /* =========================
         WELFARE REPORT
     ========================= */
-  
+
     if (reportType === "Welfare") {
-  
       autoTable(doc, {
         startY,
-  
+
         head: [["Description", "Amount"]],
-  
+
         body: [
           ["Opening Balance", money(result.openingBalance)],
         ],
-  
+
         ...tableStyles,
       });
-  
+
       startY = doc.lastAutoTable.finalY + 8;
-  
+
       autoTable(doc, {
         startY,
-  
+
         head: [["Income Source", "Amount"]],
-  
+
         body: result.income.map((i) => [
           i.source,
           money(i.total),
         ]),
-  
+
         ...tableStyles,
       });
-  
+
       startY = doc.lastAutoTable.finalY + 8;
-  
+
       autoTable(doc, {
         startY,
-  
+
         head: [["Expense Category", "Amount"]],
-  
+
         body: result.expenses.map((e) => [
           e.category,
           money(e.total),
         ]),
-  
+
         ...tableStyles,
       });
-  
+
       startY = doc.lastAutoTable.finalY + 12;
-  
+
       doc.setFontSize(12);
-  
+
       doc.text(
         `Total Income: ${money(result.totalIncome)}`,
         14,
         startY
       );
-  
+
       doc.text(
         `Total Expense: ${money(result.totalExpense)}`,
         14,
         startY + 7
       );
-  
+
       doc.text(
         `Closing Balance: ${money(result.closingBalance)}`,
         14,
         startY + 14
       );
-  
     }
-  /* =========================
-    FOOTER
+
+    /* =========================
+      FOOTER
     ========================= */
 
     const pageHeight = doc.internal.pageSize.height;
@@ -518,39 +639,35 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
       pageHeight - 10,
       { align: "right" }
     );
-  
+
     /* =========================
-        SAVE
+      SAVE
     ========================= */
-  
+
     doc.save(
       `${reportType}-report-${startDate}-to-${endDate}.pdf`
     );
-  
   };
 
   const closeModal = () => {
-
     setOpen(false);
 
     if (onClose) onClose();
-
   };
 
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") setOpen(false);
     };
-  
+
     if (open) {
       window.addEventListener("keydown", handleEsc);
     }
-  
+
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
   }, [open]);
-
 
   return (
     <>
@@ -564,89 +681,134 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
         </button>
       )}
 
-      {open && createPortal(
+      {open &&
+        createPortal(
+          <div
+            className="generate-report-modal-overlay"
+            onClick={() => setOpen(false)}
+          >
+            <div
+              className="generate-reports-page"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="generate-reports-header">
+                <h2>Generate Report</h2>
 
-        <div className="generate-report-modal-overlay" onClick={() => setOpen(false)}>
-
-          <div className="generate-reports-page" onClick={(e) => e.stopPropagation()}>
-
-            <div className="generate-reports-header">
-
-              <h2>Generate Report</h2>
-
-              <button
-                className="generate-report-close-btn"
-                onClick={closeModal}
-              >
-                CLOSE ❌
-              </button>
-
-            </div>
-
-
-            <div className="generate-reports-filters">
-
-              <div className="generate-report-filter-group">
-                <label>Type</label>
-
-                <select
-                  value={reportType}
-                  onChange={(e) => setReportType(e.target.value)}
-                >
-                  <option value="Tithe">Tithe</option>
-                  <option value="Financial">Financial</option>
-                  <option value="Attendance">Attendance</option>
-                  <option value="Visitors">Visitors</option>
-                  <option value="Welfare">Welfare</option>
-                </select>
-              </div>
-
-              <div className="generate-report-filter-group">
-                <label>Start Date</label>
-
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </div>
-
-              <div className="generate-report-filter-group">
-                <label>End Date</label>
-
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
-
-              <button
-                className="generate-btn"
-                onClick={() => handleGenerate()}
-                disabled={loading}
-              >
-                {loading ? "Generating..." : "Generate"}
-              </button>
-
-              {result && (
                 <button
-                  className="generate-report-download-btn"
-                  onClick={downloadPDF}
+                  className="generate-report-close-btn"
+                  onClick={closeModal}
                 >
-                  <Download size={18} />
-                  Download PDF
+                  CLOSE ❌
                 </button>
-              )}
+              </div>
 
+              <div className="generate-reports-filters">
+                <div className="generate-report-filter-group">
+                  <label>Type</label>
+
+                  <select
+                    value={reportType}
+                    onChange={(e) => setReportType(e.target.value)}
+                  >
+                    <option value="Tithe">Tithe</option>
+                    <option value="Financial">Financial</option>
+                    <option value="Attendance">Attendance</option>
+                    <option value="Visitors">Visitors</option>
+                    <option value="Welfare">Welfare</option>
+                  </select>
+                </div>
+
+                <div className="generate-report-filter-group">
+                  {reportType === "Financial" && (
+                    <div className="generate-report-filter-group fund-filter-group">
+                      <label htmlFor="fundCode">
+                        Select Fund
+                      </label>
+
+                      <select
+                        id="fundCode"
+                        className="fund-select"
+                        value={fundCode}
+                        onChange={(e) =>
+                          setFundCode(e.target.value)
+                        }
+                      >
+                        <option value="ALL">
+                          All Funds
+                        </option>
+
+                        <option value="MAIN">
+                          Main Church
+                        </option>
+
+                        <option value="YOUTH">
+                          Youth
+                        </option>
+
+                        <option value="MEN">
+                          Men
+                        </option>
+
+                        <option value="WOMEN">
+                          Women
+                        </option>
+
+                        <option value="CHILDREN">
+                          Children
+                        </option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                <div className="generate-report-filter-group">
+                  <label>Start Date</label>
+
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) =>
+                      setStartDate(e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="generate-report-filter-group">
+                  <label>End Date</label>
+
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) =>
+                      setEndDate(e.target.value)
+                    }
+                  />
+                </div>
+
+                <button
+                  className="generate-btn"
+                  onClick={() => handleGenerate()}
+                  disabled={loading}
+                >
+                  {loading
+                    ? "Generating..."
+                    : "Generate"}
+                </button>
+
+                {result && (
+                  <button
+                    className="generate-report-download-btn"
+                    onClick={downloadPDF}
+                  >
+                    <Download size={18} />
+                    Download PDF
+                  </button>
+                )}
+              </div>
             </div>
-
-          </div>
-
-        </div>,
-        document.body
-
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 }

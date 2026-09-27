@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AddTransaction from "../../components/AddTransaction";
 import IncomeExpenseChart from "../../components/IncomeExpenseChart";
 import IncomeCategoryChart from "../../components/IncomeCategoryChart";
+import { getIncome, getExpenses, deleteIncome, deleteExpenditure, updateIncome, updateExpenditure } from "../../services/api";
 
 import "./FinancialSecretaryFinance.css";
 import "./AdminFinance.css"
@@ -9,23 +10,9 @@ import ExpenseCategoryChart from "../../components/ExpenseCategoryChart";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Wallet, FileSpreadsheet, FileText } from "lucide-react";
+import ChildrenAddTransaction from "../../components/childrenAddTransaction.jsx";
 
-import {
-  getIncomeByFund,
-  getExpenditureByFund,
-  deleteIncome,
-  deleteExpenditure,
-  updateIncome,
-  updateExpenditure,
-} from "../../services/api";
-
-
-
-function AdminFinance({
-  fundCode,
-  fundName,
-  AddTransactionComponent,
-}) {
+function ChildrenFinance() {
 
   const [income, setIncome] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -42,21 +29,21 @@ function AdminFinance({
 
   useEffect(() => {
     loadFinance();
-  }, [fundCode]);
+  }, []);
 
   const loadFinance = async () => {
     try {
-      const incomeData = await getIncomeByFund(fundCode);
-      const expenseData = await getExpenditureByFund(fundCode);
-  
+      const incomeData = await getIncome();
+      const expenseData = await getExpenses();
+
       setIncome(incomeData);
       setExpenses(expenseData);
-  
+
     } catch (err) {
       console.error(err);
       alert("Failed to load finance data");
     }
-  
+
     setLoading(false);
   };
 
@@ -266,13 +253,11 @@ function AdminFinance({
       <div className="finance-header">
         <div className="finance-title">
           <span className="finance-title-icon"><Wallet /></span>
-          <span className="finance-title-text">{fundName} Finance</span>
+          <span className="finance-title-text">Financial Management</span>
         </div>
 
         <div className="finance-action-btn">
-            {AddTransactionComponent && (
-            <AddTransactionComponent onSaved={loadFinance} />
-        )}
+          <ChildrenAddTransaction onSuccess={loadFinance} />
         </div>
       </div>
 
@@ -468,4 +453,4 @@ function AdminFinance({
   );
 }
 
-export default AdminFinance;
+export default ChildrenFinance;

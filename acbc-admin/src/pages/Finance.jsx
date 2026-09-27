@@ -1,30 +1,77 @@
 import DashboardLayout from "../layouts/DashboardLayout";
-import AdminDashboard from "./dashboards/AdminDashboard";
-import PastorDashboard from "./dashboards/PastorDashboard";
-import SecretaryDashboard from "./dashboards/SecretaryDashboard";
-import FinanceDashboard from "./dashboards/FinanceDashboard";
+
 import AdminFinance from "./Finance/AdminFinance";
 import PastorFinance from "./Finance/PastorFinance";
 import FinancialSecretaryFinance from "./Finance/FinancialSecretaryFinance";
 
-function Finance() {
-  // Correct way to read role
+import MainChurchAddTransaction from "../components/mainChurchAddTransaction";
+import YouthAddTransaction from "../components/youthAddTransaction";
+import WMUAddTransaction from "../components/wmuAddTransaction";
+import MenAddTransaction from "../components/menAddTransaction";
+import ChildrenAddTransaction from "../components/childrenAddTransaction.jsx";
+
+function Finance({ fundCode, fundName }) {
+  // Get logged-in user
   const user = JSON.parse(localStorage.getItem("user"));
   const role = user?.role;
+
+  let AddTransactionComponent;
+
+    switch (fundCode) {
+      case "MAIN":
+        AddTransactionComponent = MainChurchAddTransaction;
+        break;
+
+      case "YOUTH":
+        AddTransactionComponent = YouthAddTransaction;
+        break;
+
+      case "MEN":
+        AddTransactionComponent = MenAddTransaction;
+        break;
+
+      case "WMU":
+        AddTransactionComponent = WMUAddTransaction;
+        break;
+
+      case "CHILDREN":
+        AddTransactionComponent = ChildrenAddTransaction;
+        break;
+
+      default:
+        AddTransactionComponent = null;
+    }
+
 
   let Page;
 
   switch (role) {
     case "Admin":
-      Page = <AdminFinance />;
+      Page = (
+        <AdminFinance
+          fundCode={fundCode}
+          fundName={fundName}
+          AddTransactionComponent={AddTransactionComponent}
+        />
+      );
       break;
 
     case "Pastor":
-      Page = <PastorFinance />;
+      Page = (
+        <PastorFinance
+          fundCode={fundCode}
+          fundName={fundName}
+        />
+      );
       break;
 
     case "Financial Secretary":
-      Page = <FinancialSecretaryFinance />;
+      Page = (
+        <FinancialSecretaryFinance
+          fundCode={fundCode}
+          fundName={fundName}
+        />
+      );
       break;
 
     default:

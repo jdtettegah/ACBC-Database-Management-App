@@ -180,7 +180,7 @@ MODAL OVERLAY
   ================================= */
   
   .attendance-member-search {
-  margin-bottom: 10px;
+    margin-bottom: 10px;
   }
   
   .attendance-member-search input {
@@ -188,7 +188,16 @@ MODAL OVERLAY
   padding: 11px 14px;
   border: 1px solid #dbe2ea;
   border-radius: 10px;
+  margin-right: 10px;
   }
+
+  .attendance-member-search select {
+    padding: 11px 14px;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+    margin-right: 10px;
+    }
+    
   
   @media (min-width: 768px) {
   .attendance-member-search input {

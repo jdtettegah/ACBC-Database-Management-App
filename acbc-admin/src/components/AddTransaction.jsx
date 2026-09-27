@@ -41,8 +41,11 @@ function AddTransaction({ onSaved }) {
   "Day Born Offering",
   "Seed Offering",
   "Givings from Ministrations",
+  "Altar Offering",
+  "Special Offering",
   "Mid-Year Harvest",
   "Annual Harvest",
+  "Received Donation ",
   "Other Contributions"
   ];
 
@@ -52,6 +55,8 @@ function AddTransaction({ onSaved }) {
     "Association Dues",
     "Convention Dues",
     "Miscellaneous",
+    "Meetings",
+    "Donations",
     "Other Expenses"
   ];
 

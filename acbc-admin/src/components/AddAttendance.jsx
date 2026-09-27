@@ -19,6 +19,8 @@ function AddAttendance({ refresh }) {
   const [loading, setLoading] = useState(false);
 
   const [memberSearch, setMemberSearch] = useState("");
+  const [genderFilter, setGenderFilter] = useState("");
+  const [groupFilter, setGroupFilter] = useState("");
 
   const [visitorForm, setVisitorForm] = useState({
     first_name: "",
@@ -62,10 +64,19 @@ function AddAttendance({ refresh }) {
     const code = m.member_code?.toLowerCase() || "";
     const search = memberSearch.toLowerCase();
   
-    return (
+    const matchesSearch =
       fullName.includes(search) ||
-      code.includes(search)
-    );
+      code.includes(search);
+  
+    const matchesGender =
+      !genderFilter ||
+      m.gender?.toLowerCase() === genderFilter.toLowerCase();
+  
+    const matchesGroup =
+      !groupFilter ||
+      m.auxiliary_group?.toLowerCase() === groupFilter.toLowerCase();
+  
+    return matchesSearch && matchesGender && matchesGroup;
   });
 
   // ======================
@@ -282,12 +293,36 @@ function AddAttendance({ refresh }) {
             </div>
 
             <div className="attendance-member-search">
+
               <input
                 type="text"
                 placeholder="Search member name or code..."
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
               />
+
+              {/* Gender Filter */}
+              <select
+                value={genderFilter}
+                onChange={(e) => setGenderFilter(e.target.value)}
+              >
+                <option value="">All Genders</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+
+              {/* Auxiliary Group Filter */}
+              <select
+                value={groupFilter}
+                onChange={(e) => setGroupFilter(e.target.value)}
+              >
+                <option value="">All Groups</option>
+                <option value="Men">Men</option>
+                <option value="Youth">Youth</option>
+                <option value="WMU">WMU</option>
+                <option value="Children">Children</option>
+              </select>
+
             </div>
 
             {/* MEMBERS TABLE */}

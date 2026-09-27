@@ -363,7 +363,6 @@ const getMemberFullHistory = async (req, res) => {
 };
 
 /* ================= DAY BORN SPLIT ================= */
-
 const addDayBornSplit = async (req, res) => {
   const client = await pool.connect();
   const groupId = randomUUID();
@@ -378,63 +377,185 @@ const addDayBornSplit = async (req, res) => {
       date_received
     } = req.body;
 
+    /* ================= VALIDATION ================= */
+
     if (
       total_amount === undefined ||
       welfare_amount === undefined ||
+      !recorded_by ||
       !date_received
     ) {
-      return res.status(400).json({ message: "Missing required fields" });
+      return res.status(400).json({
+        message: "Missing required fields"
+      });
     }
 
     const total = Number(total_amount);
     const welfare = Number(welfare_amount);
 
-    if (welfare > total) {
-      return res.status(400).json({ message: "Invalid split" });
+    if (!Number.isFinite(total) || !Number.isFinite(welfare)) {
+      return res.status(400).json({
+        message: "Invalid amount"
+      });
     }
+
+    if (total <= 0 || welfare < 0) {
+      return res.status(400).json({
+        message: "Invalid amount"
+      });
+    }
+
+    if (welfare > total) {
+      return res.status(400).json({
+        message: "Welfare amount cannot exceed total amount"
+      });
+    }
+
+    /* ================= START TRANSACTION ================= */
 
     await client.query("BEGIN");
 
-    // 1. Income
-    await client.query(
-      `INSERT INTO income
-       (income_type, amount, source_description, recorded_by, date_received, transaction_group_id)
-       VALUES ('Day Born Offering', $1, $2, $3, $4, $5)`,
-      [total, description, recorded_by, date_received, groupId]
+    /* ================= GET MAIN CHURCH FUND ================= */
+
+    const mainFundResult = await client.query(
+      `
+      SELECT id
+      FROM funds
+      WHERE fund_code = 'MAIN'
+        AND is_active = TRUE
+      LIMIT 1
+      `
     );
 
-    // 2. Expenditure
+    if (mainFundResult.rows.length === 0) {
+      throw new Error("Main Church fund not found");
+    }
+
+    const mainFundId = mainFundResult.rows[0].id;
+
+    /* ================= 1. MAIN CHURCH INCOME ================= */
+
     await client.query(
-      `INSERT INTO expenditure
-       (category, amount, description, approved_by, recorded_by, date_spent, transaction_group_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [
-        "Welfare Transfer",
-        welfare,
-        "Transfer from Day Born Offering",
-        approved_by,
+      `
+      INSERT INTO income (
+        income_type,
+        amount,
+        source_description,
         recorded_by,
         date_received,
-        groupId
+        transaction_group_id,
+        fund_id
+      )
+      VALUES (
+        'Day Born Offering',
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6
+      )
+      `,
+      [
+        total,
+        description?.trim() || null,
+        recorded_by,
+        date_received,
+        groupId,
+        mainFundId
       ]
     );
 
-    // 3. Welfare income
-    await client.query(
-      `INSERT INTO welfare_direct_income
-       (source, amount, description, recorded_by, date_received, transaction_group_id)
-       VALUES ('Day Born Offering', $1, $2, $3, $4, $5)`,
-      [welfare, description, recorded_by, date_received, groupId]
-    );
+    /* ================= 2. WELFARE TRANSFER ================= */
+
+    if (welfare > 0) {
+      await client.query(
+        `
+        INSERT INTO expenditure (
+          category,
+          amount,
+          description,
+          approved_by,
+          recorded_by,
+          date_spent,
+          transaction_group_id,
+          fund_id
+        )
+        VALUES (
+          $1,
+          $2,
+          $3,
+          $4,
+          $5,
+          $6,
+          $7,
+          $8
+        )
+        `,
+        [
+          "Welfare Transfer",
+          welfare,
+          "Transfer from Day Born Offering to Welfare",
+          approved_by,
+          recorded_by,
+          date_received,
+          groupId,
+          mainFundId
+        ]
+      );
+
+      /* ================= 3. WELFARE DIRECT INCOME ================= */
+
+      await client.query(
+        `
+        INSERT INTO welfare_direct_income (
+          source,
+          amount,
+          description,
+          recorded_by,
+          date_received,
+          transaction_group_id
+        )
+        VALUES (
+          $1,
+          $2,
+          $3,
+          $4,
+          $5,
+          $6
+        )
+        `,
+        [
+          "Day Born Offering",
+          welfare,
+          description?.trim() || null,
+          recorded_by,
+          date_received,
+          groupId
+        ]
+      );
+    }
+
+    /* ================= COMMIT ================= */
 
     await client.query("COMMIT");
 
-    res.json({ success: true, message: "Split successful" });
+    return res.json({
+      success: true,
+      message: "Day Born Offering split successful",
+      transaction_group_id: groupId
+    });
 
   } catch (err) {
     await client.query("ROLLBACK");
+
     console.error("Day Born Split Error:", err);
-    res.status(500).json({ message: "Transaction failed" });
+
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Transaction failed"
+    });
+
   } finally {
     client.release();
   }

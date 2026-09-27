@@ -163,3 +163,141 @@
 .install-btn:hover {
   background: #006600;
 }
+
+/* =========================================================
+   FINANCE MENU
+========================================================= */
+/* =========================================================
+   FINANCE MENU
+========================================================= */
+
+
+/* Finance main button */
+.finance-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px 16px;
+  border: none;
+  border-radius: 14px;
+
+  background: transparent;
+  color: #475569;
+
+  cursor: pointer;
+  text-align: left;
+
+  transition: all 0.25s ease;
+}
+
+/* Finance hover */
+.finance-toggle:hover {
+  background: #F8FAFC;
+  color: #4A6FD3;
+  transform: translateX(4px);
+}
+
+/* Finance when submenu is open */
+.finance-toggle.finance-open {
+  background: linear-gradient(135deg, #4A6FD3, #6C8EF5);
+  color: white;
+  box-shadow: 0 10px 24px rgba(74, 111, 211, 0.18);
+}
+
+/* Finance icon */
+.finance-toggle .nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+}
+
+/* Finance title */
+.finance-title {
+  flex: 1;
+  
+}
+
+/* Chevron */
+.finance-chevron {
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.finance-chevron.rotate {
+  transform: rotate(180deg);
+}
+
+
+/* =========================================================
+   FINANCE SUBMENU
+========================================================= */
+
+.finance-submenu {
+  margin: 4px 0 4px 18px;
+  padding-left: 10px;
+
+  border-left: 2px solid #E2E8F0;
+
+  animation: financeSlideDown 0.2s ease;
+}
+
+@keyframes financeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   FINANCE SUB LINKS
+========================================================= */
+
+.finance-sub-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 9px 12px;
+  margin: 2px 0;
+
+  color: #64748B;
+  text-decoration: none;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  border-radius: 10px;
+
+  transition: all 0.2s ease;
+}
+
+/* Submenu hover */
+.finance-sub-link:hover {
+  background: #F8FAFC;
+  color: #4A6FD3;
+  transform: translateX(3px);
+}
+
+/* Active submenu item */
+.finance-sub-link.active {
+  background: #EEF2FF;
+  color: #4A6FD3;
+  font-weight: 600;
+}
+
+/* Submenu icon */
+.sub-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+}

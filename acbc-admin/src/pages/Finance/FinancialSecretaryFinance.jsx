@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import AddTransaction from "../../components/AddTransaction";
 import IncomeExpenseChart from "../../components/IncomeExpenseChart";
 import IncomeCategoryChart from "../../components/IncomeCategoryChart";
-import { getIncome, getExpenses, deleteIncome, deleteExpenditure, updateIncome, updateExpenditure } from "../../services/api";
 
 import "./FinancialSecretaryFinance.css";
 import "./AdminFinance.css"
@@ -11,7 +10,22 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Wallet, FileSpreadsheet, FileText } from "lucide-react";
 
-function FinancialSecretaryFinance() {
+import {
+  getIncomeByFund,
+  getExpenditureByFund,
+  deleteIncome,
+  deleteExpenditure,
+  updateIncome,
+  updateExpenditure,
+} from "../../services/api";
+
+
+
+function FinancialSecretaryFinance({
+  fundCode,
+  fundName,
+  AddTransactionComponent,
+}) {
 
   const [income, setIncome] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -28,21 +42,21 @@ function FinancialSecretaryFinance() {
 
   useEffect(() => {
     loadFinance();
-  }, []);
+  }, [fundCode]);
 
   const loadFinance = async () => {
     try {
-      const incomeData = await getIncome();
-      const expenseData = await getExpenses();
-
+      const incomeData = await getIncomeByFund(fundCode);
+      const expenseData = await getExpenditureByFund(fundCode);
+  
       setIncome(incomeData);
       setExpenses(expenseData);
-
+  
     } catch (err) {
       console.error(err);
       alert("Failed to load finance data");
     }
-
+  
     setLoading(false);
   };
 
@@ -252,11 +266,13 @@ function FinancialSecretaryFinance() {
       <div className="finance-header">
         <div className="finance-title">
           <span className="finance-title-icon"><Wallet /></span>
-          <span className="finance-title-text">Financial Management</span>
+          <span className="finance-title-text">{fundName} Finance</span>
         </div>
 
         <div className="finance-action-btn">
-          <AddTransaction onSuccess={loadFinance} />
+            {AddTransactionComponent && (
+            <AddTransactionComponent onSaved={loadFinance} />
+        )}
         </div>
       </div>
 

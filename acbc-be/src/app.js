@@ -21,6 +21,7 @@ import activityRoutes from "./routes/activity.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import welfareRoutes from './routes/welfare.routes.js';
 import welfareExpenseRoutes from './routes/welfareExpense.routes.js';
+import fundsRoutes from './routes/funds.routes.js';
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use("/api/activity", authMiddleware, activityRoutes);
 app.use("/api/dashboard", authMiddleware, dashboardRoutes);
 app.use('/api/welfare', authMiddleware, welfareRoutes);
 app.use('/api/welfare/expenses', authMiddleware, welfareExpenseRoutes);
+app.use('/api/funds', authMiddleware, fundsRoutes);
 app.get('/', (req, res) => {
     res.send('ACBC API is running');
 });

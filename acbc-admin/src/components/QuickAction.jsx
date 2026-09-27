@@ -1,6 +1,7 @@
 import "./QuickAction.css";
 import AddMember from "./AddMember";
 import AddAttendance from "./AddAttendance";
+import MainChurchAddTransaction from "./mainChurchAddTransaction";
 import AddTransaction from "./AddTransaction";
 import AdminGenerateReport from "./AdminGenerateReport";
 import AddUser from "./AddUser";
@@ -30,7 +31,7 @@ function QuickActions() {
         
 
         <div className="action-btn">
-           <AddTransaction />
+           < MainChurchAddTransaction/>
         </div>
 
         <div className="action-btn">

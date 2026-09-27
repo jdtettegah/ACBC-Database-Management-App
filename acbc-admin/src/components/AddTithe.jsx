@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getMembers } from "../services/api";
+import { getTitheMembers } from "../services/api";
 import { saveBulkTithe } from "../services/api";
 import "./AddTithe.css";
 import { getLoggedInUser } from "../services/api";
@@ -26,7 +26,7 @@ function AddTithe({ onSaved }) {
 
   const loadMembers = async () => {
     try {
-      const data = await getMembers();
+      const data = await getTitheMembers();
       setMembers(data);
     } catch {
       alert("Failed to load members");

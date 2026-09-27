@@ -269,6 +269,7 @@ function AddMember({ onSuccess}) {
                     <option>Youth</option>
                     <option>Men</option>
                     <option>WMU</option>
+                    <option>Children</option>
                   </select>
                 </div>
 
