@@ -1,14 +1,20 @@
 import pool from "../services/db.js";
 
 /**
- * 📊 MONTHLY FINANCE REPORT
+ * MONTHLY FINANCE REPORT
  *
- * Supports:
- * - All funds
- * - A selected fund using fund_code
- * - Detailed income transactions
- * - Detailed expense transactions
- * - Tithe collections displayed separately
+ * Returns:
+ * - Opening balance
+ * - Income grouped by income type
+ * - Expenses grouped by category
+ * - Total income and total expense
+ * - Closing balance
+ * - Total tithe for the selected period
+ * - Fund breakdown
+ *
+ * Tithe is already recorded in the income table.
+ * Therefore, totalTithe is informational and must NOT
+ * be added to totalIncome a second time.
  */
 const monthlyFinanceReport = async (req, res) => {
   try {
@@ -20,7 +26,15 @@ const monthlyFinanceReport = async (req, res) => {
       });
     }
 
-    const hasFundFilter = Boolean(fund_code);
+    if (start > end) {
+      return res.status(400).json({
+        message: "Start date cannot be after end date",
+      });
+    }
+
+    const hasFundFilter = Boolean(
+      fund_code && fund_code !== "ALL"
+    );
 
     const fundCondition = hasFundFilter
       ? "AND f.fund_code = $3"
@@ -29,10 +43,6 @@ const monthlyFinanceReport = async (req, res) => {
     const params = hasFundFilter
       ? [start, end, fund_code]
       : [start, end];
-
-    // ==========================================
-    // OPENING BALANCE
-    // ==========================================
 
     const openingFundCondition = hasFundFilter
       ? "AND f.fund_code = $2"
@@ -43,7 +53,7 @@ const monthlyFinanceReport = async (req, res) => {
       : [start];
 
     // ==========================================
-    // OPENING INCOME
+    // OPENING BALANCE
     // ==========================================
 
     const openingIncomeResult = await pool.query(
@@ -56,10 +66,6 @@ const monthlyFinanceReport = async (req, res) => {
       `,
       openingParams
     );
-
-    // ==========================================
-    // OPENING EXPENSE
-    // ==========================================
 
     const openingExpenseResult = await pool.query(
       `
@@ -77,87 +83,104 @@ const monthlyFinanceReport = async (req, res) => {
       Number(openingExpenseResult.rows[0].total);
 
     // ==========================================
-    // INCOME TRANSACTIONS
+    // INCOME GROUPED BY CATEGORY
     // ==========================================
+    // Tithe is included here because each tithe
+    // already has a corresponding income record.
+    // Individual transactions are not returned.
 
-    const incomeResult = await pool.query(
+    const incomeCategoryResult = await pool.query(
       `
       SELECT
-        i.id,
-        i.date_received AS date,
-        i.income_type,
-        i.source_description AS source,
-        i.amount,
-        i.source_description AS description,
-        f.fund_code,
-        f.fund_name
+        COALESCE(
+          NULLIF(TRIM(i.income_type), ''),
+          'Uncategorized'
+        ) AS category,
+        COALESCE(SUM(i.amount), 0) AS total
       FROM income i
       JOIN funds f ON i.fund_id = f.id
       WHERE i.date_received BETWEEN $1 AND $2
       ${fundCondition}
-      ORDER BY i.date_received ASC, i.id ASC
+      GROUP BY
+        COALESCE(
+          NULLIF(TRIM(i.income_type), ''),
+          'Uncategorized'
+        )
+      ORDER BY category ASC
       `,
       params
     );
 
+    const incomeByCategory = incomeCategoryResult.rows.map(
+      (row) => ({
+        category: row.category,
+        total: Number(row.total),
+      })
+    );
+
+    const totalIncome = incomeByCategory.reduce(
+      (sum, item) => sum + item.total,
+      0
+    );
+
     // ==========================================
-    // EXPENSE TRANSACTIONS
+    // EXPENSES GROUPED BY CATEGORY
     // ==========================================
 
-    const expenseResult = await pool.query(
+    const expenseCategoryResult = await pool.query(
       `
       SELECT
-        e.id,
-        e.date_spent AS date,
-        e.category,
-        e.amount,
-        e.description,
-        f.fund_code,
-        f.fund_name
+        COALESCE(
+          NULLIF(TRIM(e.category), ''),
+          'Uncategorized'
+        ) AS category,
+        COALESCE(SUM(e.amount), 0) AS total
       FROM expenditure e
       JOIN funds f ON e.fund_id = f.id
       WHERE e.date_spent BETWEEN $1 AND $2
       ${fundCondition}
-      ORDER BY e.date_spent ASC, e.id ASC
+      GROUP BY
+        COALESCE(
+          NULLIF(TRIM(e.category), ''),
+          'Uncategorized'
+        )
+      ORDER BY category ASC
       `,
       params
     );
 
-    const income = incomeResult.rows;
-    const expenses = expenseResult.rows;
+    const expensesByCategory = expenseCategoryResult.rows.map(
+      (row) => ({
+        category: row.category,
+        total: Number(row.total),
+      })
+    );
 
-    // ==========================================
-    // NORMAL INCOME / EXPENSE TOTALS
-    // ==========================================
-
-    const totalIncome = income.reduce(
-      (sum, item) => sum + Number(item.amount),
+    const totalExpense = expensesByCategory.reduce(
+      (sum, item) => sum + item.total,
       0
     );
 
-    const totalExpense = expenses.reduce(
-      (sum, item) => sum + Number(item.amount),
-      0
-    );
+    // ==========================================
+    // CLOSING BALANCE
+    // ==========================================
 
     const closingBalance =
       openingBalance + totalIncome - totalExpense;
 
     // ==========================================
-    // TITHE TOTAL
-    //
-    // Tithes are stored separately in the tithes
-    // table and are displayed separately from
-    // normal income transactions.
-    //
-    // At the moment tithes are NOT assigned to
-    // funds, so they are not filtered by fund_code.
+    // TOTAL TITHE
     // ==========================================
+    // This is a separate informational figure.
+    // Do not add it to totalIncome again.
+    //
+    // Existing design: tithes are not assigned to
+    // funds, so the selected fund does not filter
+    // this separate tithe total.
 
     const titheTotalResult = await pool.query(
       `
-      SELECT
-        COALESCE(SUM(amount), 0) AS total
+      SELECT COALESCE(SUM(amount), 0) AS total
       FROM tithes
       WHERE date_paid BETWEEN $1 AND $2
       `,
@@ -167,35 +190,6 @@ const monthlyFinanceReport = async (req, res) => {
     const totalTithe = Number(
       titheTotalResult.rows[0].total
     );
-
-    // ==========================================
-    // TITHE COLLECTIONS BY DATE
-    //
-    // The frontend expects:
-    //
-    // titheCollections: [
-    //   {
-    //     date: "...",
-    //     total: "..."
-    //   }
-    // ]
-    // ==========================================
-
-    const titheCollectionsResult = await pool.query(
-      `
-      SELECT
-        date_paid AS date,
-        COALESCE(SUM(amount), 0) AS total
-      FROM tithes
-      WHERE date_paid BETWEEN $1 AND $2
-      GROUP BY date_paid
-      ORDER BY date_paid ASC
-      `,
-      [start, end]
-    );
-
-    const titheCollections =
-      titheCollectionsResult.rows;
 
     // ==========================================
     // FUND BREAKDOWN
@@ -242,7 +236,7 @@ const monthlyFinanceReport = async (req, res) => {
       WHERE f.is_active = TRUE
       ${hasFundFilter ? "AND f.fund_code = $3" : ""}
 
-      ORDER BY f.fund_name
+      ORDER BY f.fund_name ASC
       `,
       params
     );
@@ -251,32 +245,32 @@ const monthlyFinanceReport = async (req, res) => {
     // RESPONSE
     // ==========================================
 
-    res.json({
+    return res.json({
       start,
       end,
-      fund_code: fund_code || "ALL",
+      fund_code: hasFundFilter ? fund_code : "ALL",
 
       openingBalance,
 
-      income,
-      expenses,
+      // Category summaries; no individual
+      // income or expense transaction records.
+      incomeByCategory,
+      expensesByCategory,
 
       totalIncome,
       totalExpense,
       closingBalance,
 
-      // Tithes are intentionally returned
-      // separately from normal income.
+      // Informational only; already included
+      // in totalIncome through the income table.
       totalTithe,
-      titheCollections,
 
       fundBreakdown: fundBreakdownResult.rows,
     });
-
   } catch (err) {
     console.error("Finance Report Error:", err);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to generate report",
     });
   }

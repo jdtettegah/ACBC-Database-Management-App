@@ -236,9 +236,17 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
         FINANCIAL REPORT
     ========================= */
 
+        
+    /* =========================
+        FINANCIAL REPORT
+    ========================= */
+
     if (reportType === "Financial") {
+      const incomeCategories = result.incomeByCategory || [];
+      const expenseCategories = result.expensesByCategory || [];
+
       // ==========================================
-      // REPORT SUMMARY
+      // FINANCIAL SUMMARY
       // ==========================================
 
       autoTable(doc, {
@@ -254,211 +262,152 @@ function AdminGenerateReport({ existingReport, onClose, refreshReports }) {
         ],
 
         ...tableStyles,
+
+        columnStyles: {
+          0: { cellWidth: 100 },
+          1: { cellWidth: 65, halign: "right" },
+        },
       });
 
       startY = doc.lastAutoTable.finalY + 12;
 
       // ==========================================
-      // INCOME TRANSACTIONS
+      // INCOME BY CATEGORY
       // ==========================================
 
       doc.setFontSize(13);
-      doc.text("INCOME", 14, startY);
+      doc.text("INCOME BREAKDOWN", 14, startY);
 
-      startY += 5;
-
-      const incomeRows = (result.income || []).map((income) => [
-        formatDate(income.date),
-        income.source || income.income_type || "-",
-        money(income.amount),
-        income.description || "-",
-        income.fund_name || "-",
+      const incomeRows = incomeCategories.map((item) => [
+        item.category || "Uncategorized",
+        money(item.total),
       ]);
 
       autoTable(doc, {
         startY: startY + 5,
 
-        head: [[
-          "Date",
-          "Source",
-          "Amount",
-          "Description",
-          "Fund",
-        ]],
+        head: [["Income Category", "Amount"]],
 
         body: incomeRows.length
           ? incomeRows
-          : [["-", "No income transactions", "-", "-", "-"]],
+          : [["No income recorded", money(0)]],
+
+        foot: [
+          ["TOTAL INCOME", money(result.totalIncome)],
+        ],
 
         ...tableStyles,
 
         columnStyles: {
-          0: { cellWidth: 25 },
-          1: { cellWidth: 32 },
-          2: { cellWidth: 25 },
-          3: { cellWidth: 55 },
-          4: { cellWidth: 35 },
+          0: { cellWidth: 100 },
+          1: { cellWidth: 65, halign: "right" },
+        },
+
+        footStyles: {
+          fillColor: [230, 240, 250],
+          textColor: [20, 40, 60],
+          fontStyle: "bold",
         },
       });
 
-      startY = doc.lastAutoTable.finalY + 5;
+      startY = doc.lastAutoTable.finalY + 12;
 
       // ==========================================
-      // TOTAL INCOME
+      // TITHE SUMMARY
       // ==========================================
-
-      doc.setFontSize(11);
-
-      doc.text(
-        `Total Income: ${money(result.totalIncome)}`,
-        14,
-        startY
-      );
-
-      // ==========================================
-      // TITHE COLLECTIONS
-      // ==========================================
-
-      startY += 12;
+      // Show one accumulated total only.
+      // Tithe is already included in Total Income.
 
       doc.setFontSize(13);
-      doc.text("TITHE", 14, startY);
+      doc.text("TITHE SUMMARY", 14, startY);
 
-      startY += 5;
+      autoTable(doc, {
+        startY: startY + 5,
 
-      /*
-        Tithes are stored separately from the normal
-        income transactions.
+        head: [["Description", "Amount"]],
 
-        The backend groups all individual tithes
-        collected on the same date into one bulk
-        collection.
+        body: [
+          ["Total Tithe Collected", money(result.totalTithe || 0)],
+        ],
 
-        Expected backend response:
+        ...tableStyles,
 
-        titheCollections: [
-          {
-            date: "2026-09-06",
-            total: "4250"
-          },
-          ...
-        ]
+        columnStyles: {
+          0: { cellWidth: 100 },
+          1: { cellWidth: 65, halign: "right" },
+        },
+      });
 
-        totalTithe: 13225
-      */
+      startY = doc.lastAutoTable.finalY + 12;
 
-      const titheRows = (result.titheCollections || []).map((tithe) => [
-        formatDate(tithe.date),
-        money(tithe.total),
+      // ==========================================
+      // EXPENSES BY CATEGORY
+      // ==========================================
+
+      doc.setFontSize(13);
+      doc.text("EXPENSE BREAKDOWN", 14, startY);
+
+      const expenseRows = expenseCategories.map((item) => [
+        item.category || "Uncategorized",
+        money(item.total),
       ]);
 
       autoTable(doc, {
         startY: startY + 5,
 
-        head: [[
-          "Date",
-          "Total Tithe",
-        ]],
-
-        body: titheRows.length
-          ? titheRows
-          : [["-", "No tithe collections"]],
-
-        ...tableStyles,
-
-        columnStyles: {
-          0: { cellWidth: 60 },
-          1: { cellWidth: 50 },
-        },
-      });
-
-      startY = doc.lastAutoTable.finalY + 5;
-
-      // ==========================================
-      // TOTAL TITHE
-      // ==========================================
-
-      doc.setFontSize(11);
-
-      doc.text(
-        `Total Tithe: ${money(result.totalTithe || 0)}`,
-        14,
-        startY
-      );
-
-      // ==========================================
-      // EXPENSE TRANSACTIONS
-      // ==========================================
-
-      startY += 12;
-
-      doc.setFontSize(13);
-      doc.text("EXPENSE", 14, startY);
-
-      startY += 5;
-
-      const expenseRows = (result.expenses || []).map((expense) => [
-        formatDate(expense.date),
-        expense.category || "-",
-        money(expense.amount),
-        expense.description || "-",
-        expense.fund_name || "-",
-      ]);
-
-      autoTable(doc, {
-        startY: startY + 5,
-
-        head: [[
-          "Date",
-          "Category",
-          "Amount",
-          "Description",
-          "Fund",
-        ]],
+        head: [["Expense Category", "Amount"]],
 
         body: expenseRows.length
           ? expenseRows
-          : [["-", "No expense transactions", "-", "-", "-"]],
+          : [["No expenses recorded", money(0)]],
+
+        foot: [
+          ["TOTAL EXPENSE", money(result.totalExpense)],
+        ],
 
         ...tableStyles,
 
         columnStyles: {
-          0: { cellWidth: 25 },
-          1: { cellWidth: 32 },
-          2: { cellWidth: 25 },
-          3: { cellWidth: 55 },
-          4: { cellWidth: 35 },
+          0: { cellWidth: 100 },
+          1: { cellWidth: 65, halign: "right" },
+        },
+
+        footStyles: {
+          fillColor: [230, 240, 250],
+          textColor: [20, 40, 60],
+          fontStyle: "bold",
         },
       });
 
-      startY = doc.lastAutoTable.finalY + 5;
-
-      // ==========================================
-      // TOTAL EXPENSE
-      // ==========================================
-
-      doc.setFontSize(11);
-
-      doc.text(
-        `Total Expense: ${money(result.totalExpense)}`,
-        14,
-        startY
-      );
-
-      startY += 12;
+      startY = doc.lastAutoTable.finalY + 12;
 
       // ==========================================
       // CLOSING BALANCE
       // ==========================================
 
-      doc.setFontSize(13);
+      autoTable(doc, {
+        startY,
 
-      doc.text(
-        `Closing Balance: ${money(result.closingBalance)}`,
-        14,
-        startY
-      );
-    }
+        head: [["FINAL BALANCE", "Amount"]],
+
+        body: [
+          ["Closing Balance", money(result.closingBalance)],
+        ],
+
+        ...tableStyles,
+
+        headStyles: {
+          fillColor: [35, 90, 65],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+
+        columnStyles: {
+          0: { cellWidth: 100 },
+          1: { cellWidth: 65, halign: "right" },
+        },
+      });
+}
 
     /* =========================
         ATTENDANCE REPORT
